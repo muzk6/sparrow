@@ -6,13 +6,15 @@ define('PATH_PUBLIC', PATH_ROOT . '/public');
 define('PATH_DATA', PATH_ROOT . '/data');
 define('PATH_CONFIG', PATH_ROOT . '/config');
 
-if (is_file('/www/PROD')) {
+if (is_file('/www/PUB')) {
     ini_set('display_errors', 0);
-    define('PATH_CONFIG_ENV', PATH_ROOT . '/config/prod');
+    define('APP_ENV', 'pub');
 } else {
     ini_set('display_errors', 1);
-    define('PATH_CONFIG_ENV', PATH_ROOT . '/config/dev');
+    define('APP_ENV', 'dev');
 }
+
+define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 
 require_once PATH_ROOT . '/vendor/autoload.php';
 

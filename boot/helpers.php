@@ -72,3 +72,23 @@ function app_log($name = 'app')
 
     return $log;
 }
+
+/**
+ * redis缓存
+ * @return Predis\Client
+ */
+function app_redis()
+{
+    static $client = null;
+
+    if (!$client) {
+        $conf = app_config('redis');
+        $client = new Predis\Client([
+            'scheme' => $conf['scheme'],
+            'host' => $conf['host'],
+            'port' => $conf['port'],
+        ]);
+    }
+
+    return $client;
+}
