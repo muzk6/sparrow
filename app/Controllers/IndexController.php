@@ -8,7 +8,7 @@ class IndexController
 {
     public function index()
     {
-        $ds = db()->query('select * from test where id = 1')->fetch(2);
-        echo view()->render('index.twig', ['name' => $ds['name']]);
+        $ds = app_db()->query('select * from test where id = 1')->fetch(2);
+        echo app_view()->render('index.twig', ['name' => $ds['name']]);
     }
 }
