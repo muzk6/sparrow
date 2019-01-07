@@ -100,7 +100,7 @@ function app_redis()
  * @param $queue
  * @param array $data
  */
-function app_mq_publish($queue, array $data)
+function app_publish($queue, array $data)
 {
     static $connection = null;
     static $channel = null;
@@ -127,7 +127,7 @@ function app_mq_publish($queue, array $data)
  * @param $queue
  * @param callable $callback
  */
-function app_mq_consume($queue, callable $callback)
+function app_consume($queue, callable $callback)
 {
     $conf = app_config('rabbitmq');
     $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
