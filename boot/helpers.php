@@ -49,7 +49,7 @@ function app_db()
     if (!$pdo) {
         $conf = app_config('database');
         $pdo = new PDO("mysql:dbname={$conf['dbname']};host={$conf['host']};port={$conf['port']}",
-            $conf['username'], $conf['passwd']);
+            $conf['user'], $conf['passwd']);
     }
 
     return $pdo;
@@ -95,24 +95,57 @@ function app_redis()
     return $client;
 }
 
-function app_rabbit_mq()
+/**
+ * 消息队列发布
+ * @param $queue
+ * @param array $data
+ */
+function app_mq_publish($queue, array $data)
 {
-    $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
+    static $connection = null;
+    static $channel = null;
+
+    if (!$connection || !$channel) {
+        $conf = app_config('rabbitmq');
+        $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
+
+        $channel = $connection->channel();
+        $channel->exchange_declare($conf['exchange_name'], $conf['exchange_type'], false, false, false);
+        $channel->queue_declare($queue, false, true, false, false);
+    }
+
+    $msg = new AMQPMessage(
+        json_encode($data),
+        ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]
+    );
+
+    $channel->basic_publish($msg, '', $queue);
+}
+
+/**
+ * 消息队列消费
+ * @param $queue
+ * @param callable $callback
+ */
+function app_mq_consume($queue, callable $callback)
+{
+    $conf = app_config('rabbitmq');
+    $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
+
     $channel = $connection->channel();
+    $channel->exchange_declare($conf['exchange_name'], $conf['exchange_type'], false, false, false);
+    $channel->queue_declare($queue, false, true, false, false);
+    $channel->basic_qos(null, 1, null);
 
-    $channel->queue_declare('hello', false, false, false, false);
+    $channel->basic_consume($queue, '', false, false, false, false,
+        function ($msg) use ($callback) {
+            $callback(json_decode($msg->body, true));
+            $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
+        });
 
-    $msg = new AMQPMessage('Hello World!');
-    $channel->basic_publish($msg, '', 'hello');
-    echo " [x] Sent 'Hello World!'\n";
-
-//    $callback = function ($msg) {
-//        echo ' [x] Received ', $msg->body, "\n";
-//    };
-//    $channel->basic_consume('hello', '', false, true, false, false, $callback);
-//    while (count($channel->callbacks)) {
-//        $channel->wait();
-//    }
+    while (count($channel->callbacks)) {
+        $channel->wait();
+    }
 
     $channel->close();
     $connection->close();
