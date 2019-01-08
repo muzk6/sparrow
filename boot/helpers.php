@@ -68,8 +68,9 @@ function app_monolog($name = 'app')
     if (!isset($log)) {
         $log = new Logger($name);
 
-        $date = date('Ym');
-        $log->pushHandler(new StreamHandler(PATH_DATA . "/log/{$name}_{$date}.log"));
+        $path = sprintf('%s/%s_%s_%s.log',
+            PATH_LOG, PHP_SAPI, $name, date('Ym'));
+        $log->pushHandler(new StreamHandler($path));
     }
 
     return $log;

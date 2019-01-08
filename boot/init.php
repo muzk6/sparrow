@@ -4,6 +4,7 @@ define('PATH_ROOT', dirname(__DIR__));
 define('PATH_VIEW', PATH_ROOT . '/views');
 define('PATH_PUBLIC', PATH_ROOT . '/public');
 define('PATH_DATA', PATH_ROOT . '/data');
+define('PATH_LOG', PATH_DATA . '/log');
 define('PATH_CONFIG', PATH_ROOT . '/config');
 
 if (is_file('/www/PUB')) {
@@ -16,13 +17,7 @@ if (is_file('/www/PUB')) {
 
 define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 
+ini_set('log_errors', 1);
+ini_set('error_log', sprintf('%s/%s_error_%s.log', PATH_LOG, PHP_SAPI, date('Ym')));
+
 require_once PATH_ROOT . '/vendor/autoload.php';
-
-set_error_handler(function ($errno, $errstr, $errfile, $errline, $errcontext) {
-    var_dump($errstr);
-});
-
-//register_shutdown_function(function () {
-//    $error = error_get_last();
-//    var_dump($error);
-//});
