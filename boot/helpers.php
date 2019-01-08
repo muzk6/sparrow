@@ -129,6 +129,10 @@ function app_publish($queue, array $data)
  */
 function app_consume($queue, callable $callback)
 {
+    if (PHP_SAPI != 'cli') {
+        return;
+    }
+
     $conf = app_config('rabbitmq');
     $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
 
@@ -143,7 +147,25 @@ function app_consume($queue, callable $callback)
             $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
         });
 
+    static $fileStats = [];
     while (count($channel->callbacks)) {
+        $includedFiles = get_included_files();
+        foreach ($includedFiles as $includedFile) {
+            clearstatcache(true, $includedFile);
+            $mtime = filemtime($includedFile);
+            $size = filesize($includedFile); // 同时比较文件大小，防止开发机发运行环境时间不一致
+
+            // 记录、检查文件最后修改时间、大小，不同就直接结束进程(使用 supervisor 进行重启)
+            if (!isset($fileStats[$includedFile])) {
+                $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
+            } elseif ($fileStats[$includedFile]['mtime'] != $mtime
+                || $fileStats[$includedFile]['size'] != $size) {
+                $channel->close();
+                $connection->close();
+                exit;
+            }
+        }
+
         $channel->wait();
     }
 
