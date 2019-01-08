@@ -6,9 +6,9 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
 /**
- * 返回配置文件内容
+ * 配置文件
  * @param string $filename 无后缀的文件名
- * @return array|null
+ * @return array|null 返回配置文件内容
  */
 function app_config($filename)
 {
@@ -22,10 +22,10 @@ function app_config($filename)
 }
 
 /**
- * 视图模板
+ * 视图模板 twig
  * @return null|Twig_Environment
  */
-function app_view()
+function app_twig()
 {
     static $twig = null;
 
@@ -40,9 +40,9 @@ function app_view()
 }
 
 /**
- * 数据库
+ * 数据库 pdo
  */
-function app_db()
+function app_pdo()
 {
     static $pdo = null;
 
@@ -56,11 +56,11 @@ function app_db()
 }
 
 /**
- * 日志
+ * 日志 monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return Logger
  */
-function app_log($name = 'app')
+function app_monolog($name = 'app')
 {
     static $logGroup = [];
 
@@ -76,7 +76,7 @@ function app_log($name = 'app')
 }
 
 /**
- * redis缓存
+ * 缓存 redis
  * @return Predis\Client
  */
 function app_redis()
