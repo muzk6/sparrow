@@ -20,4 +20,6 @@ define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 ini_set('log_errors', 1);
 ini_set('error_log', sprintf('%s/%s_error_%s.log', PATH_LOG, PHP_SAPI, date('Ym')));
 
+date_default_timezone_set('PRC');
+
 require_once PATH_ROOT . '/vendor/autoload.php';
