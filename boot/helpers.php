@@ -154,7 +154,7 @@ function app_consume($queue, callable $callback)
         foreach ($includedFiles as $includedFile) {
             clearstatcache(true, $includedFile);
             $mtime = filemtime($includedFile);
-            $size = filesize($includedFile); // 同时比较文件大小，防止开发机发运行环境时间不一致
+            $size = filesize($includedFile); // 同时比较文件大小，防止开发机与运行环境时间不一致
 
             // 记录、检查文件最后修改时间、大小，不同就直接结束进程(使用 supervisor 进行重启)
             if (!isset($fileStats[$includedFile])) {
