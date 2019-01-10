@@ -1,10 +1,14 @@
 <?php
 
+/**
+ * yar的服务端
+ */
+
 require_once dirname(__DIR__) . '/boot/init.php';
 
 class Foo
 {
-    public function bar($parameter, $option = "foo")
+    public function bar($parameter, $option = 'foo')
     {
         return [$parameter, $option];
     }
