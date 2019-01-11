@@ -35,3 +35,13 @@ define('APP_LANG', isset($_COOKIE['lang'])
         ? $_COOKIE['lang'] : $appConf['lang'])
     : $appConf['lang']
 );
+
+// session
+$sessionConf = app_config('session');
+if ($sessionConf['session.save_handler'] == 'files' && !file_exists($sessionConf['session.save_path'])) {
+    mkdir($sessionConf['session.save_path'], 0777, true);
+}
+foreach ($sessionConf as $k => $v) {
+    ini_set($k, $v);
+}
+session_id() || session_start();
