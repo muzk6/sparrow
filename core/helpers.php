@@ -22,6 +22,25 @@ function app_config($filename)
 }
 
 /**
+ * 多语言文本
+ * @param int $code
+ * @param array $params
+ * @return string
+ */
+function app_lang($code, $params = [])
+{
+    $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
+    $text = $lang[$code];
+    if ($params) {
+        foreach ($params as $k => $v) {
+            $text = str_replace("{{$k}}", $v, $text);
+        }
+    }
+
+    return $text;
+}
+
+/**
  * 视图模板 twig
  * @return null|Twig_Environment
  */
