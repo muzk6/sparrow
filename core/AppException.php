@@ -1,7 +1,12 @@
 <?php
 
+namespace Core;
+use Exception;
+use Throwable;
+
 /**
  * Class AppException
+ * 业务异常类
  */
 class AppException extends Exception implements Throwable
 {

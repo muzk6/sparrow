@@ -41,7 +41,8 @@ switch ($routeInfo[0]) {
             break;
         }
 
-        call_user_func([new $controllerNs(), $action]);
+        $instance = call_user_func([$controllerNs, 'instance']);
+        call_user_func([$instance, $action]);
 
         break;
 }
