@@ -45,8 +45,3 @@ foreach ($sessionConf as $k => $v) {
     ini_set($k, $v);
 }
 session_id() || session_start();
-
-//ini_set('xdebug.remote_autostart', 'On');
-//ini_set('xdebug.remote_enable', 'On');
-//ini_set('xdebug.idekey', 'PHPSTORM');
-//ini_set('xdebug.remote_host', 'localhost');
