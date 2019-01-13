@@ -78,6 +78,7 @@ function app_pdo()
  * 日志 monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return Logger
+ * @throws Exception
  */
 function app_monolog($name = 'app')
 {
@@ -146,6 +147,7 @@ function app_publish($queue, array $data)
  * 消息队列消费
  * @param $queue
  * @param callable $callback
+ * @throws ErrorException
  */
 function app_consume($queue, callable $callback)
 {
