@@ -19,7 +19,7 @@ if (is_file('/www/PUB')) { // publish
 define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 
 // 日志
-ini_set('log_errors', 1);
+ini_set('log_errors', 'On');
 ini_set('error_log', sprintf('%s/%s_error_%s.log', PATH_LOG, PHP_SAPI, date('Ym')));
 
 // composer
