@@ -12,6 +12,6 @@ class IndexController extends BaseController
     public function index()
     {
         $data = DemoService::instance()->foo();
-        echo app_twig()->render('index.twig', ['name' => $data['name']]);
+        echo view()->render('index.twig', ['name' => $data['name']]);
     }
 }

@@ -6,7 +6,7 @@
 
 require_once dirname(__DIR__) . '/boot/init.php';
 
-$conf = app_config('yar');
+$conf = config('yar');
 $url = $conf['knf'] . '/rpc_server_demo.php';
 
 $client = new Yar_Client($url);

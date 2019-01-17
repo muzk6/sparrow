@@ -10,7 +10,7 @@ class DemoModel extends BaseModel
 
     public function fetch()
     {
-        $ds = app_pdo()->query('select * from test where id = 1')->fetch(2);
+        $ds = db()->query('select * from test where id = 1')->fetch(2);
         return $ds;
     }
 

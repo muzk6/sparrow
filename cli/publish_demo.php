@@ -6,4 +6,4 @@
 
 require_once dirname(__DIR__) . '/boot/init.php';
 
-app_publish('app_task', [date('Y-m-d H:i:s')]);
+queue_publish('app_task', [date('Y-m-d H:i:s')]);

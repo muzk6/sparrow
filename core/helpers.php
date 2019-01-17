@@ -10,7 +10,7 @@ use PhpAmqpLib\Message\AMQPMessage;
  * @param string $filename 无后缀的文件名
  * @return array|null 返回配置文件内容
  */
-function app_config($filename)
+function config($filename)
 {
     if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
         return include($path);
@@ -27,7 +27,7 @@ function app_config($filename)
  * @param array $params
  * @return string
  */
-function app_lang($code, $params = [])
+function lang($code, $params = [])
 {
     $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
     $text = $lang[$code];
@@ -44,7 +44,7 @@ function app_lang($code, $params = [])
  * 视图模板 twig
  * @return null|Twig_Environment
  */
-function app_twig()
+function view()
 {
     static $twig = null;
 
@@ -61,12 +61,12 @@ function app_twig()
 /**
  * 数据库 pdo
  */
-function app_pdo()
+function db()
 {
     static $pdo = null;
 
     if (!$pdo) {
-        $conf = app_config('database');
+        $conf = config('database');
         $pdo = new PDO("mysql:dbname={$conf['dbname']};host={$conf['host']};port={$conf['port']}",
             $conf['user'], $conf['passwd']);
     }
@@ -80,7 +80,7 @@ function app_pdo()
  * @return Logger
  * @throws Exception
  */
-function app_monolog($name = 'app')
+function monolog($name = 'app')
 {
     static $logGroup = [];
 
@@ -100,12 +100,12 @@ function app_monolog($name = 'app')
  * 缓存 redis
  * @return Predis\Client
  */
-function app_redis()
+function redis()
 {
     static $client = null;
 
     if (!$client) {
-        $conf = app_config('redis');
+        $conf = config('redis');
         $client = new Predis\Client([
             'scheme' => $conf['scheme'],
             'host' => $conf['host'],
@@ -121,13 +121,13 @@ function app_redis()
  * @param $queue
  * @param array $data
  */
-function app_publish($queue, array $data)
+function queue_publish($queue, array $data)
 {
     static $connection = null;
     static $channel = null;
 
     if (!$connection || !$channel) {
-        $conf = app_config('rabbitmq');
+        $conf = config('rabbitmq');
         $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
 
         $channel = $connection->channel();
@@ -149,13 +149,13 @@ function app_publish($queue, array $data)
  * @param callable $callback
  * @throws ErrorException
  */
-function app_consume($queue, callable $callback)
+function queue_consume($queue, callable $callback)
 {
     if (PHP_SAPI != 'cli') {
         return;
     }
 
-    $conf = app_config('rabbitmq');
+    $conf = config('rabbitmq');
     $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
 
     $channel = $connection->channel();
@@ -200,7 +200,7 @@ function app_consume($queue, callable $callback)
  * @param string $plainText 明文
  * @return array
  */
-function app_aes_encrypt($plainText)
+function aes_encrypt($plainText)
 {
     $method = 'aes-256-cbc';
     $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($method), $isStrong);
@@ -223,10 +223,29 @@ function app_aes_encrypt($plainText)
  * @param string $key 密钥
  * @return string 密文
  */
-function app_aes_decrypt($cipher, $iv, $key)
+function aes_decrypt($cipher, $iv, $key)
 {
     $method = 'aes-256-cbc';
     $plainText = openssl_decrypt($cipher, $method, $key, 0, $iv);
 
     return $plainText;
+}
+
+/**
+ * 网页后退
+ */
+function back()
+{
+    header('Location: ' . getenv('HTTP_REFERER'));
+    exit;
+}
+
+/**
+ * 网页跳转
+ * @param string $url
+ */
+function redirect($url)
+{
+    header('Location: ' . $url);
+    exit;
 }

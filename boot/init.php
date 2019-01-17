@@ -26,7 +26,7 @@ ini_set('error_log', sprintf('%s/%s_error_%s.log', PATH_LOG, PHP_SAPI, date('Ym'
 require_once PATH_ROOT . '/vendor/autoload.php';
 
 // 配置文件里的默认配置
-$appConf = app_config('app');
+$appConf = config('app');
 date_default_timezone_set($appConf['timezone']);
 
 // cookie里的 lang 没设置或不支持时，就使用配置文件里的默认语言
@@ -37,7 +37,7 @@ define('APP_LANG', isset($_COOKIE['lang'])
 );
 
 // session
-$sessionConf = app_config('session');
+$sessionConf = config('session');
 if ($sessionConf['session.save_handler'] == 'files' && !file_exists($sessionConf['session.save_path'])) {
     mkdir($sessionConf['session.save_path'], 0777, true);
 }
