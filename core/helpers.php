@@ -253,7 +253,7 @@ function redirect($url)
 
 /**
  * 客户端IP
- * @return string
+ * @return false|string
  */
 function client_ip()
 {
