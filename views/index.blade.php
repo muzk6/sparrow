@@ -5,7 +5,7 @@
 </head>
 <body>
 <ul id="navigation">
-    Hello {{ name }}.
+    Hello {{ $name }}.
 </ul>
 
 <h1>My Webpage</h1>

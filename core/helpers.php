@@ -5,6 +5,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use duncan3dc\Laravel\BladeInstance;
 
 /**
  * 配置文件
@@ -42,21 +43,18 @@ function trans($code, $params = [])
 }
 
 /**
- * 视图模板 twig
- * @return null|Twig_Environment
+ * 视图模板
+ * @return BladeInstance|null
  */
 function view()
 {
-    static $twig = null;
+    static $blade = null;
 
-    if (!$twig) {
-        $loader = new Twig_Loader_Filesystem(PATH_VIEW);
-        $twig = new Twig_Environment($loader, [
-            'cache' => PATH_DATA . '/compilation_cache',
-        ]);
+    if (!$blade) {
+        $blade = new BladeInstance(PATH_VIEW, PATH_DATA . '/views_cache');
     }
 
-    return $twig;
+    return $blade;
 }
 
 /**
