@@ -10,8 +10,7 @@ class DemoModel extends BaseModel
 
     public function fetch()
     {
-        $ds = db()->query('select * from test where id = 1')->fetch(2);
-        return $ds;
+        return ['name' => 'X'];
     }
 
 }
