@@ -28,7 +28,7 @@ function config($filename)
  * @param array $params
  * @return string
  */
-function lang($code, $params = [])
+function trans($code, $params = [])
 {
     $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
     $text = $lang[$code];
