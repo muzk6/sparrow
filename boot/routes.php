@@ -31,7 +31,7 @@ switch ($routeInfo[0]) {
             $controller = 'IndexController';
             $action = 'index';
         } else {
-            $controller = "{$vars['ctl']}Controller";
+            $controller = ucfirst($vars['ctl']) . 'Controller';
             $action = $vars['act'];
         }
 
