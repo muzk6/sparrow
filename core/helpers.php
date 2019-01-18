@@ -1,5 +1,6 @@
 <?php
 
+use Core\AppException;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -278,4 +279,36 @@ function client_ip()
     }
 
     return filter_var(trim($ip), FILTER_VALIDATE_IP);
+}
+
+/**
+ * api接口的json格式
+ * @param array|Exception $data
+ * @return string
+ */
+function json_response($data = [])
+{
+    if ($data instanceof Exception) {
+        $response = [
+            'state' => false,
+            'code' => $data->getCode(),
+            'message' => $data->getMessage(),
+            'data' => new stdClass(),
+        ];
+
+        if ($data instanceof AppException) {
+            $response['data'] = (object)$data->getData();
+        }
+    } else {
+        $response = [
+            'state' => true,
+            'data' => (object)$data,
+        ];
+    }
+
+    if (!headers_sent()) {
+        header('Content-Type: application/json; Charset=UTF-8');
+    }
+
+    return json_encode($response);
 }

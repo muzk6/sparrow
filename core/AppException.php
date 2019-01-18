@@ -13,7 +13,7 @@ class AppException extends Exception implements Throwable
     /**
      * @var array
      */
-    protected $data;
+    protected $data = [];
 
     /**
      * 设置附带抛出的数组
