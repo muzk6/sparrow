@@ -32,7 +32,16 @@ function config($filename)
 function trans($code, $params = [])
 {
     $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
-    $text = $lang[$code] ?? '?';
+    if (isset($lang[$code])) {
+        $text = $lang[$code];
+    } else { // 不存在就取默认语言的文本
+        $conf = config('app');
+        if ($conf['lang'] != APP_LANG) {
+            $lang = include(sprintf('%s/%s.php', PATH_LANG, $conf['lang']));
+            $text = $lang[$code];
+        }
+    }
+
     if ($params) {
         foreach ($params as $k => $v) {
             $text = str_replace("{{$k}}", $v, $text);
