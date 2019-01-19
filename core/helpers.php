@@ -346,3 +346,41 @@ function csrf_check()
 
     throw new AppException(10001002);
 }
+
+/**
+ * 闪存设置
+ * @param string $key
+ * @param mixed $value
+ * @return mixed
+ */
+function flash_set($key, $value)
+{
+    return $_SESSION[$key] = $value;
+}
+
+/**
+ * 闪存是否存在
+ * @param string $key
+ * @return bool
+ */
+function flash_has($key)
+{
+    return isset($_SESSION[$key]);
+}
+
+/**
+ * 闪存获取
+ * @param string $key
+ * @return null|mixed
+ */
+function flash_get($key)
+{
+    if (!flash_has($key)) {
+        return null;
+    }
+
+    $value = $_SESSION[$key];
+    unset($_SESSION[$key]);
+
+    return $value;
+}
