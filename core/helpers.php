@@ -259,10 +259,10 @@ function client_ip()
     if (isset($_SERVER['HTTP_CDN_SRC_IP'])) {
         $ip = $_SERVER['HTTP_CDN_SRC_IP'];
     } elseif (isset($_SERVER['HTTP_CLIENT_IP'])
-              && preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', trim($_SERVER['HTTP_CLIENT_IP']))) {
+        && preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', trim($_SERVER['HTTP_CLIENT_IP']))) {
         $ip = $_SERVER['HTTP_CLIENT_IP'];
     } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-              && preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', trim($_SERVER['HTTP_X_FORWARDED_FOR']), $matches)) {
+        && preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', trim($_SERVER['HTTP_X_FORWARDED_FOR']), $matches)) {
         foreach ($matches[0] AS $xip) {
             $xip = trim($xip);
             if (filter_var($xip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE)) {
@@ -309,4 +309,40 @@ function json_response($data = [])
     }
 
     return json_encode($response);
+}
+
+/**
+ * 返回csrf表单域
+ * 会话初始化时才更新token
+ * @return string
+ */
+function csrf_field()
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $token = sha1(uniqid(mt_rand(1000, 9999) . session_id()));
+        $_SESSION['csrf_token'] = $token;
+    } else {
+        $token = $_SESSION['csrf_token'];
+    }
+
+    return '<input type="hidden" name="_token" value="' . $token . '">';
+}
+
+/**
+ * csrf令牌校验
+ * @return bool
+ * @throws AppException
+ */
+function csrf_check()
+{
+    $token = $_POST['_token'] ?? '';
+    if (empty($token)) {
+        throw new AppException(10001002);
+    }
+
+    if (isset($_SESSION['csrf_token']) && $_SESSION['csrf_token'] == $token) {
+        return true;
+    }
+
+    throw new AppException(10001002);
 }

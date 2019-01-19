@@ -16,6 +16,21 @@ class AppException extends Exception implements Throwable
     protected $data = [];
 
     /**
+     * AppException constructor.
+     * @param string|int $message
+     * @param int $code
+     * @param Throwable|null $previous
+     */
+    public function __construct($message = "", int $code = 0, Throwable $previous = null)
+    {
+        if (is_string($message)) {
+            parent::__construct($message, $code, $previous);
+        } else {
+            parent::__construct(trans($message), $message, $previous);
+        }
+    }
+
+    /**
      * 设置附带抛出的数组
      * @param array $data
      * @return $this

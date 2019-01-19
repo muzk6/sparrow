@@ -9,5 +9,9 @@
 </ul>
 
 <h1>My Webpage</h1>
+<form method="post" action="/index/index">
+    {!! csrf_field() !!}
+    <button type="submit">submit</button>
+</form>
 </body>
 </html>
