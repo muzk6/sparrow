@@ -32,7 +32,7 @@ function config($filename)
 function trans($code, $params = [])
 {
     $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
-    $text = $lang[$code];
+    $text = $lang[$code] ?? '?';
     if ($params) {
         foreach ($params as $k => $v) {
             $text = str_replace("{{$k}}", $v, $text);
