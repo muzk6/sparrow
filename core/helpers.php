@@ -446,3 +446,40 @@ function flash_get(string $key)
 
     return $value;
 }
+
+/**
+ * swift邮件实例
+ * 简单文档 https://swiftmailer.symfony.com/docs/sending.html
+ * 消息文档 https://swiftmailer.symfony.com/docs/messages.html
+ * @return Swift_Mailer|null
+ */
+function swift_mailer()
+{
+    static $mailer = null;
+
+    if (!$mailer) {
+        $conf = config('mail');
+
+        $transport = (new Swift_SmtpTransport($conf['host'], $conf['port'], $conf['encryption']))
+            ->setUsername($conf['user'])
+            ->setPassword($conf['passwd']);
+
+        $mailer = new Swift_Mailer($transport);
+    }
+
+    return $mailer;
+}
+
+/**
+ * swift邮件消息实例
+ * @param string $subject 标题
+ * @return Swift_Message
+ */
+function swift_message(string $subject)
+{
+    $conf = config('mail');
+    $message = (new Swift_Message($subject))
+        ->setFrom([$conf['user'] => $conf['name']]);
+
+    return $message;
+}
