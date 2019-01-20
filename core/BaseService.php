@@ -13,7 +13,7 @@ abstract class BaseService implements InstanceInterface
     {
     }
 
-    static function instance()
+    public static function instance()
     {
         return new static();
     }

@@ -8,13 +8,13 @@ namespace Core;
  * 模型基类
  * @package Core
  */
-class BaseModel implements InstanceInterface
+abstract class BaseModel implements InstanceInterface
 {
     private function __construct()
     {
     }
 
-    static function instance()
+    public static function instance()
     {
         return new static();
     }
