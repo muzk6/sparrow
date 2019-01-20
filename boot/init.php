@@ -21,6 +21,9 @@ define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 // 日志
 ini_set('log_errors', 'On');
 ini_set('error_log', sprintf('%s/%s_error_%s.log', PATH_LOG, PHP_SAPI, date('Ym')));
+if (!file_exists(PATH_LOG)) {
+    mkdir(PATH_LOG, 0777, true);
+}
 
 // composer
 require_once PATH_ROOT . '/vendor/autoload.php';
