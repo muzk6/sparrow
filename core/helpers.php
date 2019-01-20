@@ -31,6 +31,7 @@ function config($filename)
  */
 function trans($code, $params = [])
 {
+    $text = '?';
     $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
     if (isset($lang[$code])) {
         $text = $lang[$code];
@@ -38,7 +39,7 @@ function trans($code, $params = [])
         $conf = config('app');
         if ($conf['lang'] != APP_LANG) {
             $lang = include(sprintf('%s/%s.php', PATH_LANG, $conf['lang']));
-            $text = $lang[$code];
+            $text = $lang[$code] ?? '?';
         }
     }
 
