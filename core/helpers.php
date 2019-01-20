@@ -77,7 +77,8 @@ function db()
     if (!$pdo) {
         $conf = config('database');
         $pdo = new PDO("mysql:dbname={$conf['dbname']};host={$conf['host']};port={$conf['port']}",
-            $conf['user'], $conf['passwd']);
+            $conf['user'], $conf['passwd'],
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     }
 
     return $pdo;
