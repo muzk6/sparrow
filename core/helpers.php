@@ -12,7 +12,7 @@ use duncan3dc\Laravel\BladeInstance;
  * @param string $filename 无后缀的文件名
  * @return array|null 返回配置文件内容
  */
-function config($filename)
+function config(string $filename)
 {
     if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
         return include($path);
@@ -29,7 +29,7 @@ function config($filename)
  * @param array $params
  * @return string
  */
-function trans($code, $params = [])
+function trans(int $code, array $params = [])
 {
     $text = '?';
     $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
@@ -84,12 +84,63 @@ function db()
 }
 
 /**
+ * 数据库插入
+ * @param string $table
+ * @param array $data
+ * @return bool
+ */
+function db_insert(string $table, array $data)
+{
+    $kv = [];
+    foreach ($data as $k => $v) {
+        $kv[":{$k}"] = $v;
+    }
+
+    $sql = sprintf('INSERT INTO `%s` (%s) VALUES (%s)',
+        $table,
+        implode(',', array_keys($data)),
+        implode(',', array_keys($kv))
+    );
+
+    $statement = db()->prepare($sql);
+    return $statement->execute($kv);
+}
+
+/**
+ * 数据库更新
+ * @param string $table
+ * @param array $data
+ * @param string $where
+ * @return int 影响数
+ */
+function db_update(string $table, array $data, string $where)
+{
+    $kv = [];
+    $set = [];
+    foreach ($data as $k => $v) {
+        $set[] = "{$k} = :{$k}";
+        $kv[":{$k}"] = $v;
+    }
+
+    $sql = sprintf('UPDATE `%s` SET %s WHERE %s',
+        $table,
+        implode(',', $set),
+        $where
+    );
+
+    $statement = db()->prepare($sql);
+    $statement->execute($kv);
+
+    return $statement->rowCount();
+}
+
+/**
  * 日志 monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return Logger
  * @throws Exception
  */
-function monolog($name = 'app')
+function monolog(string $name = 'app')
 {
     static $logGroup = [];
 
@@ -127,10 +178,10 @@ function redis()
 
 /**
  * 消息队列发布
- * @param $queue
+ * @param string $queue
  * @param array $data
  */
-function queue_publish($queue, array $data)
+function queue_publish(string $queue, array $data)
 {
     static $connection = null;
     static $channel = null;
@@ -154,11 +205,11 @@ function queue_publish($queue, array $data)
 
 /**
  * 消息队列消费
- * @param $queue
+ * @param string $queue
  * @param callable $callback
  * @throws ErrorException
  */
-function queue_consume($queue, callable $callback)
+function queue_consume(string $queue, callable $callback)
 {
     if (PHP_SAPI != 'cli') {
         return;
@@ -209,7 +260,7 @@ function queue_consume($queue, callable $callback)
  * @param string $plainText 明文
  * @return array
  */
-function aes_encrypt($plainText)
+function aes_encrypt(string $plainText)
 {
     $method = 'aes-256-cbc';
     $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($method), $isStrong);
@@ -232,7 +283,7 @@ function aes_encrypt($plainText)
  * @param string $key 密钥
  * @return string 密文
  */
-function aes_decrypt($cipher, $iv, $key)
+function aes_decrypt(string $cipher, $iv, $key)
 {
     $method = 'aes-256-cbc';
     $plainText = openssl_decrypt($cipher, $method, $key, 0, $iv);
@@ -253,7 +304,7 @@ function back()
  * 网页跳转
  * @param string $url
  */
-function redirect($url)
+function redirect(string $url)
 {
     header('Location: ' . $url);
     exit;
@@ -363,7 +414,7 @@ function csrf_check()
  * @param mixed $value
  * @return mixed
  */
-function flash_set($key, $value)
+function flash_set(string $key, $value)
 {
     return $_SESSION[$key] = $value;
 }
@@ -373,7 +424,7 @@ function flash_set($key, $value)
  * @param string $key
  * @return bool
  */
-function flash_has($key)
+function flash_has(string $key)
 {
     return isset($_SESSION[$key]);
 }
@@ -383,7 +434,7 @@ function flash_has($key)
  * @param string $key
  * @return null|mixed
  */
-function flash_get($key)
+function flash_get(string $key)
 {
     if (!flash_has($key)) {
         return null;
