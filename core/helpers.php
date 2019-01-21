@@ -1,6 +1,7 @@
 <?php
 
 use Core\AppException;
+use Core\AppPDO;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -75,13 +76,35 @@ function db()
     static $pdo = null;
 
     if (!$pdo) {
-        $conf = config('database');
-        $pdo = new PDO("mysql:dbname={$conf['dbname']};host={$conf['host']};port={$conf['port']}",
-            $conf['user'], $conf['passwd'],
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $pdo = AppPDO::instance(config('database'));
     }
 
     return $pdo;
+}
+
+/**
+ * 查询1行1列数据
+ * @param string $table
+ * @param string $column
+ * @param array|string $where 条件语句，可以包括 ORDER BY, GROUP 等等<br>
+ * 命名参数: ['name=:name', [':name' => 'super']] <br>
+ * 位置参数: ['name=?', ['super']] <br>
+ * 无参且查询最后一条: '1 order by id desc'
+ * @return false|array
+ */
+function db_selectColumn(string $table, string $column, $where)
+{
+    is_string($where) && $where = [$where];
+    $sql = "SELECT {$column} FROM {$table} WHERE {$where[0]}";
+
+    if (count($where) == 1) {
+        return db()->query($sql)->fetchColumn();
+    } else {
+        $statement = db()->prepare($sql);
+        $statement->execute($where[1] ?? null);
+
+        return $statement->fetchColumn();
+    }
 }
 
 /**
@@ -197,6 +220,16 @@ function db_delete(string $table, array $where)
     $statement->execute($where[1]);
 
     return $statement->rowCount();
+}
+
+/**
+ * 上一次查询的影响行数
+ * @return int
+ */
+function db_affectedRows()
+{
+    $sql = 'SELECT ROW_COUNT()';
+    return intval(db()->forceMaster()->query($sql)->fetchColumn());
 }
 
 /**
