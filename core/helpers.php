@@ -85,6 +85,49 @@ function db()
 }
 
 /**
+ * 查询1行数据
+ * @param string $table
+ * @param array|string $where 条件语句，可以包括 ORDER BY, GROUP 等等<br>
+ * 命名参数: ['name=:name', [':name' => 'super']] <br>
+ * 位置参数: ['name=?', ['super']] <br>
+ * 无参且查询最后一条: '1 order by id desc'
+ * @return false|array
+ */
+function db_fetchOne(string $table, $where)
+{
+    is_string($where) && $where = [$where];
+    $sql = "SELECT * FROM {$table} WHERE {$where[0]}";
+
+    if (count($where) == 1) {
+        return db()->query($sql)->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $statement = db()->prepare($sql);
+        $statement->execute($where[1] ?? null);
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+}
+
+/**
+ * 查询多行数据
+ * @param string $table
+ * @param string $columns
+ * @param array $where 条件语句，可以包括 ORDER BY, GROUP, LIMIT 等等<br>
+ * 命名参数: ['name=:name', [':name' => 'super']] <br>
+ * 位置参数: ['name=?', ['super']] <br>
+ * 包括LIMIT: ['`order`=? limit 2', [13]]
+ * @return array
+ */
+function db_fetchAll(string $table, string $columns, array $where)
+{
+    $sql = "SELECT {$columns} FROM {$table} WHERE {$where[0]}";
+    $statement = db()->prepare($sql);
+    $statement->execute($where[1]);
+
+    return $statement->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
  * 数据库插入
  * @param string $table
  * @param array $data
