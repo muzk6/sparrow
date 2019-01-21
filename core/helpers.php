@@ -138,6 +138,25 @@ function db_update(string $table, array $data, array $where)
 }
 
 /**
+ * 数据库数据删除
+ * @param string $table
+ * @param array $where ['name=? and type=?', ['php', 1]]
+ * @return int 影响行数
+ */
+function db_delete(string $table, array $where)
+{
+    $sql = sprintf('DELETE FROM `%s` WHERE %s',
+        $table,
+        $where[0]
+    );
+
+    $statement = db()->prepare($sql);
+    $statement->execute($where[1]);
+
+    return $statement->rowCount();
+}
+
+/**
  * 日志 monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return Logger
