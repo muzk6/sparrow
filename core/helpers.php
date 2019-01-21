@@ -93,13 +93,15 @@ function db()
 function db_insert(string $table, array $data)
 {
     $kv = [];
+    $columns = [];
     foreach ($data as $k => $v) {
+        $columns[] = "`{$k}`";
         $kv[":{$k}"] = $v;
     }
 
     $sql = sprintf('INSERT INTO `%s` (%s) VALUES (%s)',
         $table,
-        implode(',', array_keys($data)),
+        implode(',', $columns),
         implode(',', array_keys($kv))
     );
 
@@ -112,14 +114,14 @@ function db_insert(string $table, array $data)
  * @param string $table
  * @param array $data
  * @param string $where
- * @return int 影响数
+ * @return int 影响行数
  */
 function db_update(string $table, array $data, string $where)
 {
     $kv = [];
     $set = [];
     foreach ($data as $k => $v) {
-        $set[] = "{$k} = :{$k}";
+        $set[] = "`{$k}` = :{$k}";
         $kv[":{$k}"] = $v;
     }
 
