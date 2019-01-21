@@ -93,7 +93,7 @@ function db()
  * 无参且查询最后一条: '1 order by id desc'
  * @return false|array
  */
-function db_fetchOne(string $table, $where)
+function db_selectOne(string $table, $where)
 {
     is_string($where) && $where = [$where];
     $sql = "SELECT * FROM {$table} WHERE {$where[0]}";
@@ -118,7 +118,7 @@ function db_fetchOne(string $table, $where)
  * 包括LIMIT: ['`order`=? limit 2', [13]]
  * @return array
  */
-function db_fetchAll(string $table, string $columns, array $where)
+function db_selectAll(string $table, string $columns, array $where)
 {
     $sql = "SELECT {$columns} FROM {$table} WHERE {$where[0]}";
     $statement = db()->prepare($sql);
