@@ -92,47 +92,47 @@ function db()
  */
 function db_insert(string $table, array $data)
 {
-    $kv = [];
+    $placeholder = [];
     $columns = [];
     foreach ($data as $k => $v) {
         $columns[] = "`{$k}`";
-        $kv[":{$k}"] = $v;
+        $placeholder[] = '?';
     }
 
     $sql = sprintf('INSERT INTO `%s` (%s) VALUES (%s)',
         $table,
         implode(',', $columns),
-        implode(',', array_keys($kv))
+        implode(',', $placeholder)
     );
 
     $statement = db()->prepare($sql);
-    return $statement->execute($kv);
+    return $statement->execute(array_values($data));
 }
 
 /**
  * 数据库更新
  * @param string $table
  * @param array $data
- * @param string $where
+ * @param array $where ['name=? and type=?', ['php', 1]]
  * @return int 影响行数
  */
-function db_update(string $table, array $data, string $where)
+function db_update(string $table, array $data, array $where)
 {
-    $kv = [];
-    $set = [];
+    $bind = [];
+    $placeholder = [];
     foreach ($data as $k => $v) {
-        $set[] = "`{$k}` = :{$k}";
-        $kv[":{$k}"] = $v;
+        $placeholder[] = "`{$k}` = ?";
+        $bind[] = $v;
     }
 
     $sql = sprintf('UPDATE `%s` SET %s WHERE %s',
         $table,
-        implode(',', $set),
-        $where
+        implode(',', $placeholder),
+        $where[0]
     );
 
     $statement = db()->prepare($sql);
-    $statement->execute($kv);
+    $statement->execute(array_merge($bind, $where[1]));
 
     return $statement->rowCount();
 }
