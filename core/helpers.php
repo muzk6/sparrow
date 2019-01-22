@@ -1,5 +1,6 @@
 <?php
 
+use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
 use Core\AppPDO;
@@ -373,38 +374,16 @@ function flash()
 }
 
 /**
- * swift邮件实例
- * 简单文档 https://swiftmailer.symfony.com/docs/sending.html
- * 消息文档 https://swiftmailer.symfony.com/docs/messages.html
- * @return Swift_Mailer
+ * 电子邮件
+ * @return AppEmail
  */
-function swift_mailer()
+function email()
 {
-    static $mailer = null;
+    static $email = null;
 
-    if (!$mailer) {
-        $conf = config('mail');
-
-        $transport = (new Swift_SmtpTransport($conf['host'], $conf['port'], $conf['encryption']))
-            ->setUsername($conf['user'])
-            ->setPassword($conf['passwd']);
-
-        $mailer = new Swift_Mailer($transport);
+    if (!$email) {
+        $email = new AppEmail(config('email'));
     }
 
-    return $mailer;
-}
-
-/**
- * swift邮件消息实例
- * @param string $subject 标题
- * @return Swift_Message
- */
-function swift_message(string $subject)
-{
-    $conf = config('mail');
-    $message = (new Swift_Message($subject))
-        ->setFrom([$conf['user'] => $conf['name']]);
-
-    return $message;
+    return $email;
 }

@@ -42,7 +42,7 @@ class AppPDO
     }
 
     /**
-     * 取对象实例
+     * 对象实例
      * @param array $conf 数据库配置，格式 config/dev/database.php
      * @return PDO|AppPDO
      */
