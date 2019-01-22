@@ -1,6 +1,7 @@
 <?php
 
 use Core\AppException;
+use Core\AppFlash;
 use Core\AppPDO;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -357,48 +358,25 @@ function csrf_check()
 }
 
 /**
- * 闪存设置
- * @param string $key
- * @param mixed $value
- * @return mixed
+ * 闪存
+ * @return AppFlash
  */
-function flash_set(string $key, $value)
+function flash()
 {
-    return $_SESSION[$key] = $value;
-}
+    static $flash = null;
 
-/**
- * 闪存是否存在
- * @param string $key
- * @return bool
- */
-function flash_has(string $key)
-{
-    return isset($_SESSION[$key]);
-}
-
-/**
- * 闪存获取
- * @param string $key
- * @return null|mixed
- */
-function flash_get(string $key)
-{
-    if (!flash_has($key)) {
-        return null;
+    if (!$flash) {
+        $flash = new AppFlash();
     }
 
-    $value = $_SESSION[$key];
-    unset($_SESSION[$key]);
-
-    return $value;
+    return $flash;
 }
 
 /**
  * swift邮件实例
  * 简单文档 https://swiftmailer.symfony.com/docs/sending.html
  * 消息文档 https://swiftmailer.symfony.com/docs/messages.html
- * @return Swift_Mailer|null
+ * @return Swift_Mailer
  */
 function swift_mailer()
 {
