@@ -186,14 +186,14 @@ class AppPDO
     }
 
     /**
-     * 插入、替换记录<br>
+     * 多用途插入、替换记录<br>
      * 用法参考 public 的 insert
      * @param string $table
      * @param array $data
-     * @param string $op
+     * @param string $op 操作动作 INSERT INTO, INSERT IGNORE, REPLACE INTO
      * @return bool
      */
-    private function _insert(string $table, array $data, $op = 'INSERT INTO')
+    private function multiInsert(string $table, array $data, $op = 'INSERT INTO')
     {
         /* @var PDO $this */
 
@@ -242,7 +242,7 @@ class AppPDO
      */
     public function insert(string $table, array $data)
     {
-        return $this->_insert($table, $data);
+        return $this->multiInsert($table, $data);
     }
 
     /**
@@ -254,7 +254,7 @@ class AppPDO
      */
     public function insertIgnore(string $table, array $data)
     {
-        return $this->_insert($table, $data, 'INSERT IGNORE');
+        return $this->multiInsert($table, $data, 'INSERT IGNORE');
     }
 
     /**
@@ -266,7 +266,7 @@ class AppPDO
      */
     public function replace(string $table, array $data)
     {
-        return $this->_insert($table, $data, 'REPLACE INTO');
+        return $this->multiInsert($table, $data, 'REPLACE INTO');
     }
 
     /**
