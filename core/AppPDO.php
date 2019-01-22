@@ -186,36 +186,92 @@ class AppPDO
     }
 
     /**
-     * 插入记录<br>
-     * <i>注意：为降低使用成本不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
+     * 插入、替换记录<br>
+     * 用法参考 public 的 insert
      * @param string $table
      * @param array $data
+     * @param string $op
+     * @return bool
+     */
+    private function _insert(string $table, array $data, $op = 'INSERT INTO')
+    {
+        /* @var PDO $this */
+
+        // 单条插入，一维转多维
+        if (!isset($data[0])) {
+            $data = [$data];
+        }
+
+        $allPlaceHolder = [];
+        $columns = [];
+        $values = [];
+        foreach ($data as $line => $row) {
+            $placeholder = [];
+            foreach ($row as $k => $v) {
+                if ($line === 0) {
+                    $columns[] = "`{$k}`";
+                }
+
+                $placeholder[] = '?';
+                $values[] = $v;
+            }
+
+            $allPlaceHolder[] = '(' . implode(',', $placeholder) . ')';
+        }
+
+        $sql = sprintf('%s `%s` (%s) VALUES %s',
+            $op,
+            $table,
+            implode(',', $columns),
+            implode(',', $allPlaceHolder)
+        );
+
+        $statement = $this->prepare($sql);
+        return $statement->execute($values);
+    }
+
+    /**
+     * 插入记录<br>
+     * <i>注意：为降低学习成本不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
+     * @param string $table
+     * @param array $data 支持单条[...], 或批量 [[...], [...]]<br>
+     * 批量插入时这里不限制长度不分批插入，
+     * 由具体业务逻辑构造数组的同时控制批次（例如 $i%500==0 其中$i从1开始，或 array_chunk()），
+     * 强烈建议在分批次插入时开启事务
      * @return bool
      */
     public function insert(string $table, array $data)
     {
-        /* @var PDO $this */
+        return $this->_insert($table, $data);
+    }
 
-        $placeholder = [];
-        $columns = [];
-        foreach ($data as $k => $v) {
-            $columns[] = "`{$k}`";
-            $placeholder[] = '?';
-        }
+    /**
+     * 插入记录，重复时忽略<br>
+     * 用法参考 insert
+     * @param string $table
+     * @param array $data
+     * @return bool
+     */
+    public function insertIgnore(string $table, array $data)
+    {
+        return $this->_insert($table, $data, 'INSERT IGNORE');
+    }
 
-        $sql = sprintf('INSERT INTO `%s` (%s) VALUES (%s)',
-            $table,
-            implode(',', $columns),
-            implode(',', $placeholder)
-        );
-
-        $statement = $this->prepare($sql);
-        return $statement->execute(array_values($data));
+    /**
+     * 插入记录，重复时覆盖<br>
+     * 用法参考 insert
+     * @param string $table
+     * @param array $data
+     * @return bool
+     */
+    public function replace(string $table, array $data)
+    {
+        return $this->_insert($table, $data, 'REPLACE INTO');
     }
 
     /**
      * 更新记录<br>
-     * <i>注意：为降低使用成本不支持 <b>['num' => 'num+1']</b> 的写法，请用原生 sql 实现</i>
+     * <i>注意：为降低学习成本不支持 <b>['num' => 'num+1']</b> 的写法，请用原生 sql 实现</i>
      * @param string $table
      * @param array $data
      * @param array $where ['name=? and type=?', ['php', 1]]
