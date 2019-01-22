@@ -268,7 +268,7 @@ function redis()
             'scheme' => $conf['scheme'],
             'host' => $conf['host'],
             'port' => $conf['port'],
-        ]);
+        ], ['prefix' => $conf['prefix']]);
     }
 
     return $client;
