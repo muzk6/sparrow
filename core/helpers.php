@@ -4,6 +4,7 @@ use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
+use Core\AppOpenSSL;
 use Core\AppPDO;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -207,39 +208,18 @@ function queue_consume(string $queue, callable $callback)
 }
 
 /**
- * aes 对称加密
- * @param string $plainText 明文
- * @return array
+ * openssl
+ * @return AppOpenSSL
  */
-function aes_encrypt(string $plainText)
+function openssl()
 {
-    $method = 'aes-256-cbc';
-    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($method), $isStrong);
+    static $openssl = null;
 
-    $key = md5(uniqid());
-    $cipher = openssl_encrypt($plainText, $method, $key, 0, $iv);
+    if (!$openssl) {
+        $openssl = new AppOpenSSL();
+    }
 
-    return [
-        'cipher' => $cipher,
-        'iv' => $iv,
-        'key' => $key,
-        'is_strong' => $isStrong,
-    ];
-}
-
-/**
- * aes 对称解密
- * @param string $cipher base64格式的密文
- * @param string $iv 分组加密的初始向量
- * @param string $key 密钥
- * @return string 密文
- */
-function aes_decrypt(string $cipher, $iv, $key)
-{
-    $method = 'aes-256-cbc';
-    $plainText = openssl_decrypt($cipher, $method, $key, 0, $iv);
-
-    return $plainText;
+    return $openssl;
 }
 
 /**
