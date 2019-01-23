@@ -1,5 +1,6 @@
 <?php
 
+use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
@@ -323,39 +324,18 @@ function json_response($data = [])
 }
 
 /**
- * 返回csrf表单域
- * 会话初始化时才更新token
- * @return string
+ * CSRF
+ * @return AppCSRF
  */
-function csrf_field()
+function csrf()
 {
-    if (empty($_SESSION['csrf_token'])) {
-        $token = sha1(uniqid(mt_rand(1000, 9999) . session_id()));
-        $_SESSION['csrf_token'] = $token;
-    } else {
-        $token = $_SESSION['csrf_token'];
+    static $csrf = null;
+
+    if (!$csrf) {
+        $csrf = new AppCSRF();
     }
 
-    return '<input type="hidden" name="_token" value="' . $token . '">';
-}
-
-/**
- * csrf令牌校验
- * @return bool
- * @throws AppException
- */
-function csrf_check()
-{
-    $token = $_POST['_token'] ?? '';
-    if (empty($token)) {
-        throw new AppException(10001002);
-    }
-
-    if (isset($_SESSION['csrf_token']) && $_SESSION['csrf_token'] == $token) {
-        return true;
-    }
-
-    throw new AppException(10001002);
+    return $csrf;
 }
 
 /**
