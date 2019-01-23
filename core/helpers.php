@@ -58,7 +58,7 @@ function trans(int $code, array $params = [])
 
 /**
  * 视图模板
- * @return BladeInstance|null
+ * @return BladeInstance
  */
 function view()
 {
@@ -86,7 +86,7 @@ function db()
 }
 
 /**
- * 日志 monolog
+ * monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return Logger
  * @throws Exception
@@ -108,7 +108,7 @@ function monolog(string $name = 'app')
 }
 
 /**
- * 缓存 redis
+ * redis
  * @return Predis\Client
  */
 function redis()
@@ -207,7 +207,7 @@ function client_ip()
 }
 
 /**
- * api接口的json格式
+ * api 接口的 json 响应格式
  * @param array|Exception $data
  * @return string
  */
