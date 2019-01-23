@@ -6,6 +6,6 @@
 
 require_once dirname(__DIR__) . '/boot/init.php';
 
-queue_consume('app_task', function ($data) {
+queue()->consume('app_task', function ($data) {
     var_dump($data);
 });

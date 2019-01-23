@@ -3,7 +3,6 @@
 namespace Core;
 
 /**
- * Class BaseController
  * 控制器基类
  * @package Core
  */

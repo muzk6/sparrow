@@ -3,7 +3,6 @@
 namespace Core;
 
 /**
- * Class BaseService
  * 服务基类
  * @package Core
  */

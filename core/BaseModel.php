@@ -4,7 +4,6 @@
 namespace Core;
 
 /**
- * Class BaseModel
  * 模型基类
  * @package Core
  */
