@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Core;
-
 
 use Swift_Mailer;
 use Swift_Message;
@@ -36,15 +34,28 @@ class AppEmail extends Swift_Mailer
     }
 
     /**
-     * 发送邮件消息
-     * @param string $subject
+     * 邮件消息实例
+     * @param string $subject 标题
+     * @return Swift_Message
+     */
+    public function message(string $subject)
+    {
+        $message = (new Swift_Message($subject))
+            ->setFrom([$this->conf['user'] => $this->conf['name']]);
+
+        return $message;
+    }
+
+    /**
+     * 发送普通文本
      * @param string|array $to 目标地址<br>
      * 支持单个('name@qq.com')<br>
      * 多个(['name1@qq.com', 'name2@qq.com'])
-     * @param $body
+     * @param string $subject 标题
+     * @param string $body 内容
      * @return int
      */
-    public function sendMessage(string $subject, $to, $body)
+    public function sendText($to, string $subject, string $body)
     {
         $message = $this->message($subject)
             ->setTo(is_string($to) ? [$to] : $to)
@@ -52,18 +63,5 @@ class AppEmail extends Swift_Mailer
         return $this->send($message);
     }
 
-    /**
-     * 邮件消息实例
-     * @param string $subject 标题
-     * @return Swift_Message
-     */
-    public function message(string $subject)
-    {
-
-        $message = (new Swift_Message($subject))
-            ->setFrom([$this->conf['user'] => $this->conf['name']]);
-
-        return $message;
-    }
 }
 
