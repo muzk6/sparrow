@@ -247,7 +247,11 @@ function csrf()
     static $csrf = null;
 
     if (!$csrf) {
-        $csrf = new AppCSRF();
+        $conf = config('app');
+        $csrf = new AppCSRF([
+            'secret_key' => $conf['secret_key'],
+            'expire' => $conf['csrf_token_expire'],
+        ]);
     }
 
     return $csrf;
