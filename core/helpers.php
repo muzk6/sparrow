@@ -286,3 +286,25 @@ function email()
 
     return $email;
 }
+
+/**
+ * elasticsearch<br>
+ * 文档 https://github.com/elastic/elasticsearch-php
+ * @return \Elasticsearch\Client
+ */
+function es()
+{
+    static $es = null;
+
+    if (!$es) {
+        $conf = config('elasticsearch');
+        $hosts = $conf['hosts'];
+        shuffle($hosts);
+
+        $es = Elasticsearch\ClientBuilder::create()
+            ->setHosts($hosts)
+            ->build();
+    }
+
+    return $es;
+}
