@@ -4,11 +4,14 @@
 namespace App\Controllers;
 
 
-class IndexController
+use App\Services\DemoService;
+use Core\BaseController;
+
+class IndexController extends BaseController
 {
     public function index()
     {
-        $ds = app_pdo()->query('select * from test where id = 1')->fetch(2);
-        echo app_twig()->render('index.twig', ['name' => $ds['name']]);
+        $data = DemoService::instance()->foo();
+        echo view()->render('index', ['name' => $data['name']]);
     }
 }

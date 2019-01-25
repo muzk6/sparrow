@@ -31,7 +31,7 @@ switch ($routeInfo[0]) {
             $controller = 'IndexController';
             $action = 'index';
         } else {
-            $controller = "{$vars['ctl']}Controller";
+            $controller = ucfirst($vars['ctl']) . 'Controller';
             $action = $vars['act'];
         }
 
@@ -41,7 +41,8 @@ switch ($routeInfo[0]) {
             break;
         }
 
-        call_user_func([new $controllerNs(), $action]);
+        $instance = call_user_func([$controllerNs, 'instance']);
+        call_user_func([$instance, $action]);
 
         break;
 }
