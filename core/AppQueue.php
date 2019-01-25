@@ -13,6 +13,17 @@ use PhpAmqpLib\Message\AMQPMessage;
 class AppQueue
 {
     /**
+     * 配置
+     * @var array
+     */
+    protected $conf;
+
+    public function __construct(array $conf)
+    {
+        $this->conf = $conf;
+    }
+
+    /**
      * 消息队列发布
      * @param string $queue 队列名
      * @param array $data
@@ -23,11 +34,10 @@ class AppQueue
         static $channel = null;
 
         if (!$connection || !$channel) {
-            $conf = config('rabbitmq');
-            $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
+            $connection = new AMQPStreamConnection($this->conf['host'], $this->conf['port'], $this->conf['user'], $this->conf['passwd']);
 
             $channel = $connection->channel();
-            $channel->exchange_declare(strval($conf['exchange_name']), strval($conf['exchange_type']), false, false, false);
+            $channel->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, false, false);
             $channel->queue_declare($queue, false, true, false, false);
         }
 
@@ -51,11 +61,10 @@ class AppQueue
             return;
         }
 
-        $conf = config('rabbitmq');
-        $connection = new AMQPStreamConnection($conf['host'], $conf['port'], $conf['user'], $conf['passwd']);
+        $connection = new AMQPStreamConnection($this->conf['host'], $this->conf['port'], $this->conf['user'], $this->conf['passwd']);
 
         $channel = $connection->channel();
-        $channel->exchange_declare(strval($conf['exchange_name']), strval($conf['exchange_type']), false, false, false);
+        $channel->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, false, false);
         $channel->queue_declare($queue, false, true, false, false);
         $channel->basic_qos(null, 1, null);
 
