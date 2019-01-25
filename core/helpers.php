@@ -7,8 +7,6 @@ use Core\AppFlash;
 use Core\AppOpenSSL;
 use Core\AppPDO;
 use Core\AppQueue;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 use duncan3dc\Laravel\BladeInstance;
 
 /**
@@ -88,7 +86,7 @@ function db()
 /**
  * monolog
  * @param string $name 日志器名称，也是日志文件名前缀
- * @return Logger
+ * @return \Monolog\Logger
  * @throws Exception
  */
 function monolog(string $name = 'app')
@@ -97,11 +95,15 @@ function monolog(string $name = 'app')
 
     $log = &$logGroup[$name];
     if (!isset($log)) {
-        $log = new Logger($name);
+        if (!class_exists('\Monolog\Logger')) {
+            throw new AppException('composer require monolog/monolog');
+        }
+        
+        $log = new \Monolog\Logger($name);
 
         $path = sprintf('%s/%s_%s_%s.log',
             PATH_LOG, PHP_SAPI, $name, date('Ym'));
-        $log->pushHandler(new StreamHandler($path));
+        $log->pushHandler(new \Monolog\Handler\StreamHandler($path));
     }
 
     return $log;
@@ -109,13 +111,18 @@ function monolog(string $name = 'app')
 
 /**
  * redis
- * @return Predis\Client
+ * @return \Predis\Client
+ * @throws AppException
  */
 function redis()
 {
     static $client = null;
 
     if (!$client) {
+        if (!class_exists('\Predis\Client')) {
+            throw new AppException('composer require predis/predis');
+        }
+
         $conf = config('redis');
         $client = new Predis\Client([
             'scheme' => $conf['scheme'],
@@ -130,13 +137,18 @@ function redis()
 /**
  * 消息队列
  * @return AppQueue
+ * @throws AppException
  */
 function queue()
 {
     static $queue = null;
 
     if (!$queue) {
-        $queue = new AppQueue();
+        if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
+            throw new AppException('composer require php-amqplib/php-amqplib');
+        }
+
+        $queue = new AppQueue(config('rabbitmq'));
     }
 
     return $queue;
@@ -275,14 +287,46 @@ function flash()
 /**
  * 电子邮件
  * @return AppEmail
+ * @throws AppException
  */
 function email()
 {
     static $email = null;
 
     if (!$email) {
+        if (!class_exists('\Swift_SmtpTransport')) {
+            throw new AppException('composer require swiftmailer/swiftmailer');
+        }
+
         $email = new AppEmail(config('email'));
     }
 
     return $email;
+}
+
+/**
+ * elasticsearch<br>
+ * 文档 https://github.com/elastic/elasticsearch-php
+ * @return \Elasticsearch\Client
+ * @throws AppException
+ */
+function es()
+{
+    static $es = null;
+
+    if (!$es) {
+        if (!class_exists('\Elasticsearch\ClientBuilder')) {
+            throw new AppException('composer require elasticsearch/elasticsearch');
+        }
+
+        $conf = config('elasticsearch');
+        $hosts = $conf['hosts'];
+        shuffle($hosts);
+
+        $es = Elasticsearch\ClientBuilder::create()
+            ->setHosts($hosts)
+            ->build();
+    }
+
+    return $es;
 }
