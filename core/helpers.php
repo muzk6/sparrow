@@ -4,7 +4,7 @@ use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
-use Core\AppOpenSSL;
+use Core\AppAes;
 use Core\AppPDO;
 use Core\AppQueue;
 use duncan3dc\Laravel\BladeInstance;
@@ -155,15 +155,16 @@ function queue()
 }
 
 /**
- * openssl
- * @return AppOpenSSL
+ * aes
+ * @return AppAes
  */
-function openssl()
+function aes()
 {
     static $openssl = null;
 
     if (!$openssl) {
-        $openssl = new AppOpenSSL();
+        $conf = config('app');
+        $openssl = new AppAes($conf['secret_key']);
     }
 
     return $openssl;

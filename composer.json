@@ -1,6 +1,7 @@
 {
     "require": {
         "ext-json": "*",
+        "ext-openssl": "*",
         "nikic/fast-route": "^1.3",
         "duncan3dc/blade": "^4.3"
     },
