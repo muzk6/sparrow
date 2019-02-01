@@ -7,13 +7,15 @@
 $opt = getopt('', ['help::']);
 if (isset($opt['help'])) {
     echo <<<DOC
-维护模式
+Switch maintenance mode.
 
 USAGE
-    php maintain.php <on|off>
+    php maintain.php [on|off]
 PARAM
-    on 开启维护模式，此时网站禁止访问
-    off 关闭维护模式，此时网站正常访问
+    on 
+        (Default), Start maintenance mode, and website is now blocked.
+    off
+        Stop maintenance mode, and website is normal visit.
 DOC;
     echo PHP_EOL;
     exit;
