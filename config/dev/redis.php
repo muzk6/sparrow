@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * 缓存
+ */
+
 return [
     'scheme' => 'tcp',
     'host' => 'localhost',

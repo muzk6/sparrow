@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * 队列
+ */
+
 return [
     'host' => 'localhost',
     'port' => 5672,

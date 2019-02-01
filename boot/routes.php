@@ -50,7 +50,7 @@ switch ($routeInfo[0]) {
 
             if ($traceConf['expire'] > time() // 检查过期
                 && strpos(getenv('REQUEST_URI'), $traceConf['url']) !== false // 检查 url path 是否匹配
-                && (!$traceConf['user_id'] || (auth()->isLogin() && $traceConf['user_id'] == auth()->userId())) // 检查特定用户
+                && (!$traceConf['user_id'] || (auth()->isLogin() && $traceConf['user_id'] == auth()->userId())) // 有指定用户时，检查特定用户
             ) {
                 $traceStart = true;
 
@@ -61,7 +61,9 @@ switch ($routeInfo[0]) {
         }
 
         // 对业务逻辑记录 xdebug trace
-        if ($traceStart || isset($_REQUEST['xt']) || isset($_COOKIE['xt'])) {
+        if ($traceStart
+            || (whitelist()->isSafeIp() && (isset($_REQUEST['xt']) || isset($_COOKIE['xt'])))) {
+
             if (!file_exists(PATH_TRACE)) {
                 mkdir(PATH_TRACE, 0777, true);
             }

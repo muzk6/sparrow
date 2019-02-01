@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * 邮件
+ */
+
 return [
     'host' => 'smtp.qq.com',
     'port' => 465,

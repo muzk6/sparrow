@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * 数据库
+ */
+
 return [
     'user' => 'root',
     'passwd' => '123abc',

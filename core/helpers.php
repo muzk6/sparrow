@@ -8,6 +8,7 @@ use Core\AppFlash;
 use Core\AppAes;
 use Core\AppPDO;
 use Core\AppQueue;
+use Core\AppWhitelist;
 use duncan3dc\Laravel\BladeInstance;
 
 /**
@@ -299,6 +300,21 @@ function auth()
     }
 
     return $auth;
+}
+
+/**
+ * 白名单
+ * @return AppWhitelist
+ */
+function whitelist()
+{
+    static $whitelist = null;
+
+    if (!$whitelist) {
+        $whitelist = new AppWhitelist(config('whitelist'));
+    }
+
+    return $whitelist;
 }
 
 /**

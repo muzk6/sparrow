@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * 会话
+ */
+
 return [
 //    'session.save_handler' => 'files',
 //    'session.save_path' => PATH_DATA . '/session',
