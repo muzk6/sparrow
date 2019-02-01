@@ -1,5 +1,6 @@
 <?php
 
+use Core\AppAuth;
 use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
@@ -98,7 +99,7 @@ function monolog(string $name = 'app')
         if (!class_exists('\Monolog\Logger')) {
             throw new AppException('composer require monolog/monolog');
         }
-        
+
         $log = new \Monolog\Logger($name);
 
         $path = sprintf('%s/%s_%s_%s.log',
@@ -283,6 +284,21 @@ function flash()
     }
 
     return $flash;
+}
+
+/**
+ * 登录信息
+ * @return AppAuth
+ */
+function auth()
+{
+    static $auth = null;
+
+    if (!$auth) {
+        $auth = new AppAuth();
+    }
+
+    return $auth;
 }
 
 /**
