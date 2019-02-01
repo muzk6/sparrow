@@ -43,8 +43,25 @@ switch ($routeInfo[0]) {
 
         $instance = call_user_func([$controllerNs, 'instance']);
 
-        // 业务逻辑 xdebug trace
-        if (isset($_REQUEST['xt']) || isset($_COOKIE['xt'])) {
+        // cli/trace.php 开启的 xdebug trace
+        $traceStart = false;
+        if (file_exists($traceConfFile = PATH_TRACE . '/config.php')) {
+            $traceConf = include($traceConfFile);
+
+            if ($traceConf['expire'] > time() // 检查过期
+                && strpos(getenv('REQUEST_URI'), $traceConf['url']) !== false // 检查 url path 是否匹配
+                && (!$traceConf['user_id'] || (!empty($_SESSION['user_id']) && $traceConf['user_id'] == $_SESSION['user_id'])) // 检查特定用户
+            ) {
+                $traceStart = true;
+
+                ini_set('xdebug.var_display_max_depth', $traceConf['max_depth']);
+                ini_set('xdebug.var_display_max_data', $traceConf['max_data']);
+                ini_set('xdebug.var_display_max_children', $traceConf['max_children']);
+            }
+        }
+
+        // 对业务逻辑记录 xdebug trace
+        if ($traceStart || isset($_REQUEST['xt']) || isset($_COOKIE['xt'])) {
             if (!file_exists(PATH_TRACE)) {
                 mkdir(PATH_TRACE, 0777, true);
             }
@@ -56,8 +73,12 @@ switch ($routeInfo[0]) {
             ini_set('xdebug.show_mem_delta', 1);
             ini_set('xdebug.collect_includes', 1);
 
-            $traceFile = sprintf('%s.%s', uniqid(), str_replace('/', '_', getenv('REQUEST_URI')));
-            xdebug_start_trace(PATH_TRACE . '/' . $traceFile);
+            $traceFilename = sprintf('%s@%s@%s',
+                uniqid(),
+                $_SESSION['user_id'] ?? 0,
+                str_replace('/', '_', getenv('REQUEST_URI'))
+            );
+            xdebug_start_trace(PATH_TRACE . '/' . $traceFilename);
 
             register_shutdown_function(function () {
                 xdebug_stop_trace();
