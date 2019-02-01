@@ -50,7 +50,7 @@ switch ($routeInfo[0]) {
 
             if ($traceConf['expire'] > time() // 检查过期
                 && strpos(getenv('REQUEST_URI'), $traceConf['url']) !== false // 检查 url path 是否匹配
-                && (!$traceConf['user_id'] || (!empty($_SESSION['user_id']) && $traceConf['user_id'] == $_SESSION['user_id'])) // 检查特定用户
+                && (!$traceConf['user_id'] || (auth()->isLogin() && $traceConf['user_id'] == auth()->userId())) // 检查特定用户
             ) {
                 $traceStart = true;
 
@@ -73,9 +73,10 @@ switch ($routeInfo[0]) {
             ini_set('xdebug.show_mem_delta', 1);
             ini_set('xdebug.collect_includes', 1);
 
-            $traceFilename = sprintf('%s@%s@%s',
-                uniqid(),
-                $_SESSION['user_id'] ?? 0,
+            $traceFilename = sprintf('%s@%s@%s@%s',
+                uniqid(), // 目的是排序用，和保证文件名唯一
+                date('ymd_H:i:s'),
+                auth()->userId(),
                 str_replace('/', '_', getenv('REQUEST_URI'))
             );
             xdebug_start_trace(PATH_TRACE . '/' . $traceFilename);
