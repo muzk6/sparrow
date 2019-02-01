@@ -15,6 +15,7 @@ PARAM
     on 开启维护模式，此时网站禁止访问
     off 关闭维护模式，此时网站正常访问
 DOC;
+    echo PHP_EOL;
     exit;
 }
 
