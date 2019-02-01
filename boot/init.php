@@ -5,6 +5,7 @@ define('PATH_VIEW', PATH_ROOT . '/views');
 define('PATH_PUBLIC', PATH_ROOT . '/public');
 define('PATH_DATA', PATH_ROOT . '/data');
 define('PATH_LOG', PATH_DATA . '/log');
+define('PATH_TRACE', PATH_DATA . '/trace');
 define('PATH_CONFIG', PATH_ROOT . '/config');
 define('PATH_LANG', PATH_ROOT . '/lang');
 

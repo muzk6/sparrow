@@ -42,6 +42,28 @@ switch ($routeInfo[0]) {
         }
 
         $instance = call_user_func([$controllerNs, 'instance']);
+
+        // 业务逻辑 xdebug trace
+        if (isset($_REQUEST['xt']) || isset($_COOKIE['xt'])) {
+            if (!file_exists(PATH_TRACE)) {
+                mkdir(PATH_TRACE, 0777, true);
+            }
+
+            ini_set('xdebug.trace_format', 0);
+            ini_set('xdebug.collect_return', 1);
+            ini_set('xdebug.collect_params', 4);
+            ini_set('xdebug.collect_assignments', 1);
+            ini_set('xdebug.show_mem_delta', 1);
+            ini_set('xdebug.collect_includes', 1);
+
+            $traceFile = sprintf('%s.%s', uniqid(), str_replace('/', '_', getenv('REQUEST_URI')));
+            xdebug_start_trace(PATH_TRACE . '/' . $traceFile);
+
+            register_shutdown_function(function () {
+                xdebug_stop_trace();
+            });
+        }
+
         call_user_func([$instance, $action]);
 
         break;

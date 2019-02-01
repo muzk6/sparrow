@@ -1,7 +1,7 @@
 <?php
 
 // 维护模式检查
-if (is_file(dirname(__DIR__). '/data/down')) {
+if (is_file(dirname(__DIR__) . '/data/down')) {
     http_response_code(403);
     exit;
 }
