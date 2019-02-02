@@ -36,11 +36,11 @@ class AppWhitelist
                 }
 
             } else {
-                list($safeIpStr, $maskStr) = explode('/', $v);
+                list($safeIpStr, $subnetNum) = explode('/', $v);
 
                 $base = ip2long('255.255.255.255');
 
-                $mask = pow(2, 32 - intval($maskStr)) - 1; // /24为例则 0.0.0.255(int)
+                $mask = pow(2, 32 - intval($subnetNum)) - 1; // /24为例则 0.0.0.255(int)
                 $subnetMask = $mask ^ $base; // 子网掩码，/24为例 255.255.255.0(int)
 
                 $safeIp = ip2long($safeIpStr);
