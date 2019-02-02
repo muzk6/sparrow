@@ -60,9 +60,16 @@ switch ($routeInfo[0]) {
             }
         }
 
+        // 参数 xt=<value> 开启
+        $xt = '';
+        if (isset($_REQUEST['xt'])) {
+            $xt = $_REQUEST['xt'];
+        } elseif (isset($_COOKIE['xt'])) {
+            $xt = $_COOKIE['xt'];
+        }
+
         // 对业务逻辑记录 xdebug trace
-        if ($traceStart
-            || (whitelist()->isSafeIp() && (isset($_REQUEST['xt']) || isset($_COOKIE['xt'])))) {
+        if ($traceStart || (whitelist()->isSafeIp() && $xt)) {
 
             if (!file_exists(PATH_TRACE)) {
                 mkdir(PATH_TRACE, 0777, true);
@@ -75,9 +82,10 @@ switch ($routeInfo[0]) {
             ini_set('xdebug.show_mem_delta', 1);
             ini_set('xdebug.collect_includes', 1);
 
-            $traceFilename = sprintf('%s@%s@%s@%s',
+            $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.uri:%s',
                 uniqid(), // 目的是排序用，和保证文件名唯一
-                date('ymd_H:i:s'),
+                date('ymd_His'),
+                $xt,
                 auth()->userId(),
                 str_replace('/', '_', getenv('REQUEST_URI'))
             );
