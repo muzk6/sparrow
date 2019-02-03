@@ -89,7 +89,7 @@ function db()
  * monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return \Monolog\Logger
- * @throws Exception
+ * @throws Exception|AppException
  */
 function monolog(string $name = 'app')
 {
