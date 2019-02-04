@@ -31,6 +31,16 @@ class AppPDO
      */
     protected $isForceMaster = false;
 
+    /**
+     * @var string LIMIT语句
+     */
+    private $limit = '';
+
+    /**
+     * @var array|string WHERE参数
+     */
+    private $where = null;
+
     private function __construct()
     {
     }
@@ -115,22 +125,18 @@ class AppPDO
      * 查询1行1列
      * @param string $table
      * @param string $column
-     * @param array|string $where 条件语句，可以包括 ORDER BY, GROUP 等等<br>
-     * 命名参数: ['name=:name', [':name' => 'super']] <br>
-     * 位置参数: ['name=?', ['super']] <br>
-     * 无参且查询最后一条: '1 order by id desc'
      * @return false|string
      */
-    public function selectColumn(string $table, string $column, $where)
+    public function selectColumn(string $table, string $column)
     {
-        /* @var PDO $this */
-
-        is_string($where) && $where = [$where];
+        $where = $this->getWhere();
         $sql = "SELECT {$column} FROM {$table} WHERE {$where[0]}";
 
         if (count($where) == 1) {
+            /* @var PDO $this */
             return $this->query($sql)->fetchColumn();
         } else {
+            /* @var PDO $this */
             $statement = $this->prepare($sql);
             $statement->execute($where[1] ?? null);
 
@@ -141,22 +147,18 @@ class AppPDO
     /**
      * 查询1行
      * @param string $table
-     * @param array|string $where 条件语句，可以包括 ORDER BY, GROUP 等等<br>
-     * 命名参数: ['name=:name', [':name' => 'super']] <br>
-     * 位置参数: ['name=?', ['super']] <br>
-     * 无参且查询最后一条: '1 order by id desc'
      * @return false|array
      */
-    public function selectOne(string $table, $where)
+    public function selectOne(string $table)
     {
-        /* @var PDO $this */
-
-        is_string($where) && $where = [$where];
+        $where = $this->getWhere();
         $sql = "SELECT * FROM {$table} WHERE {$where[0]}";
 
         if (count($where) == 1) {
+            /* @var PDO $this */
             return $this->query($sql)->fetch(PDO::FETCH_ASSOC);
         } else {
+            /* @var PDO $this */
             $statement = $this->prepare($sql);
             $statement->execute($where[1] ?? null);
 
@@ -168,21 +170,23 @@ class AppPDO
      * 查询多行
      * @param string $table
      * @param string $columns
-     * @param array $where 条件语句，可以包括 ORDER BY, GROUP, LIMIT 等等<br>
-     * 命名参数: ['name=:name', [':name' => 'super']] <br>
-     * 位置参数: ['name=?', ['super']] <br>
-     * 包括LIMIT: ['`order`=? limit 2', [13]]
      * @return array 失败返回空数组
      */
-    public function selectAll(string $table, string $columns, array $where)
+    public function selectAll(string $table, string $columns)
     {
-        /* @var PDO $this */
+        $where = $this->getWhere();
+        $sql = "SELECT {$columns} FROM {$table} WHERE {$where[0]} " . $this->getLimit();
 
-        $sql = "SELECT {$columns} FROM {$table} WHERE {$where[0]}";
-        $statement = $this->prepare($sql);
-        $statement->execute($where[1]);
+        if (count($where) == 1) {
+            /* @var PDO $this */
+            return $this->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            /* @var PDO $this */
+            $statement = $this->prepare($sql);
+            $statement->execute($where[1]);
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }
     }
 
     /**
@@ -195,8 +199,6 @@ class AppPDO
      */
     private function multiInsert(string $table, array $data, $op = 'INSERT INTO')
     {
-        /* @var PDO $this */
-
         // 单条插入，一维转多维
         if (count($data) == count($data, COUNT_RECURSIVE)) {
             $data = [$data];
@@ -226,6 +228,7 @@ class AppPDO
             implode(',', $allPlaceHolder)
         );
 
+        /* @var PDO $this */
         $statement = $this->prepare($sql);
         return $statement->execute($values);
     }
@@ -280,8 +283,6 @@ class AppPDO
      */
     public function update(string $table, array $data, array $where)
     {
-        /* @var PDO $this */
-
         $bind = [];
         $placeholder = [];
         foreach ($data as $k => $v) {
@@ -295,6 +296,7 @@ class AppPDO
             $where[0]
         );
 
+        /* @var PDO $this */
         $statement = $this->prepare($sql);
         $statement->execute(array_merge($bind, $where[1]));
 
@@ -309,13 +311,12 @@ class AppPDO
      */
     public function delete(string $table, array $where)
     {
-        /* @var PDO $this */
-
         $sql = sprintf('DELETE FROM `%s` WHERE %s',
             $table,
             $where[0]
         );
 
+        /* @var PDO $this */
         $statement = $this->prepare($sql);
         $statement->execute($where[1]);
 
@@ -333,4 +334,66 @@ class AppPDO
         $sql = 'SELECT ROW_COUNT()';
         return intval($this->forceMaster()->query($sql)->fetchColumn());
     }
+
+    /**
+     * 查询总数
+     * @param string $table
+     * @return int
+     */
+    public function count(string $table)
+    {
+        return db()->selectColumn($table, 'COUNT(1)');
+    }
+
+    /**
+     * 为下一个查询构造 LIMIT 语句
+     * @param int ...$limit
+     * @return PDO|static $this
+     */
+    public function limit(int ...$limit)
+    {
+        $this->limit = 'LIMIT ' . implode(',', $limit);
+        return $this;
+    }
+
+    /**
+     * 返回一次性 LIMIT 语句
+     * @return string
+     */
+    private function getLimit()
+    {
+        $limit = $this->limit;
+        $this->limit = '';
+
+        return $limit;
+    }
+
+    /**
+     * 为下一个查询准备 WHERE 参数
+     * @param array|string $where 条件语句<br>
+     * 绑定命名参数: where('name=:name', [':name' => 'super'])<br>
+     * 绑定位置参数: where('name=?', ['super'])<br>
+     * 无绑定参数: where('id=1')
+     * @return PDO|static $this
+     */
+    public function where(...$where)
+    {
+        $this->where = $where;
+        return $this;
+    }
+
+    /**
+     * 返回一次性 WHERE 参数
+     * @return array|string
+     */
+    private function getWhere()
+    {
+        $where = $this->where ?: '1';
+        is_string($where) && $where = [$where];
+
+        $this->where = null;
+
+        return $where;
+    }
+
 }
