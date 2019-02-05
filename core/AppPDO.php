@@ -46,6 +46,11 @@ class AppPDO
      */
     private $isNoWhere = false;
 
+    /**
+     * @var string 追加的 SQL语句
+     */
+    private $append = '';
+
     private function __construct()
     {
     }
@@ -110,19 +115,18 @@ class AppPDO
             $pdo = $this->masterConn;
         }
 
-        $this->forceMaster(false); // 使用完后自动切换为非强制
+        $this->isForceMaster = false; // 使用完后自动切换为非强制
         return call_user_func_array([$pdo, $name], $arguments);
     }
 
     /**
      * 下一次强制使用主库<br>
      * 操作完成后自动重置为非强制
-     * @param bool $isForce
-     * @return PDO|static $this
+     * @return PDO|static
      */
-    public function forceMaster($isForce = true)
+    public function forceMaster()
     {
-        $this->isForceMaster = $isForce;
+        $this->isForceMaster = true;
         return $this;
     }
 
@@ -135,7 +139,7 @@ class AppPDO
     public function selectColumn(string $table, string $column)
     {
         $where = $this->getWhere();
-        $sql = "SELECT {$column} FROM {$table} {$where[0]}";
+        $sql = "SELECT {$column} FROM {$table} {$where[0]}" . $this->getAppend();
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -157,7 +161,7 @@ class AppPDO
     public function selectOne(string $table)
     {
         $where = $this->getWhere();
-        $sql = "SELECT * FROM {$table} {$where[0]}";
+        $sql = "SELECT * FROM {$table} {$where[0]}" . $this->getAppend();
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -180,7 +184,9 @@ class AppPDO
     public function selectAll(string $table, string $columns)
     {
         $where = $this->getWhere();
-        $sql = "SELECT {$columns} FROM {$table} {$where[0]} " . $this->getLimit();
+        $sql = "SELECT {$columns} FROM {$table} {$where[0]}"
+            . $this->getAppend()
+            . $this->getLimit();
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -388,11 +394,11 @@ class AppPDO
      * LIMIT 10: limit(10)<br>
      * LIMIT 10, 20: limit(10, 20)
      * @param int ...$limit
-     * @return PDO|static $this
+     * @return PDO|static
      */
     public function limit(int ...$limit)
     {
-        $this->limit = 'LIMIT ' . implode(',', $limit);
+        $this->limit = ' LIMIT ' . implode(',', $limit);
         return $this;
     }
 
@@ -425,7 +431,7 @@ class AppPDO
      * 绑定匿名参数: where('name=?', ['super'])<br>
      * 绑定命名参数(不支持update): where('name=:name', [':name' => 'super'])<br>
      * 无绑定参数: where('id=1')
-     * @return PDO|static $this
+     * @return PDO|static
      */
     public function where(...$where)
     {
@@ -450,7 +456,7 @@ class AppPDO
     /**
      * 清空 where() 的同时<br>
      * 取消 update(), delete() 对 where() 的强制使用限制
-     * @return $this
+     * @return PDO|static
      */
     public function noWhere()
     {
@@ -470,6 +476,30 @@ class AppPDO
         $this->isNoWhere = false;
 
         return $isNoWhere;
+    }
+
+    /**
+     * 在后面追加 SQL 语句<br>
+     * 支持任何语句 ORDER BY, GROUP BY, HAVING 等等
+     * @param string $sql
+     * @return PDO|static
+     */
+    public function append(string $sql)
+    {
+        $this->append = ' ' . $sql;
+        return $this;
+    }
+
+    /**
+     * 返回一次性 $this->append
+     * @return string
+     */
+    private function getAppend()
+    {
+        $append = $this->append;
+        $this->append = '';
+
+        return $append;
     }
 
 }
