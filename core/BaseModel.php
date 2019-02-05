@@ -9,7 +9,7 @@ namespace Core;
  */
 abstract class BaseModel implements InstanceInterface
 {
-    private function __construct()
+    protected function __construct()
     {
     }
 

@@ -8,7 +8,7 @@ namespace Core;
  */
 abstract class BaseController implements InstanceInterface
 {
-    private function __construct()
+    protected function __construct()
     {
     }
 

@@ -8,7 +8,7 @@ namespace Core;
  */
 abstract class BaseService implements InstanceInterface
 {
-    private function __construct()
+    protected function __construct()
     {
     }
 
