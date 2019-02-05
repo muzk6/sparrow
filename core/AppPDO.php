@@ -308,7 +308,7 @@ class AppPDO
 
         if (count($where) == 1) {
             if (!$this->isNoWhere() && empty($where[0])) {
-                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where()，或者 noWhere() 不强制使用条件来更新全部');
+                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where(...), 更新全部用 where(null)');
             }
 
             $sql = sprintf('UPDATE `%s` SET %s %s %s',
@@ -353,7 +353,7 @@ class AppPDO
 
         if (count($where) == 1) {
             if (!$this->isNoWhere() && empty($where[0])) {
-                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where()，或者 noWhere() 不强制使用条件来删除全部');
+                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where(...), 删除全部用 where(null)');
             }
 
             /* @var PDO $this */
@@ -427,16 +427,22 @@ class AppPDO
 
     /**
      * 为下一个查询准备 WHERE 参数
-     * @param array|string $where 条件语句<br>
+     * @param array|string|null $where 条件语句<br>
      * 绑定匿名参数: where('name=?', ['super'])<br>
      * 绑定命名参数(不支持update): where('name=:name', [':name' => 'super'])<br>
-     * 无绑定参数: where('id=1')
+     * 无绑定参数: where('id=1')<br>
+     * 取消强制WHERE(适用于update,delete): where(null)
      * @return PDO|static
      */
     public function where(...$where)
     {
-        $this->where[0] = 'WHERE ' . $where[0];
-        isset($where[1]) && $this->where[1] = $where[1];
+        if ($where[0] === null) {
+            $this->where = [];
+            $this->isNoWhere = true;
+        } else {
+            $this->where[0] = 'WHERE ' . $where[0];
+            isset($where[1]) && $this->where[1] = $where[1];
+        }
 
         return $this;
     }
@@ -451,19 +457,6 @@ class AppPDO
         $this->where = [];
 
         return $where;
-    }
-
-    /**
-     * 清空 where() 的同时<br>
-     * 取消 update(), delete() 对 where() 的强制使用限制
-     * @return PDO|static
-     */
-    public function noWhere()
-    {
-        $this->where = [];
-        $this->isNoWhere = true;
-
-        return $this;
     }
 
     /**
