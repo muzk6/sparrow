@@ -139,7 +139,8 @@ class AppPDO
     public function selectColumn(string $table, string $column)
     {
         $where = $this->getWhere();
-        $sql = "SELECT {$column} FROM {$table} {$where[0]}" . $this->getAppend();
+        $append = $this->getAppend();
+        $sql = "SELECT {$column} FROM {$table} {$where[0]} {$append} LIMIT 1";
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -161,7 +162,8 @@ class AppPDO
     public function selectOne(string $table)
     {
         $where = $this->getWhere();
-        $sql = "SELECT * FROM {$table} {$where[0]}" . $this->getAppend();
+        $append = $this->getAppend();
+        $sql = "SELECT * FROM {$table} {$where[0]} {$append} LIMIT 1";
 
         if (count($where) == 1) {
             /* @var PDO $this */
