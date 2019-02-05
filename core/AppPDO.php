@@ -37,9 +37,14 @@ class AppPDO
     private $limit = '';
 
     /**
-     * @var array|string WHERE参数
+     * @var array WHERE参数
      */
-    private $where = null;
+    private $where = [];
+
+    /**
+     * @var bool 是否不强制使用 WHERE语句
+     */
+    private $isNoWhere = false;
 
     private function __construct()
     {
@@ -130,7 +135,7 @@ class AppPDO
     public function selectColumn(string $table, string $column)
     {
         $where = $this->getWhere();
-        $sql = "SELECT {$column} FROM {$table} WHERE {$where[0]}";
+        $sql = "SELECT {$column} FROM {$table} {$where[0]}";
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -152,7 +157,7 @@ class AppPDO
     public function selectOne(string $table)
     {
         $where = $this->getWhere();
-        $sql = "SELECT * FROM {$table} WHERE {$where[0]}";
+        $sql = "SELECT * FROM {$table} {$where[0]}";
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -175,7 +180,7 @@ class AppPDO
     public function selectAll(string $table, string $columns)
     {
         $where = $this->getWhere();
-        $sql = "SELECT {$columns} FROM {$table} WHERE {$where[0]} " . $this->getLimit();
+        $sql = "SELECT {$columns} FROM {$table} {$where[0]} " . $this->getLimit();
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -275,52 +280,85 @@ class AppPDO
 
     /**
      * 更新记录<br>
-     * <i>注意：为降低学习成本不支持 <b>['num' => 'num+1']</b> 的写法，请用原生 sql 实现</i>
+     * <i>注意：不支持 <b>['num' => 'num+1']</b> 的写法，请用原生 sql 实现</i>
      * @param string $table
      * @param array $data
-     * @param array $where ['name=? and type=?', ['php', 1]]
      * @return int 影响行数
+     * @throws AppException
      */
-    public function update(string $table, array $data, array $where)
+    public function update(string $table, array $data)
     {
+        $where = $this->getWhere();
+
         $bind = [];
         $placeholder = [];
+        $set = [];
         foreach ($data as $k => $v) {
             $placeholder[] = "`{$k}` = ?";
             $bind[] = $v;
+
+            $set[] = "`{$k}` = {$v}";
         }
 
-        $sql = sprintf('UPDATE `%s` SET %s WHERE %s',
-            $table,
-            implode(',', $placeholder),
-            $where[0]
-        );
+        if (count($where) == 1) {
+            if (!$this->isNoWhere() && empty($where[0])) {
+                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where()，或者 noWhere() 不强制使用条件来更新全部');
+            }
 
-        /* @var PDO $this */
-        $statement = $this->prepare($sql);
-        $statement->execute(array_merge($bind, $where[1]));
+            $sql = sprintf('UPDATE `%s` SET %s %s %s',
+                $table,
+                implode(',', $set),
+                $where[0],
+                $this->getLimit()
+            );
 
-        return $statement->rowCount();
+            /* @var PDO $this */
+            return $this->query($sql)->rowCount();
+        } else {
+            $sql = sprintf('UPDATE `%s` SET %s %s %s',
+                $table,
+                implode(',', $placeholder),
+                $where[0],
+                $this->getLimit()
+            );
+
+            /* @var PDO $this */
+            $statement = $this->prepare($sql);
+            $statement->execute(array_merge($bind, $where[1]));
+
+            return $statement->rowCount();
+        }
     }
 
     /**
      * 删除记录
      * @param string $table
-     * @param array $where ['name=? and type=?', ['php', 1]]
      * @return int 影响行数
+     * @throws AppException
      */
-    public function delete(string $table, array $where)
+    public function delete(string $table)
     {
-        $sql = sprintf('DELETE FROM `%s` WHERE %s',
+        $where = $this->getWhere();
+        $sql = sprintf('DELETE FROM `%s` %s %s',
             $table,
-            $where[0]
+            $where[0],
+            $this->getLimit()
         );
 
-        /* @var PDO $this */
-        $statement = $this->prepare($sql);
-        $statement->execute($where[1]);
+        if (count($where) == 1) {
+            if (!$this->isNoWhere() && empty($where[0])) {
+                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where()，或者 noWhere() 不强制使用条件来删除全部');
+            }
 
-        return $statement->rowCount();
+            /* @var PDO $this */
+            return $this->query($sql)->rowCount();
+        } else {
+            /* @var PDO $this */
+            $statement = $this->prepare($sql);
+            $statement->execute($where[1]);
+
+            return $statement->rowCount();
+        }
     }
 
     /**
@@ -346,7 +384,9 @@ class AppPDO
     }
 
     /**
-     * 为下一个查询构造 LIMIT 语句
+     * 为下一个查询构造 LIMIT 语句<br>
+     * LIMIT 10: limit(10)<br>
+     * LIMIT 10, 20: limit(10, 20)
      * @param int ...$limit
      * @return PDO|static $this
      */
@@ -354,6 +394,17 @@ class AppPDO
     {
         $this->limit = 'LIMIT ' . implode(',', $limit);
         return $this;
+    }
+
+    /**
+     * 以分页格式为下一个查询构造 LIMIT 语句
+     * @param int $page 页码
+     * @param int $size 每页数量
+     * @return AppPDO|PDO
+     */
+    public function page(int $page, int $size)
+    {
+        return $this->limit(($page - 1) * $size, $size);
     }
 
     /**
@@ -371,29 +422,54 @@ class AppPDO
     /**
      * 为下一个查询准备 WHERE 参数
      * @param array|string $where 条件语句<br>
-     * 绑定命名参数: where('name=:name', [':name' => 'super'])<br>
-     * 绑定位置参数: where('name=?', ['super'])<br>
+     * 绑定匿名参数: where('name=?', ['super'])<br>
+     * 绑定命名参数(不支持update): where('name=:name', [':name' => 'super'])<br>
      * 无绑定参数: where('id=1')
      * @return PDO|static $this
      */
     public function where(...$where)
     {
-        $this->where = $where;
+        $this->where[0] = 'WHERE ' . $where[0];
+        isset($where[1]) && $this->where[1] = $where[1];
+
         return $this;
     }
 
     /**
      * 返回一次性 WHERE 参数
-     * @return array|string
+     * @return array
      */
     private function getWhere()
     {
-        $where = $this->where ?: '1';
-        is_string($where) && $where = [$where];
-
-        $this->where = null;
+        $where = $this->where ?: [''];
+        $this->where = [];
 
         return $where;
+    }
+
+    /**
+     * 清空 where() 的同时<br>
+     * 取消 update(), delete() 对 where() 的强制使用限制
+     * @return $this
+     */
+    public function noWhere()
+    {
+        $this->where = [];
+        $this->isNoWhere = true;
+
+        return $this;
+    }
+
+    /**
+     * 返回一次性 $this->isNoWhere
+     * @return bool
+     */
+    private function isNoWhere()
+    {
+        $isNoWhere = $this->isNoWhere;
+        $this->isNoWhere = false;
+
+        return $isNoWhere;
     }
 
 }
