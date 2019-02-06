@@ -37,16 +37,6 @@ class AppPDO
     private $limit = '';
 
     /**
-     * @var array WHERE参数
-     */
-    private $where = [];
-
-    /**
-     * @var bool 是否不强制使用 WHERE语句
-     */
-    private $isNoWhere = false;
-
-    /**
      * @var string 追加的 SQL语句
      */
     private $append = '';
@@ -132,13 +122,15 @@ class AppPDO
 
     /**
      * 查询1行1列
-     * @param string $table
-     * @param string $column
+     * @param string $table 完整表名
+     * @param string $column 列名
+     * @param string|array|null $where 条件，格式看下面
+     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return false|string
      */
-    public function selectColumn(string $table, string $column)
+    public function selectColumn(string $table, string $column, $where)
     {
-        $where = $this->getWhere();
+        $where = $this->parseWhere($where);
         $append = $this->getAppend();
         $sql = "SELECT {$column} FROM {$table} {$where[0]} {$append} LIMIT 1";
 
@@ -156,12 +148,14 @@ class AppPDO
 
     /**
      * 查询1行
-     * @param string $table
+     * @param string $table 完整表名
+     * @param string|array|null $where 条件，格式看下面
+     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return false|array
      */
-    public function selectOne(string $table)
+    public function selectOne(string $table, $where)
     {
-        $where = $this->getWhere();
+        $where = $this->parseWhere($where);
         $append = $this->getAppend();
         $sql = "SELECT * FROM {$table} {$where[0]} {$append} LIMIT 1";
 
@@ -179,13 +173,15 @@ class AppPDO
 
     /**
      * 查询多行
-     * @param string $table
+     * @param string $table 完整表名
      * @param string $columns
+     * @param string|array|null $where 条件，格式看下面
+     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return array 失败返回空数组
      */
-    public function selectAll(string $table, string $columns)
+    public function selectAll(string $table, string $columns, $where)
     {
-        $where = $this->getWhere();
+        $where = $this->parseWhere($where);
         $sql = "SELECT {$columns} FROM {$table} {$where[0]}"
             . $this->getAppend()
             . $this->getLimit();
@@ -205,7 +201,7 @@ class AppPDO
     /**
      * 多用途插入、替换记录<br>
      * 用法参考 public 的 insert
-     * @param string $table
+     * @param string $table 完整表名
      * @param array $data
      * @param string $op 操作动作 INSERT INTO, INSERT IGNORE, REPLACE INTO
      * @return bool
@@ -249,7 +245,7 @@ class AppPDO
     /**
      * 插入记录<br>
      * <i>注意：为降低学习成本不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
-     * @param string $table
+     * @param string $table 完整表名
      * @param array $data 支持单条[...], 或批量 [[...], [...]]<br>
      * 批量插入时这里不限制长度不分批插入，
      * 由具体业务逻辑构造数组的同时控制批次（例如 $i%500==0 其中$i从1开始，或 array_chunk()）<br>
@@ -265,7 +261,7 @@ class AppPDO
     /**
      * 插入记录，重复时忽略<br>
      * 用法参考 insert
-     * @param string $table
+     * @param string $table 完整表名
      * @param array $data
      * @return bool
      */
@@ -277,7 +273,7 @@ class AppPDO
     /**
      * 插入记录，重复时覆盖<br>
      * 用法参考 insert
-     * @param string $table
+     * @param string $table 完整表名
      * @param array $data
      * @return bool
      */
@@ -289,14 +285,15 @@ class AppPDO
     /**
      * 更新记录<br>
      * <i>注意：不支持 <b>['num' => 'num+1']</b> 的写法，请用原生 sql 实现</i>
-     * @param string $table
+     * @param string $table 完整表名
      * @param array $data
+     * @param string|array|null $where 条件，格式看下面
+     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
-     * @throws AppException
      */
-    public function update(string $table, array $data)
+    public function update(string $table, array $data, $where)
     {
-        $where = $this->getWhere();
+        $where = $this->parseWhere($where);
 
         $bind = [];
         $placeholder = [];
@@ -309,10 +306,6 @@ class AppPDO
         }
 
         if (count($where) == 1) {
-            if (!$this->isNoWhere() && empty($where[0])) {
-                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where(...), 更新全部用 where(null)');
-            }
-
             $sql = sprintf('UPDATE `%s` SET %s %s %s',
                 $table,
                 implode(',', $set),
@@ -340,13 +333,14 @@ class AppPDO
 
     /**
      * 删除记录
-     * @param string $table
+     * @param string $table 完整表名
+     * @param string|array|null $where 条件，格式看下面
+     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
-     * @throws AppException
      */
-    public function delete(string $table)
+    public function delete(string $table, $where)
     {
-        $where = $this->getWhere();
+        $where = $this->parseWhere($where);
         $sql = sprintf('DELETE FROM `%s` %s %s',
             $table,
             $where[0],
@@ -354,10 +348,6 @@ class AppPDO
         );
 
         if (count($where) == 1) {
-            if (!$this->isNoWhere() && empty($where[0])) {
-                throw new AppException('缺少 WHERE 条件, 此前必须先调用 where(...), 删除全部用 where(null)');
-            }
-
             /* @var PDO $this */
             return $this->query($sql)->rowCount();
         } else {
@@ -383,23 +373,26 @@ class AppPDO
 
     /**
      * 查询总数
-     * @param string $table
+     * @param string $table 完整表名
+     * @param string|array|null $where 条件，格式看下面
+     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int
      */
-    public function count(string $table)
+    public function count(string $table, $where)
     {
-        return db()->selectColumn($table, 'COUNT(1)');
+        return intval(db()->selectColumn($table, 'COUNT(1)', $where));
     }
 
     /**
      * 为下一个查询构造 LIMIT 语句<br>
-     * LIMIT 10: limit(10)<br>
-     * LIMIT 10, 20: limit(10, 20)
-     * @param int ...$limit
+     * LIMIT 10: limit(10) 或 limit([10])<br>
+     * LIMIT 10, 20: limit(10, 20) 或 limit([10, 20])
+     * @param int|array ...$limit
      * @return PDO|static
      */
-    public function limit(int ...$limit)
+    public function limit(...$limit)
     {
+        is_array($limit[0]) && $limit = $limit[0];
         $this->limit = ' LIMIT ' . implode(',', $limit);
         return $this;
     }
@@ -428,49 +421,27 @@ class AppPDO
     }
 
     /**
-     * 为下一个查询准备 WHERE 参数
-     * @param array|string|null $where 条件语句<br>
-     * 绑定匿名参数: where('name=?', ['super'])<br>
-     * 绑定命名参数(不支持update): where('name=:name', [':name' => 'super'])<br>
-     * 无绑定参数: where('id=1')<br>
-     * 取消强制WHERE(适用于update,delete): where(null)
-     * @return PDO|static
-     */
-    public function where(...$where)
-    {
-        if ($where[0] === null) {
-            $this->where = [];
-            $this->isNoWhere = true;
-        } else {
-            $this->where[0] = 'WHERE ' . $where[0];
-            isset($where[1]) && $this->where[1] = $where[1];
-        }
-
-        return $this;
-    }
-
-    /**
-     * 返回一次性 WHERE 参数
+     * 解析构造 WHERE 参数
+     * @param string|array|null $where 条件语句, 取消条件使用 null<br>
+     * 无绑定参数: 'id=1' 或 ['id=1']<br>
+     * 绑定匿名参数: ['name=?', 'super'] 或 ['name=?', ['super']]<br>
+     * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']]<br>
      * @return array
      */
-    private function getWhere()
+    private function parseWhere($where)
     {
-        $where = $this->where ?: [''];
-        $this->where = [];
+        if (empty($where)) {
+            $wherePam = [''];
+        } elseif (is_string($where)) {
+            $wherePam[0] = 'WHERE ' . $where;
+        } else {
+            $wherePam[0] = 'WHERE ' . $where[0];
+            if (isset($where[1])) {
+                $wherePam[1] = is_array($where[1]) ? $where[1] : array_slice($where, 1);
+            }
+        }
 
-        return $where;
-    }
-
-    /**
-     * 返回一次性 $this->isNoWhere
-     * @return bool
-     */
-    private function isNoWhere()
-    {
-        $isNoWhere = $this->isNoWhere;
-        $this->isNoWhere = false;
-
-        return $isNoWhere;
+        return $wherePam;
     }
 
     /**
