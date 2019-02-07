@@ -261,6 +261,7 @@ class AppPDO
     /**
      * 插入记录，重复时忽略<br>
      * 用法参考 insert
+     * @see AppPDO::insert()
      * @param string $table 完整表名
      * @param array $data
      * @return bool
@@ -273,6 +274,7 @@ class AppPDO
     /**
      * 插入记录，重复时覆盖<br>
      * 用法参考 insert
+     * @see AppPDO::insert()
      * @param string $table 完整表名
      * @param array $data
      * @return bool
