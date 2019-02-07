@@ -12,6 +12,10 @@ abstract class BaseService implements InstanceInterface
     {
     }
 
+    /**
+     * @inheritdoc
+     * @return static
+     */
     public static function instance()
     {
         return new static();

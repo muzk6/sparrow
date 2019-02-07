@@ -3,10 +3,14 @@
 namespace Core;
 
 /**
- * 强制实例化类的方法接口
+ * 实例化类接口
  * @package Core
  */
 interface InstanceInterface
 {
+    /**
+     * 实例化自己
+     * @return static
+     */
     static function instance();
 }
