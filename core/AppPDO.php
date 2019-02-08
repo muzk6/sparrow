@@ -468,10 +468,12 @@ class AppPDO
     protected function getLimit()
     {
         $limit = $this->limit;
-        is_array($limit[0]) && $limit = $limit[0];
-        $limit = ' LIMIT ' . implode(',', $limit);
-
         $this->limit = '';
+
+        if ($limit) {
+            is_array($limit[0]) && $limit = $limit[0];
+            $limit = ' LIMIT ' . implode(',', $limit);
+        }
 
         return $limit;
     }
