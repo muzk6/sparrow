@@ -22,6 +22,17 @@ class AppPDO
     protected $slaveConn;
 
     /**
+     * @var string 分区<br>
+     * 空为默认分区
+     */
+    protected $section = '';
+
+    /**
+     * @var array 分区的连接对象集合
+     */
+    protected $sectionConn = [];
+
+    /**
      * @var array 数据库配置
      */
     protected $conf;
@@ -66,14 +77,19 @@ class AppPDO
 
     /**
      * 创建连接
-     * @param $host
+     * @param array $host
+     * @param string $user
+     * @param string $passwd
+     * @param string $dbname
      * @return PDO
      */
-    private function initConnection(array $host)
+    private function initConnection(array $host, string $user, string $passwd, string $dbname = '')
     {
-        $pdo = new PDO("mysql:dbname={$this->conf['dbname']};host={$host['host']};port={$host['port']}",
-            $this->conf['user'], $this->conf['passwd'],
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $dbnameDsn = $dbname ? "dbname={$dbname}" : '';
+
+        $pdo = new PDO("mysql:{$dbnameDsn};host={$host['host']};port={$host['port']}", $user, $passwd,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
 
         return $pdo;
     }
@@ -86,25 +102,50 @@ class AppPDO
      */
     public function __call($name, $arguments)
     {
-        // select 使用从库
-        if (!$this->isForceMaster
+        $isSlave = !$this->isForceMaster
             && in_array($name, ['query', 'prepare', 'exec'])
-            && strpos(strtolower($arguments[0]), 'select') !== false) {
+            && strpos(strtolower($arguments[0]), 'select') !== false;
 
-            if (!$this->slaveConn) {
-                $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
-                $this->slaveConn = $this->initConnection($slave);
-            }
-            $pdo = $this->slaveConn;
+        // 默认区
+        if (!$this->section) {
+            if ($isSlave) { // select 使用从库
+                if (!$this->slaveConn) {
+                    $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
+                    $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname']);
+                }
+                $pdo = $this->slaveConn;
 
-        } else { // 其它查询使用主库
-            if (!$this->masterConn) {
-                $master = $this->conf['hosts']['master'];
-                $this->masterConn = $this->initConnection($master);
+            } else { // 其它查询使用主库
+                if (!$this->masterConn) {
+                    $master = $this->conf['hosts']['master'];
+                    $this->masterConn = $this->initConnection($master, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname']);
+                }
+                $pdo = $this->masterConn;
             }
-            $pdo = $this->masterConn;
+
+        } else { // 扩展区
+            $sectionConf = &$this->conf['sections'][$this->section];
+
+            if ($isSlave) { // select 使用从库
+                $sectionConn = &$this->sectionConn[$this->section]['slave'];
+                if (empty($sectionConn)) {
+                    $slave = $sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)];
+                    $sectionConn = $this->initConnection($slave, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname']);
+                }
+
+                $pdo = $sectionConn;
+            } else { // 其它查询使用主库
+                $sectionConn = &$this->sectionConn[$this->section]['master'];
+                if (empty($sectionConn)) {
+                    $master = $sectionConf['hosts']['master'];
+                    $sectionConn = $this->initConnection($master, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname']);
+                }
+
+                $pdo = $sectionConn;
+            }
         }
 
+        $this->section = ''; // 自动重置为默认分区
         $this->isForceMaster = false; // 使用完后自动切换为非强制
         return call_user_func_array([$pdo, $name], $arguments);
     }
@@ -244,7 +285,7 @@ class AppPDO
 
     /**
      * 插入记录<br>
-     * <i>注意：为降低学习成本不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
+     * <i>注意：不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
      * @param string $table 完整表名
      * @param array $data 支持单条[...], 或批量 [[...], [...]]<br>
      * 批量插入时这里不限制长度不分批插入，
@@ -468,6 +509,18 @@ class AppPDO
         $this->append = '';
 
         return $append;
+    }
+
+    /**
+     * 一次性切换分区<br>
+     * 查询完成后自动切换回默认分区
+     * @param string $name
+     * @return PDO|static
+     */
+    public function section(string $name)
+    {
+        $this->section = $name;
+        return $this;
     }
 
 }
