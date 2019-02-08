@@ -54,12 +54,12 @@ abstract class BaseModel implements InstanceInterface, ShardingInterface
     }
 
     /**
-     * 自动切换分区的一次性数据库对象<br>
+     * 数据库对象<br>
      * @return AppPDO|\PDO
      */
     public function db()
     {
-        return db()->section($this->section);
+        return db()->section($this->section)->table($this->table);
     }
 
 }

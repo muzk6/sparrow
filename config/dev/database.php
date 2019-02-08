@@ -21,7 +21,7 @@ return [
         'sec0' => [
             'user' => 'root',
             'passwd' => '123abc',
-            'dbname' => 'hj',
+            'dbname' => 'test',
             'hosts' => [
                 'master' => ['host' => 'direwolf', 'port' => 3306],
                 'slaves' => [
