@@ -35,7 +35,8 @@ abstract class BaseModel implements InstanceInterface
 
     /**
      * 分区分表逻辑<br>
-     * 具体逻辑在子类中覆盖实现
+     * 具体逻辑在子类中覆盖实现<br>
+     * 修改 $this->section, $this->database, $this->table
      * @param int|string $index 分区分表索引值
      * @return static
      */
@@ -64,7 +65,14 @@ abstract class BaseModel implements InstanceInterface
     public static function db()
     {
         $instance = self::instance();
-        return db()->table($instance->table);
+
+        if ($instance->database) {
+            $table = "{$instance->database}.{$instance->table}";
+        } else {
+            $table = $instance->table;
+        }
+
+        return db()->section($instance->section)->table($table);
     }
 
     /**
@@ -74,14 +82,8 @@ abstract class BaseModel implements InstanceInterface
      */
     public static function sdb($index)
     {
-        $instance = self::instance();
-        $instance->sharding($index);
-
-        if ($instance->database) {
-            $instance->table = "{$instance->database}.{$instance->table}";
-        }
-
-        return db()->section($instance->section)->table($instance->table);
+        self::instance()->sharding($index);
+        return self::db();
     }
 
 }

@@ -114,7 +114,7 @@ class AppPDO
 
         // 默认区
         if (!$this->section) {
-            if ($isSlave) { // select 使用从库
+            if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // elect 使用从库(有 slave 配置的情况下)
                 if (!$this->slaveConn) {
                     $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
                     $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '');
@@ -132,7 +132,7 @@ class AppPDO
         } else { // 扩展区
             $sectionConf = &$this->conf['sections'][$this->section];
 
-            if ($isSlave) { // select 使用从库
+            if ($isSlave && !empty($sectionConf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
                 $sectionConn = &$this->sectionConn[$this->section]['slave'];
                 if (empty($sectionConn)) {
                     $slave = $sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)];

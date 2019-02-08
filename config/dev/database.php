@@ -12,7 +12,7 @@ return [
     'hosts' => [
         'master' => ['host' => 'direwolf', 'port' => 3306],
         'slaves' => [
-            ['host' => 'direwolf', 'port' => 3306],
+//            ['host' => 'direwolf', 'port' => 3306],
         ]
     ],
 
@@ -25,7 +25,7 @@ return [
             'hosts' => [
                 'master' => ['host' => 'direwolf', 'port' => 3306],
                 'slaves' => [
-                    ['host' => 'direwolf', 'port' => 3306],
+//                    ['host' => 'direwolf', 'port' => 3306],
                 ]
             ]
         ],
