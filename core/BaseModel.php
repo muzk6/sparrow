@@ -48,6 +48,21 @@ abstract class BaseModel implements InstanceInterface
     }
 
     /**
+     * 返回 database.table 格式的表名
+     * @return string
+     */
+    protected function getTable()
+    {
+        if ($this->database) {
+            $table = "{$this->database}.{$this->table}";
+        } else {
+            $table = $this->table;
+        }
+
+        return $table;
+    }
+
+    /**
      * @inheritdoc
      * @return static
      */
@@ -67,14 +82,7 @@ abstract class BaseModel implements InstanceInterface
     public static function db()
     {
         $instance = self::instance();
-
-        if ($instance->database) {
-            $table = "{$instance->database}.{$instance->table}";
-        } else {
-            $table = $instance->table;
-        }
-
-        return db()->section($instance->section)->table($table);
+        return db()->section($instance->section)->table($instance->getTable());
     }
 
     /**
