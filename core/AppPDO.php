@@ -253,7 +253,7 @@ class AppPDO
 
     /**
      * 多用途插入、替换记录<br>
-     * 用法参考 public 的 insert
+     * 用法参考 $this->insert
      * @param array $data
      * @param string $op 操作动作 INSERT INTO, INSERT IGNORE, REPLACE INTO
      * @return bool
@@ -262,7 +262,7 @@ class AppPDO
     protected function multiInsert(array $data, $op = 'INSERT INTO')
     {
         // 单条插入，一维转多维
-        if (count($data) == count($data, COUNT_RECURSIVE)) {
+        if (!isset($data[0])) {
             $data = [$data];
         }
 
@@ -276,8 +276,12 @@ class AppPDO
                     $columns[] = "`{$k}`";
                 }
 
-                $placeholder[] = '?';
-                $values[] = $v;
+                if (is_array($v) && isset($v['expr'])) { // 表达式
+                    $placeholder[] = $v['expr'];
+                } else { // 普通值
+                    $placeholder[] = '?';
+                    $values[] = $v;
+                }
             }
 
             $allPlaceHolder[] = '(' . implode(',', $placeholder) . ')';
@@ -298,7 +302,9 @@ class AppPDO
     /**
      * 插入记录<br>
      * <i>注意：不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
-     * @param array $data 支持单条[...], 或批量 [[...], [...]]<br>
+     * @param array $data
+     * 表达式: ['ctime' => ['expr' => 'UNIX_TIMESTAMP()']]<br>
+     * 支持单条[...], 或批量 [[...], [...]]<br>
      * 批量插入时这里不限制长度不分批插入，
      * 由具体业务逻辑构造数组的同时控制批次（例如 $i%500==0 其中$i从1开始，或 array_chunk()）<br>
      * 强烈建议在分批次插入时开启事务<br>
@@ -339,8 +345,9 @@ class AppPDO
 
     /**
      * 更新记录<br>
-     * <i>注意：不支持 <b>['num' => 'num+1']</b> 的写法，请用原生 sql 实现</i>
      * @param array $data
+     * 字段表达式: ['num' => ['expr' => 'num + 1']]<br>
+     * 函数表达式: ['utime' => ['expr' => 'UNIX_TIMESTAMP()']]
      * @param string|array|null $where 条件，格式看下面
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
@@ -355,10 +362,16 @@ class AppPDO
         $placeholder = [];
         $set = [];
         foreach ($data as $k => $v) {
-            $placeholder[] = "`{$k}` = ?";
-            $bind[] = $v;
+            if (is_array($v) && isset($v['expr'])) { // 表达式
+                $placeholder[] = "`{$k}` = {$v['expr']}";
+                $setVal = $v['expr'];
+            } else { // 普通值
+                $placeholder[] = "`{$k}` = ?";
+                $bind[] = $v;
+                $setVal = $v;
+            }
 
-            $set[] = "`{$k}` = {$v}";
+            $set[] = "`{$k}` = {$setVal}";
         }
 
         if (count($where) == 1) {
