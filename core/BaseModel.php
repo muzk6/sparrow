@@ -80,7 +80,7 @@ abstract class BaseModel implements InstanceInterface
      */
     public static function db()
     {
-        $instance = self::instance();
+        $instance = static::instance();
         return db()->section($instance->section)->table($instance->getTable());
     }
 
@@ -91,8 +91,8 @@ abstract class BaseModel implements InstanceInterface
      */
     public static function sdb($index)
     {
-        self::instance()->sharding($index);
-        return self::db();
+        static::instance()->sharding($index);
+        return static::db();
     }
 
 }
