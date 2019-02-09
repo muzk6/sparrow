@@ -256,7 +256,7 @@ class AppPDO
      * 用法参考 $this->insert
      * @param array $data
      * @param string $op 操作动作 INSERT INTO, INSERT IGNORE, REPLACE INTO
-     * @return bool
+     * @return int 返回成功插入后的ID
      * @throws AppException
      */
     protected function multiInsert(array $data, $op = 'INSERT INTO')
@@ -294,9 +294,14 @@ class AppPDO
             implode(',', $allPlaceHolder)
         );
 
+        // 记得当前 section, 查询上次插入的 ID 用
+        $section = $this->section;
+
         /* @var PDO $this */
         $statement = $this->prepare($sql);
-        return $statement->execute($values);
+        $statement->execute($values);
+
+        return intval($this->section($section)->lastInsertId());
     }
 
     /**
@@ -309,7 +314,7 @@ class AppPDO
      * 由具体业务逻辑构造数组的同时控制批次（例如 $i%500==0 其中$i从1开始，或 array_chunk()）<br>
      * 强烈建议在分批次插入时开启事务<br>
      * 批量插入时，lastInsertId 是这一批次的第一条记录的ID
-     * @return bool
+     * @return int 返回成功插入后的ID
      * @throws AppException
      */
     public function insert(array $data)
@@ -318,11 +323,11 @@ class AppPDO
     }
 
     /**
-     * 插入记录，重复时忽略<br>
+     * 插入记录，重复时忽略(跳过)<br>
      * 用法参考 insert
      * @see AppPDO::insert()
      * @param array $data
-     * @return bool
+     * @return int 返回成功插入后的ID
      * @throws AppException
      */
     public function insertIgnore(array $data)
@@ -335,7 +340,7 @@ class AppPDO
      * 用法参考 insert
      * @see AppPDO::insert()
      * @param array $data
-     * @return bool
+     * @return int 返回成功插入后的ID
      * @throws AppException
      */
     public function replace(array $data)

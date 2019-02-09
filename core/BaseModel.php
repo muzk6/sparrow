@@ -3,6 +3,8 @@
 
 namespace Core;
 
+use PDO;
+
 /**
  * 模型基类
  * @package Core
@@ -60,7 +62,7 @@ abstract class BaseModel implements InstanceInterface
 
     /**
      * 模型数据库对象<br>
-     * @return AppPDO
+     * @return AppPDO|PDO
      */
     public static function db()
     {
@@ -78,7 +80,7 @@ abstract class BaseModel implements InstanceInterface
     /**
      * 模型分区分表数据库对象 ShardingDB
      * @param int|string $index
-     * @return AppPDO
+     * @return AppPDO|PDO
      */
     public static function sdb($index)
     {
