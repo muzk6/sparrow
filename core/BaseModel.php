@@ -13,7 +13,7 @@ abstract class BaseModel implements InstanceInterface
     /**
      * @var static 单例对象
      */
-    private static $instance = null;
+    protected static $instance = null;
 
     /**
      * @var string 分区名
@@ -67,11 +67,11 @@ abstract class BaseModel implements InstanceInterface
      */
     public static function instance()
     {
-        if (!self::$instance instanceof static) {
-            self::$instance = new static();
+        if (!static::$instance instanceof static) {
+            static::$instance = new static();
         }
 
-        return self::$instance;
+        return static::$instance;
     }
 
     /**
