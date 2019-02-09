@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Core;
 
 use PDO;
@@ -68,7 +67,7 @@ abstract class BaseModel implements InstanceInterface
      */
     public static function instance()
     {
-        if (!self::$instance) {
+        if (!self::$instance instanceof static) {
             self::$instance = new static();
         }
 
