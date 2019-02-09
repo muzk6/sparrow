@@ -172,7 +172,6 @@ class AppPDO
      * @param string $column 列名
      * @param string|array|null $where 条件，格式看下面
      * @return false|string
-     * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectColumn(string $column, $where)
@@ -199,7 +198,6 @@ class AppPDO
      * 查询1行
      * @param string|array|null $where 条件，格式看下面
      * @return false|array
-     * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectOne($where)
@@ -227,7 +225,6 @@ class AppPDO
      * @param string $columns
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组
-     * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectAll(string $columns, $where)
@@ -257,7 +254,6 @@ class AppPDO
      * @param array $data
      * @param string $op 操作动作 INSERT INTO, INSERT IGNORE, REPLACE INTO
      * @return int 返回成功插入后的ID
-     * @throws AppException
      */
     protected function multiInsert(array $data, $op = 'INSERT INTO')
     {
@@ -315,7 +311,6 @@ class AppPDO
      * 强烈建议在分批次插入时开启事务<br>
      * 批量插入时，lastInsertId 是这一批次的第一条记录的ID
      * @return int 返回成功插入后的ID
-     * @throws AppException
      */
     public function insert(array $data)
     {
@@ -328,7 +323,6 @@ class AppPDO
      * @see AppPDO::insert()
      * @param array $data
      * @return int 返回成功插入后的ID
-     * @throws AppException
      */
     public function insertIgnore(array $data)
     {
@@ -341,7 +335,6 @@ class AppPDO
      * @see AppPDO::insert()
      * @param array $data
      * @return int 返回成功插入后的ID
-     * @throws AppException
      */
     public function replace(array $data)
     {
@@ -356,7 +349,6 @@ class AppPDO
      * @param string|array|null $where 条件，格式看下面
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
-     * @throws AppException
      */
     public function update(array $data, $where)
     {
@@ -410,7 +402,6 @@ class AppPDO
      * @param string|array|null $where 条件，格式看下面
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
-     * @throws AppException
      */
     public function delete($where)
     {
@@ -447,7 +438,6 @@ class AppPDO
      * 查询总数
      * @param string|array|null $where 条件，格式看下面
      * @return int
-     * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function count($where)
@@ -571,7 +561,7 @@ class AppPDO
     /**
      * 返回一次性 $this->table
      * @return string
-     * @throws AppException
+     * @throws null
      */
     protected function getTable()
     {
