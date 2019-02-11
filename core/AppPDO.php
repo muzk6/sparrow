@@ -179,6 +179,7 @@ class AppPDO
         $table = $this->getTable();
         $where = $this->parseWhere($where);
         $append = $this->getAppend();
+        $column = $this->quoteColumn($column);
 
         $sql = "SELECT {$column} FROM {$table} {$where[0]} {$append} LIMIT 1";
 
@@ -231,6 +232,7 @@ class AppPDO
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
+        $columns = $this->quoteColumn($columns);
 
         $sql = "SELECT {$columns} FROM {$table} {$where[0]}"
             . $this->getAppend()
@@ -270,7 +272,7 @@ class AppPDO
             $placeholder = [];
             foreach ($row as $k => $v) {
                 if ($line === 0) {
-                    $columns[] = "`{$k}`";
+                    $columns[] = $this->quote($k);
                 }
 
                 if (is_array($v) && isset($v['expr'])) { // 表达式
@@ -288,9 +290,9 @@ class AppPDO
         $updatePlaceHolder = [];
         foreach ($update as $k => $v) {
             if (is_array($v) && isset($v['expr'])) { // 表达式
-                $updatePlaceHolder[] = "`{$k}` = {$v['expr']}";
+                $updatePlaceHolder[] = $this->quote($k) . " = {$v['expr']}";
             } else { // 普通值
-                $updatePlaceHolder[] = "`{$k}` = ?";
+                $updatePlaceHolder[] = $this->quote($k) . " = ?";
                 $values[] = $v;
             }
         }
@@ -395,15 +397,15 @@ class AppPDO
         $set = [];
         foreach ($data as $k => $v) {
             if (is_array($v) && isset($v['expr'])) { // 表达式
-                $placeholder[] = "`{$k}` = {$v['expr']}";
+                $placeholder[] = $this->quote($k) . " = {$v['expr']}";
                 $setVal = $v['expr'];
             } else { // 普通值
-                $placeholder[] = "`{$k}` = ?";
+                $placeholder[] = $this->quote($k) . " = ?";
                 $bind[] = $v;
                 $setVal = $v;
             }
 
-            $set[] = "`{$k}` = {$setVal}";
+            $set[] = $this->quote($k) . " = {$setVal}";
         }
 
         if (count($where) == 1) {
@@ -617,6 +619,36 @@ class AppPDO
         }
 
         return $table;
+    }
+
+    /**
+     * 反引号修饰处理
+     * @param string $name
+     * @return string
+     */
+    protected function quote(string $name)
+    {
+        if (strpos($name, '`') === false) {
+            $name = "`{$name}`";
+        }
+
+        return $name;
+    }
+
+    /**
+     * 反引号处理字段<br>
+     * <p>order,utime -> `order`,`utime`</p>
+     * @param string $column
+     * @return string
+     */
+    protected function quoteColumn(string $column)
+    {
+        $arrColumn = explode(',', $column);
+        foreach ($arrColumn as &$v) {
+            $v = $this->quote($v);
+        }
+
+        return implode(',', $arrColumn);
     }
 
 }
