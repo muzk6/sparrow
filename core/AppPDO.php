@@ -628,6 +628,7 @@ class AppPDO
      */
     protected function quote(string $name)
     {
+        $name = trim($name);
         if (strpos($name, '`') === false) {
             $name = "`{$name}`";
         }
