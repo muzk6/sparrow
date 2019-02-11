@@ -53,9 +53,9 @@ abstract class BaseModel implements InstanceInterface
     protected function getTable()
     {
         if ($this->database) {
-            $table = "{$this->database}.{$this->table}";
+            $table = "`{$this->database}`.`{$this->table}`";
         } else {
-            $table = $this->table;
+            $table = "`{$this->table}`";
         }
 
         return $table;
