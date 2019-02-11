@@ -48,10 +48,12 @@ abstract class BaseModel implements InstanceInterface
 
     /**
      * 返回 database.table 格式的表名
+     * @param int|string $index 分区分表索引值
      * @return string
      */
-    protected function getTable()
+    public function getTable($index = '')
     {
+        $index && $this->sharding($index);
         if ($this->database) {
             $table = "`{$this->database}`.`{$this->table}`";
         } else {
@@ -86,7 +88,7 @@ abstract class BaseModel implements InstanceInterface
 
     /**
      * 模型分区分表数据库对象 ShardingDB
-     * @param int|string $index
+     * @param int|string $index 分区分表索引值
      * @return AppPDO|PDO
      */
     public static function sdb($index)
