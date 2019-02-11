@@ -89,7 +89,7 @@ function db()
  * monolog
  * @param string $name 日志器名称，也是日志文件名前缀
  * @return \Monolog\Logger
- * @throws Exception|AppException
+ * @throws null
  */
 function monolog(string $name = 'app')
 {
@@ -114,7 +114,7 @@ function monolog(string $name = 'app')
 /**
  * redis
  * @return \Predis\Client
- * @throws AppException
+ * @throws null
  */
 function redis()
 {
@@ -139,7 +139,7 @@ function redis()
 /**
  * 消息队列
  * @return AppQueue
- * @throws AppException
+ * @throws null
  */
 function queue()
 {
@@ -320,7 +320,7 @@ function whitelist()
 /**
  * 电子邮件
  * @return AppEmail
- * @throws AppException
+ * @throws null
  */
 function email()
 {
@@ -341,7 +341,7 @@ function email()
  * elasticsearch<br>
  * 文档 https://github.com/elastic/elasticsearch-php
  * @return \Elasticsearch\Client
- * @throws AppException
+ * @throws null
  */
 function es()
 {
