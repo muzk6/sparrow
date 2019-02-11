@@ -253,9 +253,10 @@ class AppPDO
      * 用法参考 $this->insert
      * @param array $data
      * @param string $op 操作动作 INSERT INTO, INSERT IGNORE, REPLACE INTO
+     * @param array $update ON DUPLICATE KEY UPDATE
      * @return int 返回成功插入后的ID
      */
-    protected function multiInsert(array $data, $op = 'INSERT INTO')
+    protected function multiInsert(array $data, $op = 'INSERT INTO', $update = [])
     {
         // 单条插入，一维转多维
         if (!isset($data[0])) {
@@ -283,14 +284,28 @@ class AppPDO
             $allPlaceHolder[] = '(' . implode(',', $placeholder) . ')';
         }
 
-        $sql = sprintf('%s %s (%s) VALUES %s',
+        // on duplicate key update
+        $updatePlaceHolder = [];
+        foreach ($update as $k => $v) {
+            if (is_array($v) && isset($v['expr'])) { // 表达式
+                $updatePlaceHolder[] = "`{$k}` = {$v['expr']}";
+            } else { // 普通值
+                $updatePlaceHolder[] = "`{$k}` = ?";
+                $values[] = $v;
+            }
+        }
+
+        $sql = sprintf('%s %s (%s) VALUES %s %s',
             $op,
             $this->getTable(),
             implode(',', $columns),
-            implode(',', $allPlaceHolder)
+            implode(',', $allPlaceHolder),
+            $updatePlaceHolder
+                ? 'ON DUPLICATE KEY UPDATE ' . implode(',', $updatePlaceHolder)
+                : ''
         );
 
-        // 记得当前 section, 查询上次插入的 ID 用
+        // 记住当前 section, 查询上次插入的 ID 用
         $section = $this->section;
 
         /* @var PDO $this */
@@ -302,15 +317,15 @@ class AppPDO
 
     /**
      * 插入记录<br>
-     * <i>注意：不支持 <b>ON DUPLICATE KEY UPDATE</b></i>
-     * @param array $data
+     * @param array $data 要插入的数据 ['column' => 1]<br>
      * 表达式: ['ctime' => ['expr' => 'UNIX_TIMESTAMP()']]<br>
      * 支持单条[...], 或批量 [[...], [...]]<br>
      * 批量插入时这里不限制长度不分批插入，
      * 由具体业务逻辑构造数组的同时控制批次（例如 $i%500==0 其中$i从1开始，或 array_chunk()）<br>
      * 强烈建议在分批次插入时开启事务<br>
      * 批量插入时，lastInsertId 是这一批次的第一条记录的ID
-     * @return int 返回成功插入后的ID
+     * @return int 返回成功插入后的ID<br>
+     * 批量时返回第一条记录的ID
      */
     public function insert(array $data)
     {
@@ -319,10 +334,12 @@ class AppPDO
 
     /**
      * 插入记录，重复时忽略(跳过)<br>
-     * 用法参考 insert
      * @see AppPDO::insert()
-     * @param array $data
-     * @return int 返回成功插入后的ID
+     * @param array $data 要插入的数据<br>
+     * 详情参考 AppPDO::insert()
+     * @return int 返回成功插入后的ID<br>
+     * 批量时返回第一条成功插入记录的ID<br>
+     * 忽略时返回0
      */
     public function insertIgnore(array $data)
     {
@@ -331,10 +348,11 @@ class AppPDO
 
     /**
      * 插入记录，重复时覆盖<br>
-     * 用法参考 insert
      * @see AppPDO::insert()
-     * @param array $data
-     * @return int 返回成功插入后的ID
+     * @param array $data 要插入的数据<br>
+     * 详情参考 AppPDO::insert()
+     * @return int 返回成功插入后的ID<br>
+     * 批量时返回第一条记录的ID
      */
     public function replace(array $data)
     {
@@ -342,8 +360,25 @@ class AppPDO
     }
 
     /**
+     * 插入遇到主键或唯一索引记录时进行更新<br>
+     * INSERT INTO ... ON DUPLICATE KEY UPDATE ...<br>
+     * @see AppPDO::insert()
+     * @param array $data 要插入的数据<br>
+     * 详情参考 AppPDO::insert()
+     * @param array $update 要更新的字段 ['column' => 1]<br>
+     * 字段表达式: ['num' => ['expr' => 'num + 1']]<br>
+     * 函数表达式: ['utime' => ['expr' => 'UNIX_TIMESTAMP()']]
+     * @return int 返回成功插入或更新后记录的ID<br>
+     * 批量时返回最后一条记录的ID
+     */
+    public function insertUpdate(array $data, array $update)
+    {
+        return $this->multiInsert($data, 'INSERT INTO', $update);
+    }
+
+    /**
      * 更新记录<br>
-     * @param array $data
+     * @param array $data 要更新的字段 ['column' => 1]<br>
      * 字段表达式: ['num' => ['expr' => 'num + 1']]<br>
      * 函数表达式: ['utime' => ['expr' => 'UNIX_TIMESTAMP()']]
      * @param string|array|null $where 条件，格式看下面
