@@ -47,7 +47,24 @@ abstract class BaseModel implements InstanceInterface
     }
 
     /**
-     * 返回 database.table 格式的表名
+     * 反引号修饰处理
+     * @param string $name
+     * @return string
+     */
+    protected function quote(string $name)
+    {
+        $name = trim($name);
+        if (strpos($name, '`') === false) {
+            $name = "`{$name}`";
+        }
+
+        return $name;
+    }
+
+    /**
+     * 返回带反引号的表名(支持指定数据库)<br>
+     * <p>table -> `table`</p>
+     * <p>database.table -> `database`.`table`</p>
      * @param int|string $index 分区分表索引值
      * @return string
      */
@@ -55,9 +72,9 @@ abstract class BaseModel implements InstanceInterface
     {
         $index && $this->sharding($index);
         if ($this->database) {
-            $table = "`{$this->database}`.`{$this->table}`";
+            $table = $this->quote($this->database) . '.' . $this->quote($this->table);
         } else {
-            $table = "`{$this->table}`";
+            $table = $this->quote($this->table);
         }
 
         return $table;

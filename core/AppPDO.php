@@ -598,7 +598,9 @@ class AppPDO
     }
 
     /**
-     * 返回带反引号的表名(支持指定数据库)
+     * 返回带反引号的表名(支持指定数据库)<br>
+     * <p>table -> `table`</p>
+     * <p>database.table -> `database`.`table`</p>
      * @return string
      * @throws null
      */
@@ -609,13 +611,11 @@ class AppPDO
         }
 
         $table = $this->table;
-        if (strpos($table, '`') === false) {
-            if (strpos($table, '.') === false) { // 没有显式指定库名
-                $table = "`{$table}`";
-            } else {
-                $dbTable = explode('.', $table);
-                $table = "`{$dbTable[0]}`.`{$dbTable[1]}`";
-            }
+        if (strpos($table, '.') === false) { // 没有显式指定库名
+            $table = $this->quote($table);
+        } else {
+            $dbTable = explode('.', $table);
+            $table = $this->quote($dbTable[0]) . '.' . $this->quote($dbTable[1]);
         }
 
         return $table;
