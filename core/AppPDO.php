@@ -169,12 +169,16 @@ class AppPDO
 
     /**
      * 查询1行1列
-     * @param string $column 列名
+     * @param string|array $column 字段名<br>
+     * 字段: 'col1' 或 ['col1']<br>
+     * 表达式: ['expr' => 'COUNT(1)']<br>
+     * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return false|string
      * @see AppPDO::parseWhere() 参考 $where 参数
+     * @see AppPDO::quoteColumn() 参考字段参数
      */
-    public function selectColumn(string $column, $where)
+    public function selectColumn($column, $where)
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
@@ -223,12 +227,16 @@ class AppPDO
 
     /**
      * 查询多行
-     * @param string $columns
+     * @param string|array $columns 字段名<br>
+     * 字段: 'col1, col2' 或 ['col1', 'col2']<br>
+     * 表达式: ['col1', ['expr' => 'COUNT(1)']]<br>
+     * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组
      * @see AppPDO::parseWhere() 参考 $where 参数
+     * @see AppPDO::quoteColumn() 参考字段参数
      */
-    public function selectAll(string $columns, $where)
+    public function selectAll($columns, $where)
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
@@ -479,7 +487,7 @@ class AppPDO
      */
     public function count($where)
     {
-        return intval(db()->selectColumn('COUNT(1)', $where));
+        return intval(db()->selectColumn(['expr' => 'COUNT(1)'], $where));
     }
 
     /**
@@ -638,15 +646,21 @@ class AppPDO
 
     /**
      * 反引号处理字段<br>
-     * <p>order,utime -> `order`,`utime`</p>
-     * @param string $column
+     * <p>'order,utime' -> '`order`,`utime`'</p>
+     * <p>['order','utime'] -> '`order`,`utime`'</p>
+     * <p>['order'] -> '`order`'</p>
+     * <p>['order', ['expr' => 'COUNT(1)']] -> '`order`, COUNT(1)'</p>
+     * <p>['expr' => 'COUNT(1)'] -> 'COUNT(1)'</p>
+     * @param string|array $column
      * @return string
      */
-    protected function quoteColumn(string $column)
+    protected function quoteColumn($column)
     {
-        $arrColumn = explode(',', $column);
+        $arrColumn = is_string($column)
+            ? explode(',', $column)
+            : (isset($column[0]) ? $column : [$column]);
         foreach ($arrColumn as &$v) {
-            $v = $this->quote($v);
+            $v = $v['expr'] ?? $this->quote($v);
         }
 
         return implode(',', $arrColumn);
