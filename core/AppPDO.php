@@ -112,8 +112,7 @@ class AppPDO
             && in_array($name, ['query', 'prepare', 'exec'])
             && strpos(strtolower($arguments[0]), 'select') !== false;
 
-        // 默认区
-        if (!$this->section) {
+        if (!$this->section) { // 默认区
             if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // elect 使用从库(有 slave 配置的情况下)
                 if (!$this->slaveConn) {
                     $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
@@ -151,8 +150,7 @@ class AppPDO
             }
         }
 
-        $this->section = ''; // 自动重置为默认分区
-        $this->isForceMaster = false; // 使用完后自动切换为非强制
+        $this->reset();
         return call_user_func_array([$pdo, $name], $arguments);
     }
 
@@ -515,14 +513,12 @@ class AppPDO
     }
 
     /**
-     * 返回一次性 LIMIT 语句
+     * 返回 LIMIT 语句
      * @return string
      */
     protected function getLimit()
     {
         $limit = $this->limit;
-        $this->limit = '';
-
         if ($limit) {
             is_array($limit[0]) && $limit = $limit[0];
             $limit = ' LIMIT ' . implode(',', $limit);
@@ -568,14 +564,12 @@ class AppPDO
     }
 
     /**
-     * 返回一次性 $this->append
+     * $this->append
      * @return string
      */
     protected function getAppend()
     {
         $append = ' ' . $this->append;
-        $this->append = '';
-
         return $append;
     }
 
@@ -604,7 +598,7 @@ class AppPDO
     }
 
     /**
-     * 返回一次性 $this->table
+     * 返回带反引号的表名(支持指定数据库)
      * @return string
      * @throws null
      */
@@ -615,8 +609,6 @@ class AppPDO
         }
 
         $table = $this->table;
-        $this->table = '';
-
         if (strpos($table, '`') === false) {
             if (strpos($table, '.') === false) { // 没有显式指定库名
                 $table = "`{$table}`";
@@ -664,6 +656,18 @@ class AppPDO
         }
 
         return implode(',', $arrColumn);
+    }
+
+    /**
+     * 参数重置
+     */
+    protected function reset()
+    {
+        $this->section = ''; // 重置为默认分区
+        $this->isForceMaster = false; // 使用完后自动切换为非强制
+        $this->table = ''; // 重置表名
+        $this->limit = ''; // 重置LIMIT
+        $this->append = ''; // 重置附加语句
     }
 
 }
