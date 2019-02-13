@@ -4,7 +4,7 @@
  * yar的服务端
  */
 
-require_once dirname(__DIR__) . '/boot/init.php';
+require_once dirname(__DIR__) . '/init.php';
 
 class Foo
 {

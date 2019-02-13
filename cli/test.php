@@ -1,4 +1,4 @@
 <?php
 
-require_once dirname(__DIR__) . '/boot/init.php';
+require_once dirname(__DIR__) . '/init.php';
 

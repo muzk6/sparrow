@@ -7,5 +7,5 @@ if (is_file(dirname(__DIR__) . '/data/down')) {
     exit;
 }
 
-require_once dirname(__DIR__) . '/boot/init.php';
-require_once PATH_ROOT . '/boot/routes.php';
+require_once dirname(__DIR__) . '/init.php';
+require_once PATH_ROOT . '/core/routes.php';

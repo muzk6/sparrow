@@ -1,6 +1,6 @@
 <?php
 
-define('PATH_ROOT', dirname(__DIR__));
+define('PATH_ROOT', __DIR__);
 define('PATH_VIEW', PATH_ROOT . '/views');
 define('PATH_PUBLIC', PATH_ROOT . '/public');
 define('PATH_DATA', PATH_ROOT . '/data');
@@ -33,7 +33,7 @@ require_once PATH_ROOT . '/vendor/autoload.php';
 $appConf = config('app');
 date_default_timezone_set($appConf['timezone']);
 
-// cookie里的 lang 没设置或不支持时，就使用配置文件里的默认语言
+// cookie 里的 lang 没设置或不支持时，就使用配置文件里的默认语言
 define('APP_LANG', isset($_COOKIE['lang'])
     ? (is_file(sprintf('%s/%s.php', PATH_LANG, $_COOKIE['lang']))
         ? $_COOKIE['lang'] : $appConf['lang'])

@@ -23,6 +23,7 @@ switch ($routeInfo[0]) {
     case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
         $allowedMethods = $routeInfo[1];
         // ... 405 Method Not Allowed
+        http_response_code(405);
         break;
     case FastRoute\Dispatcher::FOUND:
         $handler = $routeInfo[1];
@@ -70,7 +71,6 @@ switch ($routeInfo[0]) {
 
         // 对业务逻辑记录 xdebug trace
         if ($traceStart || (whitelist()->isSafeIp() && $xt)) {
-
             if (!file_exists(PATH_TRACE)) {
                 mkdir(PATH_TRACE, 0777, true);
             }
@@ -97,6 +97,5 @@ switch ($routeInfo[0]) {
         }
 
         call_user_func([$instance, $action]);
-
         break;
 }

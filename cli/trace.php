@@ -8,7 +8,7 @@
  * 不需要登录的网页就由我自己来调试
  */
 
-require_once dirname(__DIR__) . '/boot/init.php';
+require_once dirname(__DIR__) . '/init.php';
 
 $opt = getopt('', ['help::', 'url::', 'uid::', 'expire::', 'off::',
     'max-depth::', 'max-data::', 'max-children::'], $ind);
