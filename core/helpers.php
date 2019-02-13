@@ -86,25 +86,28 @@ function db()
 }
 
 /**
- * 写文件日志
+ * 文件日志
  * @param array|string $data 日志内容
- * @param string $type 日志类型，区分日志文件
+ * @param string $type 日志类型，用于区分日志文件
  * @return false|int
  */
 function logfile($data, string $type = 'app')
 {
+    $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
+    $type = trim(str_replace('/', '', $type));
+
     $log = json_encode([
-            '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
-            '__time' => date('Y-m-d H:i:s'),
-            '__sapi' => PHP_SAPI,
-            '__type' => $type,
-            '__data' => $data,
-        ]) . PHP_EOL;
+        '__time' => date('Y-m-d H:i:s'),
+        '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
+        '__file' => "{$trace['file']}:{$trace['line']}",
+        '__sapi' => PHP_SAPI,
+        '__data' => $data,
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
-    $path = sprintf('%s/%s_%s_%s.log',
-        PATH_LOG, date('Ymd'), PHP_SAPI, $type);
+    $path = sprintf('%s/%s_%s.log',
+        PATH_LOG, $type, date('ymd'));
 
-    return file_put_contents($path, $log, FILE_APPEND);
+    return file_put_contents($path, $log . PHP_EOL, FILE_APPEND);
 }
 
 /**
