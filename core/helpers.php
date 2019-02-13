@@ -86,29 +86,25 @@ function db()
 }
 
 /**
- * monolog
- * @param string $name 日志器名称，也是日志文件名前缀
- * @return \Monolog\Logger
- * @throws null
+ * 写文件日志
+ * @param array|string $data 日志内容
+ * @param string $type 日志类型，区分日志文件
+ * @return false|int
  */
-function monolog(string $name = 'app')
+function logfile($data, string $type = 'app')
 {
-    static $logGroup = [];
+    $log = json_encode([
+            '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
+            '__time' => date('Y-m-d H:i:s'),
+            '__sapi' => PHP_SAPI,
+            '__type' => $type,
+            '__data' => $data,
+        ]) . PHP_EOL;
 
-    $log = &$logGroup[$name];
-    if (!isset($log)) {
-        if (!class_exists('\Monolog\Logger')) {
-            throw new AppException('composer require monolog/monolog');
-        }
+    $path = sprintf('%s/%s_%s_%s.log',
+        PATH_LOG, date('Ymd'), PHP_SAPI, $type);
 
-        $log = new \Monolog\Logger($name);
-
-        $path = sprintf('%s/%s_%s_%s.log',
-            PATH_LOG, PHP_SAPI, $name, date('Ym'));
-        $log->pushHandler(new \Monolog\Handler\StreamHandler($path));
-    }
-
-    return $log;
+    return file_put_contents($path, $log, FILE_APPEND);
 }
 
 /**
