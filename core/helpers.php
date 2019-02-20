@@ -9,7 +9,6 @@ use Core\AppAes;
 use Core\AppPDO;
 use Core\AppQueue;
 use Core\AppWhitelist;
-use duncan3dc\Laravel\BladeInstance;
 
 /**
  * 配置文件
@@ -58,14 +57,19 @@ function trans(int $code, array $params = [])
 
 /**
  * 视图模板
- * @return BladeInstance
+ * @return \duncan3dc\Laravel\BladeInstance
+ * @throws null
  */
 function view()
 {
     static $blade = null;
 
     if (!$blade) {
-        $blade = new BladeInstance(PATH_VIEW, PATH_DATA . '/views_cache');
+        if (!class_exists('\duncan3dc\Laravel\BladeInstance')) {
+            throw new AppException('composer require duncan3dc/blade');
+        }
+
+        $blade = new \duncan3dc\Laravel\BladeInstance(PATH_VIEW, PATH_DATA . '/view_cache');
     }
 
     return $blade;

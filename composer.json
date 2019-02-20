@@ -1,10 +1,7 @@
 {
     "require": {
         "ext-json": "*",
-        "ext-openssl": "*",
-        "ext-xdebug": "*",
-        "nikic/fast-route": "^1.3",
-        "duncan3dc/blade": "^4.3",
+        "nikic/fast-route": "^1.3"
     },
     "autoload": {
         "psr-4": {
