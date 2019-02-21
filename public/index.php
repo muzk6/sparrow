@@ -8,4 +8,4 @@ if (is_file(dirname(__DIR__) . '/data/down')) {
 }
 
 require_once dirname(__DIR__) . '/init.php';
-require_once PATH_ROOT . '/core/routes.php';
+require_once PATH_ROOT . '/core/router.php';
