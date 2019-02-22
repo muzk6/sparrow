@@ -3,12 +3,11 @@
 $uri = parse_url(rawurldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
 $found = false;
+$controller = 'IndexController';
+$action = 'index';
 if ($uri === '/') {
     $found = true;
-
-    $controller = 'IndexController';
-    $action = 'index';
-} elseif (preg_match('#(?<ctl>[a-zA-Z\d]+)/(?<act>[a-zA-Z\d]+)?#', $uri, $matches)) {
+} elseif (preg_match('#(?<ctl>[a-zA-Z\d]+)/?(?<act>[a-zA-Z\d]+)?#', $uri, $matches)) {
     $found = true;
 
     $controller = ucfirst($matches['ctl']) . 'Controller';
