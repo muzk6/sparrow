@@ -18,7 +18,14 @@ if (is_file('/www/PUB')) { // publish
     ini_set('display_errors', 1); // develop
     define('APP_ENV', 'dev');
 }
+
 define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
+if (!file_exists(PATH_CONFIG_ENV)) {
+    echo '缺少配置: ' . PATH_CONFIG_ENV;
+    exit;
+}
+
+define('IS_DEV', APP_ENV == 'dev');
 
 // 日志
 ini_set('log_errors', 'On');
@@ -26,6 +33,18 @@ ini_set('error_log', sprintf('%s/__error_%s.log', PATH_LOG, date('ymd')));
 if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
+
+// 生产环境不打印异常
+IS_DEV || set_exception_handler(function ($ex) {
+    /* @var Exception $ex */
+    $data = [
+        'code' => $ex->getCode(),
+        'message' => $ex->getMessage(),
+        'file' => $ex->getFile() . ':' . $ex->getLine(),
+        'trace' => $ex->getTrace(),
+    ];
+    logfile($data, 'exception');
+});
 
 // composer
 require_once PATH_ROOT . '/vendor/autoload.php';
