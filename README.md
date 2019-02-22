@@ -2,6 +2,15 @@
 
 PHP框架 KuiNiu Framework
 
+#### 路由格式
+
+URI | Controller | Action
+--- | --- | ---
+`/foo` | `FooController` | `index()`
+`/foo/` | `FooController` | `index()`
+`/foo/bar` | `FooController` | `bar()`
+`/foo/bar/` | `FooController` | `bar()`
+
 #### XDebug Trace
 > 跟踪调试日志
 
