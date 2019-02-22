@@ -25,11 +25,12 @@ if ($found) {
 
     // cli/trace.php 开启的 xdebug trace
     $traceStart = false;
-    if (file_exists($traceConfFile = PATH_TRACE . '/config.php')) {
+    $traceConfFile = PATH_DATA . '/.tracerc';
+    if (file_exists($traceConfFile)) {
         $traceConf = include($traceConfFile);
 
-        if ($traceConf['expire'] > time() // 检查过期
-            && strpos(getenv('REQUEST_URI'), $traceConf['url']) !== false // 检查 url path 是否匹配
+        if ($traceConf['expire'] > APP_TIME // 检查过期
+            && strpos(getenv('REQUEST_URI'), $traceConf['uri']) !== false // 检查 uri path 是否匹配
             && (!$traceConf['user_id'] || (auth()->isLogin() && $traceConf['user_id'] == auth()->userId())) // 有指定用户时，检查特定用户
         ) {
             $traceStart = true;

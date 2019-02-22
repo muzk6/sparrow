@@ -10,7 +10,7 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-$opt = getopt('', ['help::', 'url::', 'uid::', 'expire::', 'off::',
+$opt = getopt('', ['help::', 'uri::', 'uid::', 'expire::', 'off::',
     'max-depth::', 'max-data::', 'max-children::'], $ind);
 
 $maxDepth = intval(ini_get('xdebug.var_display_max_depth'));
@@ -20,9 +20,9 @@ $maxChildren = intval(ini_get('xdebug.var_display_max_children'));
 if (isset($opt['help'])) {
     echo <<<DOC
 USAGE
-    php trace.php [OPTION...] URL
+    php trace.php [OPTION...] URI
 PARAM
-    URL
+    URI
         Url path which trigger start xdebug trace.
 OPTION
     --uid=
@@ -43,27 +43,28 @@ DOC;
     exit;
 }
 
+$traceConfFile = PATH_DATA . '/.tracerc';
 if (isset($opt['off'])) {
-    unlink(PATH_TRACE . '/config.php');
+    file_exists($traceConfFile) && unlink($traceConfFile);
     echo 'Xdebug trace Off' . PHP_EOL;
     exit;
 }
 
-$url = &$argv[$ind];
-if (empty($url)) {
-    echo '缺少参数 URL' . PHP_EOL;
+$uri = &$argv[$ind];
+if (empty($uri)) {
+    echo '缺少参数 URI' . PHP_EOL;
     exit;
 }
 
 $conf = [
-    'url' => $url,
+    'uri' => $uri,
     'user_id' => $opt['uid'] ?? 0,
-    'expire' => isset($opt['expire']) ? time() + $opt['expire'] : time() + 600,
+    'expire' => isset($opt['expire']) ? APP_TIME + $opt['expire'] : APP_TIME + 600,
     'max_depth' => $opt['max-depth'] ?? $maxDepth,
     'max_data' => $opt['max-data'] ?? $maxData,
     'max_children' => $opt['max-children'] ?? $maxChildren,
 ];
 
-file_put_contents(PATH_TRACE . '/config.php',
+file_put_contents($traceConfFile,
     "<?php\nreturn " . var_export($conf, true) . ";\n");
 print_r($conf);

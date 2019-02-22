@@ -34,17 +34,15 @@ class AppCSRF
      */
     public function token()
     {
-        $now = time();
-
         if (empty($_SESSION['csrf_token'])) {
             $token = hash_hmac('sha256', session_id(), $this->secretKey);
 
             $_SESSION['csrf_token'] = [
                 'token' => $token,
-                'expire' => $now + $this->expire,
+                'expire' => APP_TIME + $this->expire,
             ];
         } else {
-            if ($now > $_SESSION['csrf_token']['expire']) {
+            if (APP_TIME > $_SESSION['csrf_token']['expire']) {
                 unset($_SESSION['csrf_token']);
 
                 return $this->token();
@@ -88,7 +86,7 @@ class AppCSRF
             throw new AppException(10001002);
         }
 
-        if (time() > $_SESSION['csrf_token']['expire']) {
+        if (APP_TIME > $_SESSION['csrf_token']['expire']) {
             throw new AppException(10001002);
         }
 
