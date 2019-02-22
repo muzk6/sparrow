@@ -72,7 +72,7 @@ class AppCSRF
      */
     public function check()
     {
-        if (getenv('REQUEST_METHOD') != 'POST') {
+        if (!request()->isPost()) {
             return true;
         }
 
