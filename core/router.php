@@ -7,9 +7,8 @@ $controller = 'IndexController';
 $action = 'index';
 if ($uri === '/') {
     $found = true;
-} elseif (preg_match('#(?<ctl>[a-zA-Z\d]+)/?(?<act>[a-zA-Z\d]+)?#', $uri, $matches)) {
+} elseif (preg_match('#^/(?<ctl>[a-zA-Z\d]+)/?(?<act>[a-zA-Z\d]+)?/?$#', $uri, $matches)) {
     $found = true;
-
     $controller = ucfirst($matches['ctl']) . 'Controller';
     $action = $matches['act'] ?? 'index';
 }
