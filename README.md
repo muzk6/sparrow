@@ -2,7 +2,7 @@
 
 PHP框架 KuiNiu Framework
 
-#### 路由格式
+#### 控制器 URI
 
 URI | Controller | Action
 --- | --- | ---
@@ -10,6 +10,25 @@ URI | Controller | Action
 `/foo/` | `FooController` | `index()`
 `/foo/bar` | `FooController` | `bar()`
 `/foo/bar/` | `FooController` | `bar()`
+
+#### 控制器 PHPDOC
+> 通过方法的文档注释 @app 来声明请求场景
+
+```php
+/**
+ * @app post,auth
+ */
+public function index()
+{
+    //todo
+}
+```
+
+name | Desc
+--- | ---
+get | 限于 GET 请求
+post | 限于 POST 请求
+auth | 限于已登录
 
 #### XDebug Trace
 > 跟踪调试日志

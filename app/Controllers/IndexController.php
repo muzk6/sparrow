@@ -9,6 +9,9 @@ use Core\BaseController;
 
 class IndexController extends BaseController
 {
+    /**
+     * @app get
+     */
     public function index()
     {
         $data = DemoService::instance()->foo();

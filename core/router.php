@@ -1,5 +1,7 @@
 <?php
 
+use Core\AppControllerMiddleware;
+
 $uri = parse_url(rawurldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
 $found = false;
@@ -16,6 +18,36 @@ if ($uri === '/') {
 if ($found) {
     $controllerNs = "App\\Controllers\\{$controller}";
     if (!is_callable([$controllerNs, $action])) {
+        http_response_code(404);
+        return;
+    }
+
+    try {
+        $reflector = new ReflectionClass($controllerNs);
+        $doc = $reflector->getMethod($action)->getDocComment();
+        preg_match('#(?<=@app\s).*#', $doc, $matchDoc);
+        if (isset($matchDoc[0])) {
+            $middleware = new AppControllerMiddleware();
+            $appDocList = explode(',', trim($matchDoc[0]));
+
+            foreach ($appDocList as $appDocItem) {
+                $appDocItem = strtolower(trim($appDocItem));
+                switch ($appDocItem) {
+                    case 'post': // 限于 POST 请求
+                    case 'get': // 限于 GET 请求
+                        if (!$middleware->checkMethod($appDocItem)) {
+                            return;
+                        }
+                        break;
+                    case 'auth': // 限于已登录
+                        if (!$middleware->checkAuth()) {
+                            return;
+                        }
+                        break;
+                }
+            }
+        }
+    } catch (ReflectionException $e) {
         http_response_code(404);
         return;
     }
