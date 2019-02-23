@@ -6,7 +6,7 @@ namespace Core;
  * 控制器中间件
  * @package Core
  */
-class AppControllerMiddleware
+class AppMiddleware
 {
     /**
      * 检查请求方法

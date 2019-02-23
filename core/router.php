@@ -1,6 +1,6 @@
 <?php
 
-use Core\AppControllerMiddleware;
+use Core\AppMiddleware;
 
 $uri = parse_url(rawurldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
@@ -27,7 +27,7 @@ if ($found) {
         $doc = $reflector->getMethod($action)->getDocComment();
         preg_match('#(?<=@app\s).*#', $doc, $matchDoc);
         if (isset($matchDoc[0])) {
-            $middleware = new AppControllerMiddleware();
+            $middleware = new AppMiddleware();
             $appDocList = explode(',', trim($matchDoc[0]));
 
             foreach ($appDocList as $appDocItem) {
