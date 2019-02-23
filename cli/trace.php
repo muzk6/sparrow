@@ -59,7 +59,7 @@ if (empty($uri)) {
 $conf = [
     'uri' => $uri,
     'user_id' => $opt['uid'] ?? 0,
-    'expire' => isset($opt['expire']) ? APP_TIME + $opt['expire'] : APP_TIME + 600,
+    'expire' => isset($opt['expire']) ? TIME + $opt['expire'] : TIME + 600,
     'max_depth' => $opt['max-depth'] ?? $maxDepth,
     'max_data' => $opt['max-data'] ?? $maxData,
     'max_children' => $opt['max-children'] ?? $maxChildren,

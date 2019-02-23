@@ -39,10 +39,10 @@ class AppCSRF
 
             $_SESSION['csrf_token'] = [
                 'token' => $token,
-                'expire' => APP_TIME + $this->expire,
+                'expire' => TIME + $this->expire,
             ];
         } else {
-            if (APP_TIME > $_SESSION['csrf_token']['expire']) {
+            if (TIME > $_SESSION['csrf_token']['expire']) {
                 unset($_SESSION['csrf_token']);
 
                 return $this->token();
@@ -86,7 +86,7 @@ class AppCSRF
             throw new AppException(10001002);
         }
 
-        if (APP_TIME > $_SESSION['csrf_token']['expire']) {
+        if (TIME > $_SESSION['csrf_token']['expire']) {
             throw new AppException(10001002);
         }
 

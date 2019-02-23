@@ -8,7 +8,7 @@ define('PATH_LOG', PATH_DATA . '/log');
 define('PATH_TRACE', PATH_DATA . '/trace');
 define('PATH_CONFIG', PATH_ROOT . '/config');
 define('PATH_LANG', PATH_ROOT . '/lang');
-define('APP_TIME', $_SERVER['REQUEST_TIME']);
+define('TIME', $_SERVER['REQUEST_TIME']);
 
 // 环境与配置文件
 if (is_file('/www/PUB')) { // publish
