@@ -42,6 +42,18 @@ auth | 限于已登录
 
 - `php cli/maintain.php`
 
+#### 常用常量
+
+Name | Desc
+--- | ---
+TIME | `$_SERVER['REQUEST_TIME']`
+IS_DEV | 是否为开发环境
+APP_LANG | 当前语言 eg. zh_CN
+APP_ENV | 当前环境 eg. dev
+PATH_PUBLIC | 网站入口路径
+PATH_DATA | 数据目录，有写权限
+PATH_LOG | 日志目录
+
 #### 目录结构
 
 Dir | Desc
