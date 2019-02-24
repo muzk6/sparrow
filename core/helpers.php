@@ -8,7 +8,6 @@ use Core\AppFlash;
 use Core\AppAes;
 use Core\AppPDO;
 use Core\AppQueue;
-use Core\AppRequest;
 use Core\AppWhitelist;
 
 /**
@@ -350,21 +349,6 @@ function whitelist()
     }
 
     return $whitelist;
-}
-
-/**
- * 请求
- * @return AppRequest
- */
-function request()
-{
-    static $request = null;
-
-    if (!$request) {
-        $request = new AppRequest();
-    }
-
-    return $request;
 }
 
 /**

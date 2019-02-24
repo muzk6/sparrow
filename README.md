@@ -47,6 +47,8 @@ auth | 限于已登录
 Name | Desc
 --- | ---
 TIME | `$_SERVER['REQUEST_TIME']`
+IS_POST | 是否为 POST 请求
+IS_GET | 是否为 GET 请求
 IS_DEV | 是否为开发环境
 APP_LANG | 当前语言 `eg. zh_CN`
 APP_ENV | 当前环境 `eg. dev`

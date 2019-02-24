@@ -66,13 +66,13 @@ class AppCSRF
 
     /**
      * token 校验<br>
-     * 只对 POST 请求校验，因此涉及修改数据的请求必须用 POST 请求
+     * 只对 非GET 请求校验
      * @return true
      * @throws AppException
      */
     public function check()
     {
-        if (!request()->isPost()) {
+        if (IS_GET) {
             return true;
         }
 
