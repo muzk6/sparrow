@@ -73,7 +73,7 @@ class AppPDO
      * @param array $conf 数据库配置，格式 config/dev/database.php
      * @return PDO|AppPDO
      */
-    static function instance(array $conf)
+    public static function instance(array $conf)
     {
         $instance = new static();
         $instance->conf = $conf;
