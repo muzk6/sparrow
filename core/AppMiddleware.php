@@ -10,12 +10,12 @@ class AppMiddleware
 {
     /**
      * 检查请求方法
-     * @param string $refMethod
+     * @param array $context
      * @return bool
      */
-    public function checkMethod(string $refMethod)
+    public function checkMethod(array $context)
     {
-        if (strtolower(getenv('REQUEST_METHOD')) !== $refMethod) {
+        if (strtolower(getenv('REQUEST_METHOD')) !== $context['middleware']) {
             http_response_code(405);
             return false;
         }
@@ -25,9 +25,10 @@ class AppMiddleware
 
     /**
      * 检查是否已登录
+     * @param array $context
      * @return bool
      */
-    public function checkAuth()
+    public function checkAuth(array $context)
     {
         if (!auth()->isLogin()) {
             http_response_code(401);
@@ -39,10 +40,11 @@ class AppMiddleware
 
     /**
      * csrf token 校验
+     * @param array $context
      * @return true
      * @throws AppException
      */
-    public function checkCSRF()
+    public function checkCSRF(array $context)
     {
         return csrf()->check();
     }

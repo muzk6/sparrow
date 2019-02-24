@@ -54,7 +54,7 @@ ignore | 忽略所有中间件，一般用于方法中
 ```php
 // \App\Core\AppMiddleware
 
-public function myMiddleware()
+public function myMiddleware(array $context)
 {
     return true;
 }
@@ -73,7 +73,7 @@ public function index()
 }
 ```
 
-- 在`\App\Core\AppMiddleware`定义中间件方法，无参
+- 在`\App\Core\AppMiddleware`定义中间件方法，参数`array $context`
 - 在控制器中`@mw` 直接使用，中间件名字与前面定义的方法名一致
 
 ---

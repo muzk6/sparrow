@@ -60,25 +60,32 @@ if ($found) {
 
                 foreach ($appDocList as $appDocItem) {
                     $appDocItem = strtolower(trim($appDocItem));
+                    $middlewareContext = [
+                        'middleware' => $appDocItem,
+                        'uri' => $uri,
+                        'controller' => $controllerNs,
+                        'action' => $action,
+                    ];
+
                     switch ($appDocItem) {
                         case 'post': // 限于 POST 请求
                         case 'get': // 限于 GET 请求
-                            if (!$middleware->checkMethod($appDocItem)) {
+                            if (!$middleware->checkMethod($middlewareContext)) {
                                 return;
                             }
                             break;
                         case 'auth': // 限于已登录
-                            if (!$middleware->checkAuth()) {
+                            if (!$middleware->checkAuth($middlewareContext)) {
                                 return;
                             }
                             break;
                         case 'csrf': // csrf token 检验
-                            if (!$middleware->checkCSRF()) {
+                            if (!$middleware->checkCSRF($middlewareContext)) {
                                 return;
                             }
                             break;
                         default: // 自定义中间件
-                            if (!$middleware->$appDocItem()) {
+                            if (!$middleware->$appDocItem($middlewareContext)) {
                                 return;
                             }
                             break;
