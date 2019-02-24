@@ -22,27 +22,67 @@ if ($found) {
 
     try {
         $reflector = new ReflectionClass($controllerNs);
-        $doc = $reflector->getMethod($action)->getDocComment();
-        preg_match('#(?<=@app\s).*#', $doc, $matchDoc);
-        if (isset($matchDoc[0])) {
-            /** @var \Core\AppMiddleware $middleware */
-            $middleware = core('AppMiddleware');
-            $appDocList = explode(',', trim($matchDoc[0]));
 
-            foreach ($appDocList as $appDocItem) {
+        // 控制器 @mw
+        $appDocReg = '#(?<=@mw\s).*#';
+        $controllerDoc = $reflector->getDocComment();
+        $appDocList = [];
+        if (preg_match($appDocReg, $controllerDoc, $matchDoc)) {
+            $appDocList = explode(',', trim($matchDoc[0]));
+        }
+
+        // 方法 @mw
+        $actionDoc = $reflector->getMethod($action)->getDocComment();
+        if (preg_match($appDocReg, $actionDoc, $matchDoc)) {
+            $appDocList = array_merge($appDocList, explode(',', trim($matchDoc[0])));
+        }
+
+        if (!empty($appDocList)) {
+            // 过滤前后空格、转小写
+            foreach ($appDocList as &$appDocItem) {
                 $appDocItem = strtolower(trim($appDocItem));
-                switch ($appDocItem) {
-                    case 'post': // 限于 POST 请求
-                    case 'get': // 限于 GET 请求
-                        if (!$middleware->checkMethod($appDocItem)) {
-                            return;
-                        }
-                        break;
-                    case 'auth': // 限于已登录
-                        if (!$middleware->checkAuth()) {
-                            return;
-                        }
-                        break;
+            }
+            unset($appDocItem);
+
+            if (!in_array('ignore', $appDocList)) {
+                // 存在 ! 时去掉对应的中间件
+                $appDocListFlip = array_flip($appDocList);
+                foreach ($appDocList as $appDocItem) {
+                    if (strpos($appDocItem, '!') !== false) {
+                        unset($appDocListFlip[$appDocItem]);
+                        unset($appDocListFlip[substr($appDocItem, 1)]);
+                    }
+                }
+
+                /** @var \Core\AppMiddleware $middleware */
+                $middleware = core('AppMiddleware');
+                $appDocList = array_flip($appDocListFlip);
+
+                foreach ($appDocList as $appDocItem) {
+                    $appDocItem = strtolower(trim($appDocItem));
+                    switch ($appDocItem) {
+                        case 'post': // 限于 POST 请求
+                        case 'get': // 限于 GET 请求
+                            if (!$middleware->checkMethod($appDocItem)) {
+                                return;
+                            }
+                            break;
+                        case 'auth': // 限于已登录
+                            if (!$middleware->checkAuth()) {
+                                return;
+                            }
+                            break;
+                        case 'csrf': // csrf token 检验
+                            if (!$middleware->checkCSRF()) {
+                                return;
+                            }
+                            break;
+                        default: // 自定义中间件
+                            if (!$middleware->$appDocItem()) {
+                                return;
+                            }
+                            break;
+                    }
                 }
             }
         }

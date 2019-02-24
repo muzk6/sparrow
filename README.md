@@ -11,24 +11,72 @@ URI | Controller | Action
 `/foo/bar` | `FooController` | `bar()`
 `/foo/bar/` | `FooController` | `bar()`
 
-#### 控制器 PHPDOC
-> 通过方法的文档注释 @app 来声明请求场景
+---
+
+#### 中间件
+> 通过文档注释 @mw 即 middleware 来声明中间件
+
+##### 例子
 
 ```php
 /**
- * @app post,auth
+ * @mw auth
+ * @package App\Controllers
  */
-public function index()
+class IndexController extends BaseController
 {
-    //todo
+    /**
+     * @mw get,!auth
+     */
+    public function index()
+    {
+        //todo
+    }
 }
 ```
+
+- 整个`IndexController`的方法都要调用`auth`中间件
+- `index()` 只允许`GET`请求，忽略`auth`中间件
+
+##### 内置中间件
 
 name | Desc
 --- | ---
 get | 限于 GET 请求
 post | 限于 POST 请求
 auth | 限于已登录
+ignore | 忽略所有中间件，一般用于方法中
+
+*前面加`!`表示忽略对应的中间件，一般用于方法中*
+
+##### 自定义中间件
+
+```php
+// \App\Core\AppMiddleware
+
+public function myMiddleware()
+{
+    return true;
+}
+```
+
+```php
+// \App\Controllers\IndexController
+
+/**
+ * @mw myMiddelware
+ */
+public function index()
+{
+    $data = DemoService::instance()->foo();
+    echo json_response($data['name']);
+}
+```
+
+- 在`\App\Core\AppMiddleware`定义中间件方法，无参
+- 在控制器中`@mw` 直接使用，中间件名字与前面定义的方法名一致
+
+---
 
 #### XDebug Trace
 > 跟踪调试日志
@@ -37,10 +85,14 @@ auth | 限于已登录
 - CLI `php cli/trace.php`
 - URI `?xt=<value>`
 
+---
+
 #### 维护模式
 > 开启维护模式，关闭网站访问入口
 
 - `php cli/maintain.php`
+
+---
 
 #### 常用常量
 
@@ -56,6 +108,8 @@ PATH_PUBLIC | 网站入口路径
 PATH_DATA | 数据目录，有写权限
 PATH_LOG | 日志目录
 
+---
+
 #### 目录结构
 
 Dir | Desc
@@ -64,6 +118,7 @@ app | 业务逻辑
 app/Controllers | 控制器层，负责输入(表单验证、权限控制……)、处理(Service)、输出
 app/Models | 模型层，1表1模型
 app/Services | 服务层，负责业务逻辑
+app/Core | 框架核心类继承层
 cli | 命令行脚本
 config | 配置文件，通用配置放在当前目录下
 config/dev | dev环境的配置
@@ -75,6 +130,8 @@ rpc | RPC入口目录，禁止对外网开放
 vendor | Composer库
 views | 视图文件
 workers | 长驻运行的脚本
+
+---
 
 #### Core 空间类继承
 > 继承 Core 空间类，修复默认行为<br>

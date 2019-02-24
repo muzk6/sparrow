@@ -37,4 +37,14 @@ class AppMiddleware
         return true;
     }
 
+    /**
+     * csrf token 校验
+     * @return true
+     * @throws AppException
+     */
+    public function checkCSRF()
+    {
+        return csrf()->check();
+    }
+
 }

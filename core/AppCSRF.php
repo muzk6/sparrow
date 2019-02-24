@@ -65,17 +65,12 @@ class AppCSRF
     }
 
     /**
-     * token 校验<br>
-     * 只对 非GET 请求校验
+     * token 校验
      * @return true
      * @throws AppException
      */
     public function check()
     {
-        if (IS_GET) {
-            return true;
-        }
-
         $token = $_POST['_token'] ?? '';
 
         if (!$token) {
