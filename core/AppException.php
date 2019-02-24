@@ -8,7 +8,7 @@ use Throwable;
  * 业务异常类
  * @package Core
  */
-class AppException extends Exception implements Throwable
+final class AppException extends Exception implements Throwable
 {
     /**
      * @var array

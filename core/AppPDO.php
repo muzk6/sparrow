@@ -9,7 +9,7 @@ use PDO;
  * 支持主从切换
  * @package Core
  */
-class AppPDO
+final class AppPDO
 {
     /**
      * @var PDO 主库连接对象

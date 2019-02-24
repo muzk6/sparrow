@@ -34,8 +34,8 @@ auth | 限于已登录
 > 跟踪调试日志
 
 以下两种方法开启跟踪
-- `php cli/trace.php`
-- `?xt=<value>`
+- CLI `php cli/trace.php`
+- URI `?xt=<value>`
 
 #### 维护模式
 > 开启维护模式，关闭网站访问入口
@@ -48,8 +48,8 @@ Name | Desc
 --- | ---
 TIME | `$_SERVER['REQUEST_TIME']`
 IS_DEV | 是否为开发环境
-APP_LANG | 当前语言 eg. zh_CN
-APP_ENV | 当前环境 eg. dev
+APP_LANG | 当前语言 `eg. zh_CN`
+APP_ENV | 当前环境 `eg. dev`
 PATH_PUBLIC | 网站入口路径
 PATH_DATA | 数据目录，有写权限
 PATH_LOG | 日志目录
@@ -65,7 +65,7 @@ app/Services | 服务层，负责业务逻辑
 cli | 命令行脚本
 config | 配置文件，通用配置放在当前目录下
 config/dev | dev环境的配置
-core | 框架核心文件
+core | 框架核心文件，不可修改，若要修改默认行为请在 `app/Core` 里实现子类
 data | 缓存、日志数据目录，需要写权限
 lang | 国际化多语言
 public | Web入口目录
@@ -73,3 +73,22 @@ rpc | RPC入口目录，禁止对外网开放
 vendor | Composer库
 views | 视图文件
 workers | 长驻运行的脚本
+
+#### Core 空间类继承
+> 继承 Core 空间类，修复默认行为<br>
+
+##### `AppXXX`
+
+以 `\Core\AppMiddleware` 为例，在目录 `app/Core` 里新建同名类文件，
+`\App\Core\AppMiddleware extends \Core\AppMiddleware`, 后下以覆盖类方法来修改父类的
+默认行为
+
+*注意 `\Core\AppException`, `\Core\AppPDO` 都是 `final class`，不可承继*
+
+##### `BaseXXX`
+
+由于 `BaseController`, `BaseModel`, `BaseService` 都是给业务逻辑类继承的，
+记得在对最底层的类 `extends \App\Core\BaseXXX`，
+例如 
+- `\App\Core\BaseController extends \Core\BaseController extends`
+- `\App\Controllers\IndexController extends \App\Core\BaseController`

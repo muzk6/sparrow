@@ -57,6 +57,32 @@ function trans(int $code, array $params = [])
 }
 
 /**
+ * 实例化 App\Core\, Core\ 类
+ * 优先实例化 App\Core\ 命名空间里的，不存在时才实例化 Core\ 里的
+ * @param string $className 类名
+ * @param mixed $args 构造函数的参数
+ * @return stdClass|null
+ */
+function core(string $className, ...$args)
+{
+    $appCore = 'App\Core\\' . $className;
+    if (class_exists($appCore)) {
+        $core = $appCore;
+    } else {
+        $core = 'Core\\' . $className;
+    }
+
+    try {
+        $reflector = new ReflectionClass($core);
+        $instance = $reflector->newInstanceArgs($args);
+
+        return $instance;
+    } catch (ReflectionException $e) {
+        return null;
+    }
+}
+
+/**
  * 视图模板
  * @return \duncan3dc\Laravel\BladeInstance
  * @throws null
@@ -147,6 +173,7 @@ function redis()
  */
 function queue()
 {
+    /** @var AppQueue $queue */
     static $queue = null;
 
     if (!$queue) {
@@ -154,7 +181,7 @@ function queue()
             throw new AppException('composer require php-amqplib/php-amqplib');
         }
 
-        $queue = new AppQueue(config('rabbitmq'));
+        $queue = core('AppQueue', config('rabbitmq'));
     }
 
     return $queue;
@@ -166,11 +193,12 @@ function queue()
  */
 function aes()
 {
+    /* @var AppAes $openssl */
     static $openssl = null;
 
     if (!$openssl) {
         $conf = config('app');
-        $openssl = new AppAes($conf['secret_key']);
+        $openssl = core('AppAes', $conf['secret_key']);
     }
 
     return $openssl;
@@ -263,11 +291,12 @@ function json_response($data = [])
  */
 function csrf()
 {
+    /** @var AppCSRF $csrf */
     static $csrf = null;
 
     if (!$csrf) {
         $conf = config('app');
-        $csrf = new AppCSRF([
+        $csrf = core('AppCSRF', [
             'secret_key' => $conf['secret_key'],
             'expire' => $conf['csrf_token_expire'],
         ]);
@@ -285,7 +314,7 @@ function flash()
     static $flash = null;
 
     if (!$flash) {
-        $flash = new AppFlash();
+        $flash = core('AppFlash');
     }
 
     return $flash;
@@ -297,10 +326,11 @@ function flash()
  */
 function auth()
 {
+    /** @var AppAuth $auth */
     static $auth = null;
 
     if (!$auth) {
-        $auth = new AppAuth();
+        $auth = core('AppAuth');
     }
 
     return $auth;
@@ -312,10 +342,11 @@ function auth()
  */
 function whitelist()
 {
+    /** @var AppWhitelist $whitelist */
     static $whitelist = null;
 
     if (!$whitelist) {
-        $whitelist = new AppWhitelist(config('whitelist'));
+        $whitelist = core('AppWhitelist', config('whitelist'));
     }
 
     return $whitelist;
@@ -343,6 +374,7 @@ function request()
  */
 function email()
 {
+    /** @var AppEmail $email */
     static $email = null;
 
     if (!$email) {
@@ -350,7 +382,7 @@ function email()
             throw new AppException('composer require swiftmailer/swiftmailer');
         }
 
-        $email = new AppEmail(config('email'));
+        $email = core('AppEmail', config('email'));
     }
 
     return $email;
