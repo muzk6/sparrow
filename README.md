@@ -9,7 +9,7 @@ PHP框架 KuiNiu Framework
 
 *注意：每个入口必须使用独立域名*
 
-#### 控制器 URI
+#### 路由
 
 URI | Controller | Action
 --- | --- | ---
