@@ -2,6 +2,13 @@
 
 PHP框架 KuiNiu Framework
 
+#### 网站入口
+
+- `public/index.php` 前台入口
+- `public/admin.php` 后台入口
+
+*注意：每个入口必须使用独立域名*
+
 #### 控制器 URI
 
 URI | Controller | Action

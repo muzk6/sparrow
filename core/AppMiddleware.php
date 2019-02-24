@@ -15,7 +15,7 @@ class AppMiddleware
      */
     public function checkMethod(array $context)
     {
-        if (strtolower(getenv('REQUEST_METHOD')) !== $context['middleware']) {
+        if (isset($_SERVER['REQUEST_METHOD']) && strtolower($_SERVER['REQUEST_METHOD']) !== $context['middleware']) {
             http_response_code(405);
             return false;
         }

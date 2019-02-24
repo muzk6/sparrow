@@ -14,7 +14,7 @@ if ($uri === '/') {
 }
 
 if ($found) {
-    $controllerNs = "App\\Controllers\\{$controller}";
+    $controllerNs = CONTROLLER_NAMESPACE . $controller;
     if (!is_callable([$controllerNs, $action])) {
         http_response_code(404);
         return;
@@ -107,7 +107,7 @@ if ($found) {
         $traceConf = include($traceConfFile);
 
         if ($traceConf['expire'] > TIME // 检查过期
-            && strpos(getenv('REQUEST_URI'), $traceConf['uri']) !== false // 检查 uri path 是否匹配
+            && strpos($_SERVER['REQUEST_URI'], $traceConf['uri']) !== false // 检查 uri path 是否匹配
             && (!$traceConf['user_id'] || (auth()->isLogin() && $traceConf['user_id'] == auth()->userId())) // 有指定用户时，检查特定用户
         ) {
             $traceStart = true;
@@ -144,7 +144,7 @@ if ($found) {
             date('ymd_His'),
             $xt,
             auth()->userId(),
-            str_replace('/', '_', getenv('REQUEST_URI'))
+            str_replace('/', '_', $_SERVER['REQUEST_URI'])
         );
         xdebug_start_trace(PATH_TRACE . '/' . $traceFilename);
 
