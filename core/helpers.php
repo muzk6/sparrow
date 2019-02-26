@@ -6,6 +6,7 @@ use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
 use Core\AppAes;
+use Core\AppInput;
 use Core\AppPDO;
 use Core\AppQueue;
 use Core\AppWhitelist;
@@ -282,6 +283,11 @@ function json_response($data = [])
     }
 
     return json_encode($response);
+}
+
+function input($key, $rParam = '')
+{
+    return '';
 }
 
 /**
