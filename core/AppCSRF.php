@@ -71,7 +71,11 @@ class AppCSRF
      */
     public function check()
     {
-        $token = $_POST['_token'] ?? '';
+        if (IS_POST) {
+            $token = $_POST['_token'] ?? '';
+        } else {
+            $token = $_GET['_token'] ?? '';
+        }
 
         if (!$token) {
             throw new AppException(10001001);
