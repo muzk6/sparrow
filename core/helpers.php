@@ -310,6 +310,7 @@ function csrf()
  */
 function flash()
 {
+    /** @var AppFlash $flash */
     static $flash = null;
 
     if (!$flash) {
