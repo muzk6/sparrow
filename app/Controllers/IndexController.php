@@ -22,20 +22,24 @@ class IndexController extends BaseController
         }));
         var_dump(input('a', 'abc'));
         var_dump(input('a'));
+        var_dump(input());
         var_dump(input('get.', function ($val, $name) {
             if (empty($val)) {
                 throw new AppException("{$name} required!");
             }
             return "{$name}_{$val}";
         }));
-        input([
+        list($data, $err) = input([
             'get',
             'a' => 'abc',
-            'b' => true,
+            'b' => function ($val) {
+                throw new AppException('fuck');
+            },
             'c' => function ($val) {
                 return 'callback: ' . $val;
             }
         ]);
+        var_dump($data, $err);
 
         exit;
         $data = DemoService::instance()->foo();
