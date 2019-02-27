@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Closure;
+
 /**
  * 控制器中间件
  * @package Core
@@ -10,43 +12,47 @@ class AppMiddleware
 {
     /**
      * 检查请求方法
-     * @param array $context
-     * @return bool
+     * @param Closure $next 下一个中间件
+     * @param array $context 上下文参数
      */
-    public function checkMethod(array $context)
+    public function checkMethod(Closure $next, array $context)
     {
         if (isset($_SERVER['REQUEST_METHOD']) && strtolower($_SERVER['REQUEST_METHOD']) !== $context['middleware']) {
             http_response_code(405);
-            return false;
+            return;
         }
 
-        return true;
+        $next();
     }
 
     /**
      * 检查是否已登录
-     * @param array $context
+     * @param Closure $next 下一个中间件
+     * @param array $context 上下文参数
      * @return bool
      */
-    public function checkAuth(array $context)
+    public function checkAuth(Closure $next, array $context)
     {
         if (!auth()->isLogin()) {
             http_response_code(401);
-            return false;
+            return;
         }
 
-        return true;
+        $next();
     }
 
     /**
      * csrf token 校验
-     * @param array $context
-     * @return true
-     * @throws AppException
+     * @param Closure $next 下一个中间件
+     * @param array $context 上下文参数
      */
-    public function checkCSRF(array $context)
+    public function checkCSRF(Closure $next, array $context)
     {
-        return csrf()->check();
+        if (!csrf()->check()) {
+            return;
+        }
+
+        $next();
     }
 
 }

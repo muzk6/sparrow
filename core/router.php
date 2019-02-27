@@ -20,6 +20,11 @@ if ($found) {
         return;
     }
 
+    $next = function () use ($controllerNs, $action) {
+        call_user_func([call_user_func([$controllerNs, 'instance']), $action]);
+    };
+
+    /** ================================= 中间件 ================================= */
     try {
         $reflector = new ReflectionClass($controllerNs);
 
@@ -54,11 +59,10 @@ if ($found) {
                     }
                 }
 
-                /** @var \Core\AppMiddleware $middleware */
-                $middleware = core('AppMiddleware');
-                $appDocList = array_flip($appDocListFlip);
+                /** @var \Core\AppMiddleware $middlewareInstance */
+                $middlewareInstance = core('AppMiddleware');
 
-                foreach ($appDocList as $appDocItem) {
+                foreach ($appDocListFlip as $appDocItem) {
                     $appDocItem = strtolower(trim($appDocItem));
                     $middlewareContext = [
                         'middleware' => $appDocItem,
@@ -70,26 +74,22 @@ if ($found) {
                     switch ($appDocItem) {
                         case 'post': // 限于 POST 请求
                         case 'get': // 限于 GET 请求
-                            if (!$middleware->checkMethod($middlewareContext)) {
-                                return;
-                            }
+                            $middlewareMethod = 'checkMethod';
                             break;
                         case 'auth': // 限于已登录
-                            if (!$middleware->checkAuth($middlewareContext)) {
-                                return;
-                            }
+                            $middlewareMethod = 'checkAuth';
                             break;
                         case 'csrf': // csrf token 检验
-                            if (!$middleware->checkCSRF($middlewareContext)) {
-                                return;
-                            }
+                            $middlewareMethod = 'checkCSRF';
                             break;
                         default: // 自定义中间件
-                            if (!$middleware->$appDocItem($middlewareContext)) {
-                                return;
-                            }
+                            $middlewareMethod = $appDocItem;
                             break;
                     }
+
+                    $next = function () use ($next, $middlewareInstance, $middlewareMethod, $middlewareContext) {
+                        call_user_func_array([$middlewareInstance, $middlewareMethod], [$next, $middlewareContext]);
+                    };
                 }
             }
         }
@@ -97,9 +97,9 @@ if ($found) {
         http_response_code(404);
         return;
     }
+    /** ================================= /中间件 ================================= */
 
-    $instance = call_user_func([$controllerNs, 'instance']);
-
+    /** ================================= Xdebug Trace ================================= */
     // cli/trace.php 开启的 xdebug trace
     $traceStart = false;
     $traceConfFile = PATH_DATA . '/.tracerc';
@@ -152,8 +152,9 @@ if ($found) {
             xdebug_stop_trace();
         });
     }
+    /** ================================= /Xdebug Trace ================================= */
 
-    call_user_func([$instance, $action]);
+    $next();
 } else {
     http_response_code(404);
 }
