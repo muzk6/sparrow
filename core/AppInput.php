@@ -98,8 +98,10 @@ class AppInput
     }
 
     /**
-     * 获取并验证请求参数 list($data, $err) = input(...)<br>
+     * 获取、过滤、验证请求参数 $_GET, $_POST<br>
+     * list($data, $err) = input(...)
      * @see input()
+     *
      * @param string|array $columns 单个或多个字段
      * @param mixed $defaultOrCallback 默认值或回调函数，$columns 为 array 时无效<br>
      * 回调函数格式为 function ($val, $name) {}<br>

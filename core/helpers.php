@@ -286,7 +286,8 @@ function json_response($data = [])
 }
 
 /**
- * 获取、过滤、验证请求参数 list($data, $err) = input(...)
+ * 获取、过滤、验证请求参数 $_GET, $_POST<br>
+ * list($data, $err) = input(...)
  * <p></p>
  *
  * <p>input('a', 10)<br>
