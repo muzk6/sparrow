@@ -71,7 +71,7 @@ class AppInput
                 $bucket = $_POST;
                 break;
             default:
-                $bucket = array_merge($_GET, $_POST);
+                $bucket = $_REQUEST;
                 break;
         }
 
@@ -79,9 +79,28 @@ class AppInput
     }
 
     /**
+     * 解析键值，取对应请求类型的参数集及当前参数名
+     * @param string $key
+     * @return array
+     */
+    protected function key2name(string $key)
+    {
+        if (strpos($key, '.') !== false) {
+            $keyDot = explode('.', $key);
+            $bucket = $this->pool($keyDot[0]);
+            $name = $keyDot[1];
+        } else {
+            $bucket = $this->pool();
+            $name = $key;
+        }
+
+        return [$bucket, $name];
+    }
+
+    /**
      * 获取并验证请求参数 list($data, $err) = input(...)<br>
      * @see input()
-     * @param string|array|null $columns 单个或多个字段
+     * @param string|array $columns 单个或多个字段
      * @param mixed $defaultOrCallback 默认值或回调函数，$columns 为 array 时无效<br>
      * 回调函数格式为 function ($val, $name) {}<br>
      * 有return: 以返回值为准 <br>
@@ -90,35 +109,29 @@ class AppInput
      *
      * @return array [0 => [column => value], 1 => [column => error]]
      */
-    public function parse($columns = null, $defaultOrCallback = null)
+    public function parse($columns = '', $defaultOrCallback = null)
     {
         // 指定多个字段
         if (is_array($columns)) {
-            if (isset($columns[0])) {
-                $bucket = $this->pool($columns[0]);
-                unset($columns[0]);
-            } else {
-                $bucket = $this->pool();
-            }
-
             $groups = [];
             $keys = [];
             foreach ($columns as $k => $v) {
-                $groups[] = $this->single($bucket, $k, $v);
-                $keys[] = $k;
+                if (is_numeric($k)) {
+                    $column = $v;
+                    $defCB = $defaultOrCallback;
+                } else {
+                    $column = $k;
+                    $defCB = $v;
+                }
+
+                list($bucket, $name) = $this->key2name($column);
+                $groups[] = $this->single($bucket, $name, $defCB);
+                $keys[] = $name;
             }
 
             $ret = $this->flat($keys, $groups);
         } else {
-            if (strpos($columns, '.') !== false) {
-                $keyDot = explode('.', $columns);
-                $bucket = $this->pool($keyDot[0]);
-                $name = $keyDot[1];
-            } else {
-                $bucket = $this->pool();
-                $name = $columns;
-            }
-
+            list($bucket, $name) = $this->key2name($columns);
             if (empty($name)) { // 所有字段
                 $groups = [];
                 $keys = [];
