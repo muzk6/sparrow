@@ -80,16 +80,7 @@ class AppInput
 
     /**
      * 获取并验证请求参数 list($data, $err) = input(...)<br>
-     *
-     * input('a', 10) 从 $_POST, $_GET 里取字段a, !isset(a) 时取默认值 10<br>
-     * input('get.a', function ($val) {return 'hello ' . $val;}) 从 $_GET 里取字段a, 值带 hello 前缀<br>
-     * input('post.a', function ($val, $name) {if (empty($val)) throw new AppException('...')})
-     * 从 $_POST 里取字段a, empty 时抛出异常<br>
-     * input() 从 $_POST, $_GET 里取所有字段<br>
-     * input('post.') 从 $_POST 里取所有字段<br>
-     * input(['get', 'a' => 10, 'b' => function () {...}]) 从 $_GET 里字段a, b <br>
-     * input(['a' => 10, 'b' => function () {...}]) 从 $_POST, $_GET 里字段a, b <br>
-     *
+     * @see input()
      * @param string|array|null $columns 单个或多个字段
      * @param mixed $defaultOrCallback 默认值或回调函数，$columns 为 array 时无效<br>
      * 回调函数格式为 function ($val, $name) {}<br>

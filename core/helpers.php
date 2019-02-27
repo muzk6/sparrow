@@ -292,7 +292,7 @@ function json_response($data = [])
  * input('get.a', function ($val) {return 'hello ' . $val;}) 从 $_GET 里取字段a, 值带 hello 前缀<br>
  * input('post.a', function ($val, $name) {if (empty($val)) throw new AppException('...')})
  * 从 $_POST 里取字段a, empty 时抛出异常<br>
- * input() 从 $_POST, $_GET 里取所有字段<br>
+ * input(), input(''), input('.') 从 $_POST, $_GET 里取所有字段<br>
  * input('post.') 从 $_POST 里取所有字段<br>
  * input(['get', 'a' => 10, 'b' => function () {...}]) 从 $_GET 里字段a, b <br>
  * input(['a' => 10, 'b' => function () {...}]) 从 $_POST, $_GET 里字段a, b <br>
