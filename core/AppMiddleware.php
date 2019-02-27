@@ -29,7 +29,6 @@ class AppMiddleware
      * 检查是否已登录
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
-     * @return bool
      */
     public function checkAuth(Closure $next, array $context)
     {
@@ -48,8 +47,10 @@ class AppMiddleware
      */
     public function checkCSRF(Closure $next, array $context)
     {
-        if (!csrf()->check()) {
-            return;
+        try {
+            csrf()->check();
+        } catch (AppException $e) {
+            //todo
         }
 
         $next();

@@ -61,8 +61,9 @@ if ($found) {
 
                 /** @var \Core\AppMiddleware $middlewareInstance */
                 $middlewareInstance = core('AppMiddleware');
+                $appDocListRevert = array_reverse(array_flip($appDocListFlip));
 
-                foreach ($appDocListFlip as $appDocItem) {
+                foreach ($appDocListRevert as $appDocItem) {
                     $appDocItem = strtolower(trim($appDocItem));
                     $middlewareContext = [
                         'middleware' => $appDocItem,
@@ -85,6 +86,10 @@ if ($found) {
                         default: // 自定义中间件
                             $middlewareMethod = $appDocItem;
                             break;
+                    }
+
+                    if (!method_exists($middlewareInstance, $middlewareMethod)) {
+                        throw new Exception("中间件 Core\\AppMiddleware::{$middlewareMethod}() 不存在");
                     }
 
                     $next = function () use ($next, $middlewareInstance, $middlewareMethod, $middlewareContext) {

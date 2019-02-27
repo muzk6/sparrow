@@ -13,9 +13,9 @@ class AppAuth
 
     /**
      * 登录
-     * @param int $userId 用户ID
+     * @param int|string $userId 用户ID
      */
-    public function login(int $userId)
+    public function login(string $userId)
     {
         $_SESSION[$this->prefix . 'user_id'] = $userId;
     }

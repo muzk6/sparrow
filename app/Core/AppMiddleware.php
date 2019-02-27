@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use Closure;
+
 /**
  * 控制器中间件
  * @package Core
@@ -11,9 +13,9 @@ class AppMiddleware extends \Core\AppMiddleware
     /**
      * @inheritdoc
      */
-    public function checkAuth(array $context)
+    public function checkAuth(Closure $next, array $context)
     {
-        return parent::checkAuth($context);
+        parent::checkAuth($next, $context);
     }
 
 }
