@@ -36,16 +36,16 @@ if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
 
-// 生产环境不打印异常
-IS_DEV || set_exception_handler(function ($ex) {
-    /* @var Exception $ex */
+// 生产环境下才记录异常日志
+IS_DEV || set_exception_handler(function ($e) {
+    /* @var Exception $e */
     $data = [
-        'code' => $ex->getCode(),
-        'message' => $ex->getMessage(),
-        'file' => $ex->getFile() . ':' . $ex->getLine(),
-        'trace' => $ex->getTrace(),
+        'code' => $e->getCode(),
+        'message' => $e->getMessage(),
+        'file' => $e->getFile() . ':' . $e->getLine(),
+        'trace' => $e->getTrace(),
     ];
-    logfile($data, 'exception');
+    logfile($data, '__exception');
 });
 
 // composer
