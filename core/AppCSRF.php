@@ -42,11 +42,8 @@ class AppCSRF
                 'expire' => TIME + $this->expire,
             ];
         } else {
-            if (TIME > $_SESSION['csrf_token']['expire']) {
-                unset($_SESSION['csrf_token']);
-
-                return $this->token();
-            }
+            // 每次获取令牌都重置过期时间
+            $_SESSION['csrf_token']['expire'] = TIME + $this->expire;
 
             $token = $_SESSION['csrf_token']['token'];
         }

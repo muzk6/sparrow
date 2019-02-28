@@ -19,9 +19,9 @@ use Core\AppWhitelist;
 function config(string $filename)
 {
     if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
-        return include_once($path);
+        return include($path);
     } else if (is_file($path = PATH_CONFIG_ENV . "/{$filename}.php")) {
-        return include_once($path);
+        return include($path);
     }
 
     return null;
