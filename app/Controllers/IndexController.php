@@ -11,6 +11,7 @@ class IndexController extends BaseController
 {
     /**
      * @mw get
+     * @api
      */
     public function index()
     {

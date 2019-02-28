@@ -273,10 +273,8 @@ function response_format($data)
             $response['data'] = (object)$data->getData();
         }
     } else {
-        $response = [
-            'state' => true,
-            'data' => is_array($data) ? (object)$data : $data,
-        ];
+        $response['state'] = true;
+        $response['data'] = is_array($data) ? (object)$data : $data;
     }
 
     return $response;

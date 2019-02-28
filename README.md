@@ -22,9 +22,40 @@ URI | Controller | Action
 
 ---
 
+#### 响应类型
+
+- 通过`Controller`或其`action`的文档注释来声明响应类型
+- `@page`为网页类型，`@api`为 api格式 的 json字符串
+- 默认类型为`@page`
+
+##### 例子
+
+```php
+/**
+ * @package App\Controllers
+ * @api
+ */
+class IndexController extends BaseController
+{
+    /**
+     * @page
+     */
+    public function index()
+    {
+        //todo
+    }
+}
+```
+
+- 整个`IndexController`的方法都返回 api格式 的 json字符串(默认是网页类型)
+- 只有`index()`重新声明了响应类型为`page`，所以这里返回的内容就是其`return`的内容 
+
+---
+
 #### 中间件
 
-- 通过文档注释 `@mw` 即 middleware 来声明中间件
+- 通过`Controller`或其`action`的文档注释 `@mw` 即 middleware 来声明中间件
+- 优先级 `action > Controller`
 - 可在控制器的方法使用 `@!mw` 忽略所有中间件
 - 所有业务逻辑中不能使用`exit`，否则中间件不能正常工作 
 
@@ -32,8 +63,8 @@ URI | Controller | Action
 
 ```php
 /**
- * @mw auth
  * @package App\Controllers
+ * @mw auth
  */
 class IndexController extends BaseController
 {

@@ -20,30 +20,40 @@ if ($found) {
         return;
     }
 
-    $next = function () use ($controllerNs, $action) {
-        $responseJson = function ($response) {
-            headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
-            echo json_encode(response_format($response));
-        };
-
-        try {
-            $response = call_user_func([call_user_func([$controllerNs, 'instance']), $action]);
-            $responseJson($response);
-        } catch (Exception $e) {
-            $responseJson($e);
-        }
-    };
-
     /** ================================= 中间件 ================================= */
     try {
         $reflector = new ReflectionClass($controllerNs);
+        $controllerDoc = $reflector->getDocComment();
         $actionDoc = $reflector->getMethod($action)->getDocComment();
+
+        $responseTypeApi = false;
+        strpos($controllerDoc, '@api') !== false && $responseTypeApi = true;
+        strpos($actionDoc, '@page') !== false && $responseTypeApi = false;
+        strpos($actionDoc, '@api') !== false && $responseTypeApi = true;
+
+        // 执行控制方法
+        $next = function () use ($controllerNs, $action, $responseTypeApi) {
+            $response2client = function ($responseContent) use ($responseTypeApi) {
+                if ($responseTypeApi) { // 接口响应格式
+                    headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
+                    echo json_encode(response_format($responseContent));
+                } else { // 网页响应格式
+                    echo $responseContent;
+                }
+            };
+
+            try {
+                $responseContent = call_user_func([call_user_func([$controllerNs, 'instance']), $action]);
+                $response2client($responseContent);
+            } catch (Exception $e) {
+                $response2client($e);
+            }
+        };
 
         // @!mw 表示忽略所有中间件，没有此命令则使用中间件
         if (strpos($actionDoc, '@!mw') === false) {
             // 控制器 @mw
             $appDocReg = '#(?<=@mw\s).*#';
-            $controllerDoc = $reflector->getDocComment();
             $appDocList = [];
             if (preg_match($appDocReg, $controllerDoc, $matchDoc)) {
                 $appDocList = explode(',', trim($matchDoc[0]));
