@@ -28,6 +28,18 @@ class AppCSRF
     }
 
     /**
+     * 刷新令牌的过期时间
+     */
+    public function refresh()
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+
+        return $_SESSION['csrf_token']['expire'] = TIME + $this->expire;
+    }
+
+    /**
      * 令牌<br>
      * 会话初始化时才更新 token
      * @return string
@@ -42,8 +54,8 @@ class AppCSRF
                 'expire' => TIME + $this->expire,
             ];
         } else {
-            // 每次获取令牌都重置过期时间
-            $_SESSION['csrf_token']['expire'] = TIME + $this->expire;
+            // 每次获取令牌时都刷新过期时间
+            $this->refresh();
 
             $token = $_SESSION['csrf_token']['token'];
         }
@@ -92,4 +104,5 @@ class AppCSRF
 
         return true;
     }
+
 }

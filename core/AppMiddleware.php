@@ -11,7 +11,7 @@ use Closure;
 class AppMiddleware
 {
     /**
-     * post 校验
+     * POST 请求校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
@@ -22,11 +22,22 @@ class AppMiddleware
             return;
         }
 
+        try {
+            csrf()->check();
+        } catch (AppException $e) {
+            //todo 在子类覆盖本方法修改默认行为
+            echo $e->getMessage();
+            return;
+        }
+
         $next();
+
+        // 请求完自动刷新令牌过期时间
+        csrf()->refresh();
     }
 
     /**
-     * get 校验
+     * GET 请求校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
@@ -49,24 +60,6 @@ class AppMiddleware
     {
         if (!auth()->isLogin()) {
             http_response_code(401);
-            return;
-        }
-
-        $next();
-    }
-
-    /**
-     * csrf token 校验
-     * @param Closure $next 下一个中间件
-     * @param array $context 上下文参数
-     */
-    public function csrf(Closure $next, array $context)
-    {
-        try {
-            csrf()->check();
-        } catch (AppException $e) {
-            //todo 在子类覆盖本方法修改默认行为
-            echo $e->getMessage();
             return;
         }
 
