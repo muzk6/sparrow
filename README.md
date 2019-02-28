@@ -9,6 +9,8 @@ PHP框架 KuiNiu Framework
 
 *注意：每个入口必须使用独立域名*
 
+---
+
 #### 路由
 
 URI | Controller | Action
@@ -21,7 +23,10 @@ URI | Controller | Action
 ---
 
 #### 中间件
-> 通过文档注释 @mw 即 middleware 来声明中间件
+
+- 通过文档注释 `@mw` 即 middleware 来声明中间件
+- 可在控制器的方法使用 `@!mw` 忽略所有中间件
+- 所有业务逻辑中不能使用`exit`，否则中间件不能正常工作 
 
 ##### 例子
 
@@ -49,12 +54,12 @@ class IndexController extends BaseController
 
 name | Desc
 --- | ---
-get | 限于 GET 请求
-post | 限于 POST 请求
-auth | 限于已登录
-ignore | 忽略所有中间件，一般用于方法中
+`get` | 限于 GET 请求
+`post` | 限于 POST 请求
+`auth` | 限于已登录
 
-*前面加`!`表示忽略对应的中间件，一般用于方法中*
+- 前面加`!`表示忽略对应的中间件，一般用于方法中
+- 或者直接使用 `@!mw` 忽略所有
 
 ##### 自定义中间件
 
@@ -63,11 +68,13 @@ ignore | 忽略所有中间件，一般用于方法中
 
 public function myMiddleware(Closure $next, array $context)
 {
-    echo 'before';
+    //todo before;
+    
     // 退出当前中间件用 return void, 不能抛出异常
     // return;
     $next();
-    echo 'after';
+    
+    //todo after;
 }
 ```
 
@@ -79,12 +86,11 @@ public function myMiddleware(Closure $next, array $context)
  */
 public function index()
 {
-    $data = DemoService::instance()->foo();
-    echo json_response($data['name']);
+    //todo
 }
 ```
 
-- 在`\App\Core\AppMiddleware`定义中间件方法，参数`Closure $next, array $context`，想要中断直接使用`return;`，不能抛出异常否则后面的代码不能正常执行
+- 在`\App\Core\AppMiddleware`定义中间件方法，参数`Closure $next, array $context`，想要退出当前中间件直接使用`return;`，不能抛出异常否则后面的代码不能正常执行
 - 在控制器中`@mw` 直接使用，中间件名字与前面定义的方法名一致
 
 ---
@@ -93,8 +99,9 @@ public function index()
 > 跟踪调试日志
 
 以下两种方法开启跟踪
-- CLI `php cli/trace.php`
-- URI `?xt=<value>`
+
+- CLI `php cli/trace.php --help` 命令行开启，`--help` 查看帮助
+- URI `/?xt=name0` URI开启，`name0`是当前日志的标识名
 
 ---
 
@@ -126,7 +133,7 @@ PATH_LOG | 日志目录
 Dir | Desc
 --- | ---
 app | 业务逻辑
-app/Controllers | 控制器层，负责输入(表单验证、权限控制……)、处理(Service)、输出
+app/Controllers | 控制器层，负责输入(请求参数，中间件)、处理(Service)、输出
 app/Models | 模型层，1表1模型
 app/Services | 服务层，负责业务逻辑
 app/Core | 框架核心类继承层
@@ -145,7 +152,7 @@ workers | 长驻运行的脚本
 ---
 
 #### Core 空间类继承
-> 继承 Core 空间类，改变默认行为<br>
+> 继承 Core 空间类，修改默认行为<br>
 
 ##### `AppXXX`
 

@@ -13,6 +13,6 @@ class IndexController extends BaseController
      */
     public function index()
     {
-        echo 'Welcome Admin!';
+        return 'Welcome Admin!';
     }
 }

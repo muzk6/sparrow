@@ -21,35 +21,46 @@ if ($found) {
     }
 
     $next = function () use ($controllerNs, $action) {
-        call_user_func([call_user_func([$controllerNs, 'instance']), $action]);
+        $responseJson = function ($response) {
+            headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
+            echo json_encode(response_format($response));
+        };
+
+        try {
+            $response = call_user_func([call_user_func([$controllerNs, 'instance']), $action]);
+            $responseJson($response);
+        } catch (Exception $e) {
+            $responseJson($e);
+        }
     };
 
     /** ================================= 中间件 ================================= */
     try {
         $reflector = new ReflectionClass($controllerNs);
-
-        // 控制器 @mw
-        $appDocReg = '#(?<=@mw\s).*#';
-        $controllerDoc = $reflector->getDocComment();
-        $appDocList = [];
-        if (preg_match($appDocReg, $controllerDoc, $matchDoc)) {
-            $appDocList = explode(',', trim($matchDoc[0]));
-        }
-
-        // 方法 @mw
         $actionDoc = $reflector->getMethod($action)->getDocComment();
-        if (preg_match($appDocReg, $actionDoc, $matchDoc)) {
-            $appDocList = array_merge($appDocList, explode(',', trim($matchDoc[0])));
-        }
 
-        if (!empty($appDocList)) {
-            // 过滤前后空格、转小写
-            foreach ($appDocList as &$appDocItem) {
-                $appDocItem = strtolower(trim($appDocItem));
+        // @!mw 表示忽略所有中间件，没有此命令则使用中间件
+        if (strpos($actionDoc, '@!mw') === false) {
+            // 控制器 @mw
+            $appDocReg = '#(?<=@mw\s).*#';
+            $controllerDoc = $reflector->getDocComment();
+            $appDocList = [];
+            if (preg_match($appDocReg, $controllerDoc, $matchDoc)) {
+                $appDocList = explode(',', trim($matchDoc[0]));
             }
-            unset($appDocItem);
 
-            if (!in_array('ignore', $appDocList)) {
+            // 方法 @mw
+            if (preg_match($appDocReg, $actionDoc, $matchDoc)) {
+                $appDocList = array_merge($appDocList, explode(',', trim($matchDoc[0])));
+            }
+
+            if (!empty($appDocList)) {
+                // 过滤前后空格、转小写
+                foreach ($appDocList as &$appDocItem) {
+                    $appDocItem = strtolower(trim($appDocItem));
+                }
+                unset($appDocItem);
+
                 // 存在 ! 时去掉对应的中间件
                 $appDocListFlip = array_flip($appDocList);
                 foreach ($appDocList as $appDocItem) {

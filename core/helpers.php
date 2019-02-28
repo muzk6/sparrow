@@ -210,7 +210,6 @@ function aes()
 function back()
 {
     header('Location: ' . getenv('HTTP_REFERER'));
-    exit;
 }
 
 /**
@@ -220,7 +219,6 @@ function back()
 function redirect(string $url)
 {
     header('Location: ' . $url);
-    exit;
 }
 
 /**
@@ -254,19 +252,22 @@ function client_ip()
 }
 
 /**
- * api 接口的 json 响应格式
- * @param array|Exception $data
- * @return string
+ * 构造接口响应格式
+ * @param array|stdClass|Exception $data
+ * @return array
  */
-function json_response($data = [])
+function response_format($data)
 {
+    $response = [
+        'state' => false,
+        'code' => 0,
+        'message' => '',
+        'data' => new stdClass(),
+    ];
+
     if ($data instanceof Exception) {
-        $response = [
-            'state' => false,
-            'code' => $data->getCode(),
-            'message' => $data->getMessage(),
-            'data' => new stdClass(),
-        ];
+        $response['code'] = $data->getCode();
+        $response['message'] = $data->getMessage();
 
         if ($data instanceof AppException) {
             $response['data'] = (object)$data->getData();
@@ -274,15 +275,11 @@ function json_response($data = [])
     } else {
         $response = [
             'state' => true,
-            'data' => (object)$data,
+            'data' => is_array($data) ? (object)$data : $data,
         ];
     }
 
-    if (!headers_sent()) {
-        header('Content-Type: application/json; Charset=UTF-8');
-    }
-
-    return json_encode($response);
+    return $response;
 }
 
 /**
