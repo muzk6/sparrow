@@ -11,13 +11,13 @@ use Closure;
 class AppMiddleware
 {
     /**
-     * 检查请求方法
+     * post 校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
-    public function checkMethod(Closure $next, array $context)
+    public function post(Closure $next, array $context)
     {
-        if (isset($_SERVER['REQUEST_METHOD']) && strtolower($_SERVER['REQUEST_METHOD']) !== $context['middleware']) {
+        if (!IS_POST) {
             http_response_code(405);
             return;
         }
@@ -26,11 +26,26 @@ class AppMiddleware
     }
 
     /**
-     * 检查是否已登录
+     * get 校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
-    public function checkAuth(Closure $next, array $context)
+    public function get(Closure $next, array $context)
+    {
+        if (!IS_GET) {
+            http_response_code(405);
+            return;
+        }
+
+        $next();
+    }
+
+    /**
+     * 登录校验
+     * @param Closure $next 下一个中间件
+     * @param array $context 上下文参数
+     */
+    public function auth(Closure $next, array $context)
     {
         if (!auth()->isLogin()) {
             http_response_code(401);
@@ -45,12 +60,14 @@ class AppMiddleware
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
-    public function checkCSRF(Closure $next, array $context)
+    public function csrf(Closure $next, array $context)
     {
         try {
             csrf()->check();
         } catch (AppException $e) {
-            //todo
+            //todo 在子类覆盖本方法修改默认行为
+            echo $e->getMessage();
+            return;
         }
 
         $next();

@@ -13,9 +13,9 @@ class AppMiddleware extends \Core\AppMiddleware
     /**
      * @inheritdoc
      */
-    public function checkAuth(Closure $next, array $context)
+    public function auth(Closure $next, array $context)
     {
-        parent::checkAuth($next, $context);
+        parent::auth($next, $context);
     }
 
 }

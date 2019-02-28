@@ -16,8 +16,7 @@ if ($uri === '/') {
 if ($found) {
     $controllerNs = CONTROLLER_NAMESPACE . $controller;
     if (!is_callable([$controllerNs, $action])) {
-        http_response_code(404);
-        return;
+        return core('AppResponseCode')->status404();
     }
 
     /** ================================= 中间件 ================================= */
@@ -85,29 +84,13 @@ if ($found) {
                 $appDocListRevert = array_reverse(array_flip($appDocListFlip));
 
                 foreach ($appDocListRevert as $appDocItem) {
-                    $appDocItem = strtolower(trim($appDocItem));
+                    $middlewareMethod = strtolower(trim($appDocItem));
                     $middlewareContext = [
-                        'middleware' => $appDocItem,
+                        'middleware' => $middlewareMethod,
                         'uri' => $uri,
                         'controller' => $controllerNs,
                         'action' => $action,
                     ];
-
-                    switch ($appDocItem) {
-                        case 'post': // 限于 POST 请求
-                        case 'get': // 限于 GET 请求
-                            $middlewareMethod = 'checkMethod';
-                            break;
-                        case 'auth': // 限于已登录
-                            $middlewareMethod = 'checkAuth';
-                            break;
-                        case 'csrf': // csrf token 检验
-                            $middlewareMethod = 'checkCSRF';
-                            break;
-                        default: // 自定义中间件
-                            $middlewareMethod = $appDocItem;
-                            break;
-                    }
 
                     if (!method_exists($middlewareInstance, $middlewareMethod)) {
                         throw new Exception("中间件 Core\\AppMiddleware::{$middlewareMethod}() 不存在");
@@ -120,8 +103,7 @@ if ($found) {
             }
         }
     } catch (ReflectionException $e) {
-        http_response_code(404);
-        return;
+        return core('AppResponseCode')->status404();
     }
     /** ================================= /中间件 ================================= */
 
@@ -182,5 +164,5 @@ if ($found) {
 
     $next();
 } else {
-    http_response_code(404);
+    return core('AppResponseCode')->status404();
 }
