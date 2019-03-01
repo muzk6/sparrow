@@ -54,22 +54,23 @@ class IndexController extends BaseController
 
 #### 中间件
 
-- 通过`Controller`或其`action`的文档注释 `@mw` 即 middleware 来声明中间件
+- `Controller`使用文档注释`@middleware`来声明中间件(eg. `@middleware name1,name2`)
+- `action`使用文档注释`@get`或`@post`来声明中间件，同时`@get`,`@post`自身也是中间件(eg. `@post,name1,name2`)
+- 中间件名称前面加`!`表示忽略对应的中间件(不支持`@get`,`@post`)，一般用于在方法忽略控制器声明的中间件
 - 优先级 `action > Controller`
-- 可在控制器的方法使用 `@!mw` 忽略所有中间件
-- 所有业务逻辑中不能使用`exit`，否则中间件不能正常工作 
+- 所有业务逻辑中不能使用`exit`或`throw`, 否则中间件不能正常工作 
 
 ##### 例子
 
 ```php
 /**
  * @package App\Controllers
- * @mw auth
+ * @middleware auth
  */
 class IndexController extends BaseController
 {
     /**
-     * @mw get,!auth
+     * @get,!auth
      */
     public function index()
     {
@@ -79,7 +80,7 @@ class IndexController extends BaseController
 ```
 
 - 整个`IndexController`的方法都要调用`auth`中间件
-- `index()` 只允许`GET`请求，忽略`auth`中间件
+- `index()`只允许`GET`请求，且忽略`auth`中间件
 
 ##### 内置中间件
 
@@ -88,9 +89,6 @@ name | Desc
 `get` | 限于 GET 请求
 `post` | 限于 POST 请求
 `auth` | 限于已登录
-
-- 前面加`!`表示忽略对应的中间件，一般用于方法中
-- 或者直接使用 `@!mw` 忽略所有
 
 ##### 自定义中间件
 
@@ -101,7 +99,7 @@ public function myMiddleware(Closure $next, array $context)
 {
     //todo before;
     
-    // 退出当前中间件用 return void, 不能抛出异常
+    // 退出当前中间件用 return void, 不能 throw, 更不能 exit
     // return;
     $next();
     
@@ -113,7 +111,7 @@ public function myMiddleware(Closure $next, array $context)
 // \App\Controllers\IndexController
 
 /**
- * @mw myMiddelware
+ * @get,myMiddelware
  */
 public function index()
 {
@@ -121,8 +119,8 @@ public function index()
 }
 ```
 
-- 在`\App\Core\AppMiddleware`定义中间件方法，参数`Closure $next, array $context`，想要退出当前中间件直接使用`return;`，不能抛出异常否则后面的代码不能正常执行
-- 在控制器中`@mw` 直接使用，中间件名字与前面定义的方法名一致
+- 在`\App\Core\AppMiddleware`定义中间件方法，参数`Closure $next, array $context`
+- 中间件名字与前面定义的`AppMiddleware`方法名一致
 
 ---
 

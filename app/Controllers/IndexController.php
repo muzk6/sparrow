@@ -7,11 +7,17 @@ namespace App\Controllers;
 use App\Services\DemoService;
 use Core\BaseController;
 
+/**
+ * @page
+ * @middleware auth
+ * @package App\Controllers
+ */
 class IndexController extends BaseController
 {
     /**
-     * @mw get
      * @api
+     * @get,!auth
+     * @return array
      */
     public function index()
     {

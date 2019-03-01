@@ -49,57 +49,53 @@ if ($found) {
             }
         };
 
-        // @!mw 表示忽略所有中间件，没有此命令则使用中间件
-        if (strpos($actionDoc, '@!mw') === false) {
-            // 控制器 @mw
-            $appDocReg = '#(?<=@mw\s).*#';
-            $appDocList = [];
-            if (preg_match($appDocReg, $controllerDoc, $matchDoc)) {
-                $appDocList = explode(',', trim($matchDoc[0]));
+        // 控制器中间件
+        $appDocList = [];
+        if (preg_match('#(?<=@middleware\s).*#', $controllerDoc, $matchDoc)) {
+            $appDocList = explode(',', trim($matchDoc[0]));
+        }
+
+        // 方法中间件
+        if (preg_match('#(?<=@)(?:post|get).*#', $actionDoc, $matchDoc)) {
+            $appDocList = array_merge($appDocList, explode(',', trim($matchDoc[0])));
+        }
+
+        if (!empty($appDocList)) {
+            // 过滤前后空格、转小写
+            foreach ($appDocList as &$appDocItem) {
+                $appDocItem = strtolower(trim($appDocItem));
+            }
+            unset($appDocItem);
+
+            // 存在 ! 时去掉对应的中间件
+            $appDocListFlip = array_flip($appDocList);
+            foreach ($appDocList as $appDocItem) {
+                if (strpos($appDocItem, '!') !== false) {
+                    unset($appDocListFlip[$appDocItem]);
+                    unset($appDocListFlip[substr($appDocItem, 1)]);
+                }
             }
 
-            // 方法 @mw
-            if (preg_match($appDocReg, $actionDoc, $matchDoc)) {
-                $appDocList = array_merge($appDocList, explode(',', trim($matchDoc[0])));
-            }
+            /** @var \Core\AppMiddleware $middlewareInstance */
+            $middlewareInstance = core('AppMiddleware');
+            $appDocListRevert = array_reverse(array_flip($appDocListFlip));
 
-            if (!empty($appDocList)) {
-                // 过滤前后空格、转小写
-                foreach ($appDocList as &$appDocItem) {
-                    $appDocItem = strtolower(trim($appDocItem));
-                }
-                unset($appDocItem);
+            foreach ($appDocListRevert as $appDocItem) {
+                $middlewareMethod = strtolower(trim($appDocItem));
+                $middlewareContext = [
+                    'middleware' => $middlewareMethod,
+                    'uri' => $uri,
+                    'controller' => $controllerNs,
+                    'action' => $action,
+                ];
 
-                // 存在 ! 时去掉对应的中间件
-                $appDocListFlip = array_flip($appDocList);
-                foreach ($appDocList as $appDocItem) {
-                    if (strpos($appDocItem, '!') !== false) {
-                        unset($appDocListFlip[$appDocItem]);
-                        unset($appDocListFlip[substr($appDocItem, 1)]);
-                    }
+                if (!method_exists($middlewareInstance, $middlewareMethod)) {
+                    throw new Exception("中间件 Core\\AppMiddleware::{$middlewareMethod}() 不存在");
                 }
 
-                /** @var \Core\AppMiddleware $middlewareInstance */
-                $middlewareInstance = core('AppMiddleware');
-                $appDocListRevert = array_reverse(array_flip($appDocListFlip));
-
-                foreach ($appDocListRevert as $appDocItem) {
-                    $middlewareMethod = strtolower(trim($appDocItem));
-                    $middlewareContext = [
-                        'middleware' => $middlewareMethod,
-                        'uri' => $uri,
-                        'controller' => $controllerNs,
-                        'action' => $action,
-                    ];
-
-                    if (!method_exists($middlewareInstance, $middlewareMethod)) {
-                        throw new Exception("中间件 Core\\AppMiddleware::{$middlewareMethod}() 不存在");
-                    }
-
-                    $next = function () use ($next, $middlewareInstance, $middlewareMethod, $middlewareContext) {
-                        call_user_func_array([$middlewareInstance, $middlewareMethod], [$next, $middlewareContext]);
-                    };
-                }
+                $next = function () use ($next, $middlewareInstance, $middlewareMethod, $middlewareContext) {
+                    call_user_func_array([$middlewareInstance, $middlewareMethod], [$next, $middlewareContext]);
+                };
             }
         }
     } catch (ReflectionException $e) {
