@@ -16,11 +16,13 @@ if (file_exists(PATH_APP . '/Core/env.php')) {
     require PATH_APP . '/Core/env.php';
 } else {
     if (is_file('/www/PUB')) { // publish
-        ini_set('display_errors', 0);
         define('APP_ENV', 'pub');
-    } else {
-        ini_set('display_errors', 1); // develop
+        error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+        ini_set('display_errors', 0);
+    } else { // develop
         define('APP_ENV', 'dev');
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
     }
 }
 
