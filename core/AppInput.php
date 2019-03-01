@@ -52,6 +52,7 @@ class AppInput
     {
         $ret[0] = array_combine($keys, array_column($groups, 0));
         $ret[1] = array_combine($keys, array_column($groups, 1));
+        array_filter($ret[1]) || $ret[1] = null;
 
         return $ret;
     }
