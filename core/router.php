@@ -37,6 +37,10 @@ if ($found) {
                     headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
                     echo json_encode(response_format($responseContent));
                 } else { // 网页响应格式
+                    if ($responseContent instanceof Exception) {
+                        throw $responseContent;
+                    }
+
                     echo $responseContent;
                 }
             };

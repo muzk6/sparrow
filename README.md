@@ -25,8 +25,8 @@ URI | Controller | Action
 #### 响应类型
 
 - 通过`Controller`或其`action`的文档注释来声明响应类型
-- `@page`为网页类型，`@api`为 api格式 的 json字符串
-- 默认类型为`@page`
+- `@page`为网页类型(默认类型)
+- `@api`为 api格式 的 json字符串，支持控制器的方法直接`return`或`throw`出异常对象
 
 ##### 例子
 
@@ -42,7 +42,7 @@ class IndexController extends BaseController
      */
     public function index()
     {
-        //todo
+        return 'Welcome Index';
     }
 }
 ```
@@ -198,3 +198,20 @@ workers | 长驻运行的脚本
 例如 
 - `\App\Core\BaseController extends \Core\BaseController extends`
 - `\App\Controllers\IndexController extends \App\Core\BaseController`
+
+---
+
+#### 环境与配置文件
+
+以下为默认的环境配置，如果要自定义可以新建`app/Core/env.php`，
+把下面代码复制进去并修改即可
+
+```php
+if (is_file('/www/PUB')) { // publish
+    ini_set('display_errors', 0);
+    define('APP_ENV', 'pub');
+} else {
+    ini_set('display_errors', 1); // develop
+    define('APP_ENV', 'dev');
+}
+``` 

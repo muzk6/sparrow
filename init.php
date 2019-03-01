@@ -1,6 +1,7 @@
 <?php
 
 define('PATH_ROOT', __DIR__);
+define('PATH_APP', PATH_ROOT . '/app');
 define('PATH_VIEW', PATH_ROOT . '/views');
 define('PATH_PUBLIC', PATH_ROOT . '/public');
 define('PATH_DATA', PATH_ROOT . '/data');
@@ -11,12 +12,16 @@ define('PATH_LANG', PATH_ROOT . '/lang');
 define('TIME', $_SERVER['REQUEST_TIME']);
 
 // 环境与配置文件
-if (is_file('/www/PUB')) { // publish
-    ini_set('display_errors', 0);
-    define('APP_ENV', 'pub');
+if (file_exists(PATH_APP . '/Core/env.php')) {
+    require PATH_APP . '/Core/env.php';
 } else {
-    ini_set('display_errors', 1); // develop
-    define('APP_ENV', 'dev');
+    if (is_file('/www/PUB')) { // publish
+        ini_set('display_errors', 0);
+        define('APP_ENV', 'pub');
+    } else {
+        ini_set('display_errors', 1); // develop
+        define('APP_ENV', 'dev');
+    }
 }
 
 define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
@@ -35,18 +40,6 @@ ini_set('error_log', sprintf('%s/__error_%s.log', PATH_LOG, date('ymd')));
 if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
-
-// 生产环境下才记录异常日志
-IS_DEV || set_exception_handler(function ($e) {
-    /* @var Exception $e */
-    $data = [
-        'code' => $e->getCode(),
-        'message' => $e->getMessage(),
-        'file' => $e->getFile() . ':' . $e->getLine(),
-        'trace' => $e->getTrace(),
-    ];
-    logfile($data, '__exception');
-});
 
 // composer
 require_once PATH_ROOT . '/vendor/autoload.php';
