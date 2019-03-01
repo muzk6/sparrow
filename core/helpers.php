@@ -306,7 +306,7 @@ function response_format($data)
  * -> $_REQUEST['c'], 参数c 没有定义默认值或回调，将会使用 input()参数二 来代替 </p>
  *
  * @param string|array $columns 单个或多个字段
- * @param mixed $defaultOrCallback 默认值或回调函数<br>
+ * @param mixed $defaultOrCallback 默认值或回调函数，优先级低于上面参数一 array.value<br>
  * 回调函数格式为 function ($val, $name) {}<br>
  * 有return: 以返回值为准 <br>
  * 无return: 字段值为用户输入值 <br>
