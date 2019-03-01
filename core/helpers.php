@@ -363,7 +363,7 @@ function flash()
 }
 
 /**
- * 登录信息
+ * 用户登录信息
  * @return AppAuth
  */
 function auth()
@@ -372,10 +372,26 @@ function auth()
     static $auth = null;
 
     if (!$auth) {
-        $auth = core('AppAuth');
+        $auth = core('AppAuth', 'AUTH:');
     }
 
     return $auth;
+}
+
+/**
+ * 后台用户登录信息
+ * @return AppAuth
+ */
+function admin()
+{
+    /** @var AppAuth $admin */
+    static $admin = null;
+
+    if (!$admin) {
+        $admin = core('AppAuth', 'ADMIN:');
+    }
+
+    return $admin;
 }
 
 /**

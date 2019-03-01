@@ -9,7 +9,19 @@ namespace Core;
  */
 class AppAuth
 {
-    protected $prefix = 'AUTH:';
+    /**
+     * @var string 缓存键前缀
+     */
+    protected $prefix;
+
+    /**
+     * AppAuth constructor.
+     * @param string $prefix 缓存键前缀
+     */
+    public function __construct(string $prefix)
+    {
+        $this->prefix = $prefix;
+    }
 
     /**
      * 登录
