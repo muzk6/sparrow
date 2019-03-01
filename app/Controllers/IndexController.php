@@ -8,7 +8,6 @@ use App\Services\DemoService;
 use Core\BaseController;
 
 /**
- * @page
  * @middleware auth
  * @package App\Controllers
  */
