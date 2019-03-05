@@ -225,7 +225,7 @@ function redirect(string $url)
  * 客户端IP
  * @return false|string
  */
-function client_ip()
+function ip()
 {
     $ip = '';
     if (isset($_SERVER['HTTP_CDN_SRC_IP'])) {
