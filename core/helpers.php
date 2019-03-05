@@ -260,8 +260,8 @@ function format2api($data)
 {
     $response = [
         'state' => false,
-        'code' => 0,
-        'message' => '',
+        'errcode' => 0,
+        'errmsg' => '',
         'data' => new stdClass(),
     ];
 
