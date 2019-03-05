@@ -12,5 +12,5 @@ interface InstanceInterface
      * 实例化自己
      * @return static
      */
-    static function instance();
+    public static function instance();
 }
