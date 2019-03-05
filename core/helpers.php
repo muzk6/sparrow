@@ -256,7 +256,7 @@ function client_ip()
  * @param array|stdClass|Exception $data
  * @return array
  */
-function response_format($data)
+function format2api($data)
 {
     $response = [
         'state' => false,
