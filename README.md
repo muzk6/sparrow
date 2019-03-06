@@ -127,10 +127,13 @@ public function index()
 #### XDebug Trace
 > 跟踪调试日志
 
-以下两种方法开启跟踪
+以下任意方式可开启跟踪
 
 - CLI `php cli/trace.php --help` 命令行开启，`--help` 查看帮助
-- URI `/?xt=name0` URI开启，`name0`是当前日志的标识名
+- URI `/?_xt=name0` URI开启，`name0`是当前日志的标识名
+- Cookie `_xt=name0;`
+
+*注意：`URI`, `Cookie`方式的的前提必须先设置`config/dev/whitelist.php`白名单`IP`*
 
 ---
 

@@ -130,10 +130,10 @@ if ($found) {
 
     // 参数 xt=<value> 开启
     $xt = '';
-    if (isset($_REQUEST['xt'])) {
-        $xt = $_REQUEST['xt'];
-    } elseif (isset($_COOKIE['xt'])) {
-        $xt = $_COOKIE['xt'];
+    if (isset($_REQUEST['_xt'])) {
+        $xt = $_REQUEST['_xt'];
+    } elseif (isset($_COOKIE['_xt'])) {
+        $xt = $_COOKIE['_xt'];
     }
 
     // 对业务逻辑记录 xdebug trace
