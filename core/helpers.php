@@ -10,6 +10,7 @@ use Core\AppInput;
 use Core\AppPDO;
 use Core\AppQueue;
 use Core\AppWhitelist;
+use Core\AppXdebug;
 
 /**
  * 配置文件
@@ -408,6 +409,22 @@ function whitelist()
     }
 
     return $whitelist;
+}
+
+/**
+ * Xdebug Trace
+ * @return AppXdebug
+ */
+function xdebug()
+{
+    /** @var AppXdebug $xdebug */
+    static $xdebug = null;
+
+    if (!$xdebug) {
+        $xdebug = core('AppXdebug');
+    }
+
+    return $xdebug;
 }
 
 /**
