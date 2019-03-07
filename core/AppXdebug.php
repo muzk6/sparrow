@@ -21,28 +21,37 @@ class AppXdebug
     /**
      * 最大能显示的 数组、对象 维度
      * @param int $maxDepth
+     * @return $this
      */
     public function setMaxDepth(int $maxDepth)
     {
         $this->maxDepth = $maxDepth;
+
+        return $this;
     }
 
     /**
      * 最大能显示的字符串长度
      * @param int $maxData
+     * @return $this
      */
     public function setMaxData(int $maxData)
     {
         $this->maxData = $maxData;
+
+        return $this;
     }
 
     /**
      * 最多能显示的 数组、对象 成员数
      * @param int $maxChildren
+     * @return $this
      */
     public function setMaxChildren(int $maxChildren)
     {
         $this->maxChildren = $maxChildren;
+
+        return $this;
     }
 
     /**
