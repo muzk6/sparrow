@@ -15,4 +15,6 @@ class Foo
 }
 
 $service = new Yar_Server(new Foo());
+
+xdebug()->auto();
 $service->handle();
