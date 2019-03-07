@@ -109,10 +109,7 @@ if ($found) {
     }
     /** ================================= /中间件 ================================= */
 
-    if (xdebug()->isOpen()) {
-        xdebug()->trace();
-    }
-
+    xdebug()->auto();
     $next();
 } else {
     return core('AppResponseCode')->status404();

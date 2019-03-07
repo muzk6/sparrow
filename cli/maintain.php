@@ -25,8 +25,8 @@ $stub = dirname(__DIR__) . '/data/down';
 $mode = strtolower($argv[1] ?? 'on');
 if ($mode === 'off') {
     is_file($stub) && unlink($stub);
-    echo '维护模式已关闭' . PHP_EOL;
+    echo 'Maintenance mode is OFF' . PHP_EOL;
 } else if ($mode === 'on') {
     touch($stub);
-    echo '维护模式已开启' . PHP_EOL;
+    echo 'Maintenance mode is ON' . PHP_EOL;
 }
