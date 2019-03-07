@@ -20,15 +20,15 @@ $maxChildren = intval(ini_get('xdebug.var_display_max_children'));
 if (isset($opt['help'])) {
     echo <<<DOC
 USAGE
-    php trace.php [OPTION...] URI
+    php trace.php [OPTION...] NAME URI
 PARAM
+    NAME
+        Name Of Xdebug Trace as xt: segment in log name.
     URI
         Url path which trigger start xdebug trace.
 OPTION
     --uid=
-        UserId which has logined.
-    --name=
-        Name Of Xdebug Trace as xt: segment in log name.
+        User ID which has logined.
     --expire= (Default 10min)
         Expire after N seconds.
         --expire=60 (After 60s expire.)
@@ -52,16 +52,22 @@ if (isset($opt['off'])) {
     exit;
 }
 
-$uri = &$argv[$ind];
+$name = &$argv[$ind++];
+if (empty($name)) {
+    echo 'Require NAME' . PHP_EOL;
+    exit;
+}
+
+$uri = &$argv[$ind++];
 if (empty($uri)) {
-    echo '缺少参数 URI' . PHP_EOL;
+    echo 'Require URI' . PHP_EOL;
     exit;
 }
 
 $conf = [
     'uri' => $uri,
     'user_id' => $opt['uid'] ?? 0,
-    'name' => $opt['name'] ?? '',
+    'name' => $name,
     'expire' => isset($opt['expire']) ? TIME + $opt['expire'] : TIME + 600,
     'max_depth' => $opt['max-depth'] ?? $maxDepth,
     'max_data' => $opt['max-data'] ?? $maxData,
