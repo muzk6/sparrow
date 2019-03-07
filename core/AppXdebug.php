@@ -63,9 +63,26 @@ class AppXdebug
         $traceStart = false;
         $name = '';
 
+        // 从 cgi 开启
+        if (whitelist()->isSafeIp()) {
+            if (isset($_REQUEST['_xt'])) {
+                $name = $_REQUEST['_xt'];
+            } elseif (isset($_COOKIE['_xt'])) {
+                $name = $_COOKIE['_xt'];
+            }
+
+            if ($name) {
+                $traceStart = true;
+
+                isset($_REQUEST['_max_depth']) && $this->setMaxDepth(intval($_REQUEST['_max_depth']));
+                isset($_REQUEST['_max_data']) && $this->setMaxData(intval($_REQUEST['_max_data']));
+                isset($_REQUEST['_max_children']) && $this->setMaxChildren(intval($_REQUEST['_max_children']));
+            }
+        }
+
         // 从 cli/trace.php 开启
         $traceConfFile = PATH_DATA . '/.tracerc';
-        if (file_exists($traceConfFile)) {
+        if (!$traceStart && file_exists($traceConfFile)) {
             $traceConf = include($traceConfFile);
 
             if ($traceConf['expire'] > TIME // 检查过期
@@ -79,21 +96,6 @@ class AppXdebug
                 $this->setMaxChildren($traceConf['max_children']);
 
                 $name = $traceConf['name'];
-            }
-        }
-
-        // 从 cgi 开启
-        if (whitelist()->isSafeIp() && $name) {
-            $traceStart = true;
-
-            isset($_REQUEST['_max_depth']) && $this->setMaxDepth(intval($_REQUEST['_max_depth']));
-            isset($_REQUEST['_max_data']) && $this->setMaxData(intval($_REQUEST['_max_data']));
-            isset($_REQUEST['_max_children']) && $this->setMaxChildren(intval($_REQUEST['_max_children']));
-
-            if (isset($_REQUEST['_xt'])) {
-                $name = $_REQUEST['_xt'];
-            } elseif (isset($_COOKIE['_xt'])) {
-                $name = $_COOKIE['_xt'];
             }
         }
 
