@@ -10,5 +10,5 @@ return [
     'encryption' => 'ssl',
     'user' => 'demo@qq.com',
     'passwd' => 'demo',
-    'name' => 'knf',
+    'name' => 'Sparrow',
 ];

@@ -7,7 +7,7 @@
 require_once dirname(__DIR__) . '/init.php';
 
 $conf = config('yar');
-$url = $conf['knf'] . '/rpc_server_demo.php';
+$url = $conf['sparrow'] . '/rpc_server_demo.php';
 
 $client = new Yar_Client($url);
 $rs = $client->bar(['foo', 'bar'], '串行调用');

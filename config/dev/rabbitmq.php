@@ -9,6 +9,6 @@ return [
     'port' => 5672,
     'user' => 'guest',
     'passwd' => 'guest',
-    'exchange_name' => 'knf.direct',
+    'exchange_name' => 'sparrow.direct',
     'exchange_type' => 'direct',
 ];

@@ -5,5 +5,5 @@
  */
 
 return [
-    'knf' => 'http://localhost/knf/rpc',
+    'sparrow' => 'http://localhost/sparrow/rpc',
 ];
