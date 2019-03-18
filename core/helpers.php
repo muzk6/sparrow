@@ -119,17 +119,19 @@ function db()
 
 /**
  * 文件日志
+ * @param string $index 日志索引，用于正查和反查，建议传入 uniqid()
  * @param array|string $data 日志内容
  * @param string $type 日志类型，用于区分日志文件
  * @return false|int
  */
-function logfile($data, string $type = 'app')
+function logfile(string $index, $data, string $type = 'app')
 {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
     $log = json_encode([
         '__time' => date('Y-m-d H:i:s'),
+        '__index' => $index,
         '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
         '__file' => "{$trace['file']}:{$trace['line']}",
         '__sapi' => PHP_SAPI,
