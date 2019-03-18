@@ -9,7 +9,7 @@ use Core\BaseController;
 class IndexController extends BaseController
 {
     /**
-     * @mw get
+     * @get
      */
     public function index()
     {

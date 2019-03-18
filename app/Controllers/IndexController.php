@@ -8,14 +8,13 @@ use App\Services\DemoService;
 use Core\BaseController;
 
 /**
- * @middleware auth
+ * @api
  * @package App\Controllers
  */
 class IndexController extends BaseController
 {
     /**
-     * @api
-     * @get,!auth
+     * @get
      * @return array
      */
     public function index()

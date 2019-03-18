@@ -17,7 +17,7 @@ class AppMiddleware
      */
     public function post(Closure $next, array $context)
     {
-        if (!IS_POST) {
+        if (!(IS_POST || IS_OPTIONS)) {
             http_response_code(405);
             return;
         }

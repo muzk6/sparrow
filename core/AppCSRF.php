@@ -80,7 +80,9 @@ class AppCSRF
      */
     public function check()
     {
-        if (IS_POST) {
+        if (isset($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+            $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
+        } elseif (IS_POST) {
             $token = $_POST['_token'] ?? '';
         } else {
             $token = $_GET['_token'] ?? '';

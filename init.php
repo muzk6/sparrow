@@ -35,6 +35,7 @@ if (!file_exists(PATH_CONFIG_ENV)) {
 define('IS_DEV', APP_ENV == 'dev');
 define('IS_POST', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST');
 define('IS_GET', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'GET');
+define('IS_OPTIONS', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS');
 
 // 日志
 ini_set('log_errors', 'On');

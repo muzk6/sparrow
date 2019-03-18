@@ -220,4 +220,25 @@ if (is_file('/www/PUB')) { // publish
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
 }
-``` 
+```
+
+---
+
+#### CSRF(XSRF) 
+
+`POST`请求默认校验`CSRF Token`，`GET`请求可选检验
+
+##### 生成`Token`
+
+使用以下任意一种方法
+
+- `csrf()->field()`直接生成`HTML`
+- `csrf()->token()`生成纯`Token`, 通过接口返回
+
+##### 请求时带上`Token`
+
+使用以下任意一种方法
+
+- `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
+- `GET`请求通过`Query stirng`，后端将从`$_GET['_token']`读取
+- 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取
