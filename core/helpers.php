@@ -280,8 +280,8 @@ function format2api($data)
     ];
 
     if ($data instanceof Exception) {
-        $response['code'] = $data->getCode();
-        $response['message'] = $data->getMessage();
+        $response['errcode'] = $data->getCode();
+        $response['errmsg'] = $data->getMessage();
 
         if ($data instanceof AppException) {
             $response['data'] = (object)$data->getData();
