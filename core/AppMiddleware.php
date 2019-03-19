@@ -11,21 +11,16 @@ use Closure;
 class AppMiddleware
 {
     /**
-     * POST 请求校验
+     * CSRF 校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
-    public function post(Closure $next, array $context)
+    public function csrf(Closure $next, array $context)
     {
-        if (!(IS_POST || IS_OPTIONS)) {
-            http_response_code(405);
-            return;
-        }
-
         try {
             csrf()->check();
         } catch (AppException $e) {
-            //todo 在子类覆盖本方法修改默认行为
+            //todo 可在子类覆盖本方法修改默认行为
             echo $e->getMessage();
             return;
         }
@@ -37,13 +32,28 @@ class AppMiddleware
     }
 
     /**
+     * POST 请求校验
+     * @param Closure $next 下一个中间件
+     * @param array $context 上下文参数
+     */
+    public function post(Closure $next, array $context)
+    {
+        if (!(IS_POST || IS_OPTIONS)) {
+            http_response_code(405);
+            return;
+        }
+
+        $next();
+    }
+
+    /**
      * GET 请求校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
     public function get(Closure $next, array $context)
     {
-        if (!IS_GET) {
+        if (!(IS_GET || IS_OPTIONS)) {
             http_response_code(405);
             return;
         }

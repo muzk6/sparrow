@@ -87,9 +87,10 @@ class IndexController extends BaseController
 
 name | Desc
 --- | ---
-`get` | 限于 GET 请求
-`post` | 限于 POST 请求
+`get` | 限于 GET, OPTIONS 请求
+`post` | 限于 POST, OPTIONS 请求
 `auth` | 限于已登录
+`csrf` | 检验`CSRF Token`，请求详情查看章节`CSRF(XSRF)`
 
 ##### 自定义中间件
 
@@ -224,11 +225,11 @@ if (is_file('/www/PUB')) { // publish
 
 ---
 
-#### CSRF(XSRF) 
+#### CSRF(XSRF)
 
 `POST`请求默认校验`CSRF Token`，`GET`请求可选检验
 
-##### 生成`Token`
+##### 获取`Token`
 
 使用以下任意一种方法
 
@@ -240,5 +241,5 @@ if (is_file('/www/PUB')) { // publish
 使用以下任意一种方法
 
 - `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
-- `GET`请求通过`Query stirng`，后端将从`$_GET['_token']`读取
+- `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
 - 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取
