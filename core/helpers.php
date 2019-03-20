@@ -361,6 +361,23 @@ function csrf()
 }
 
 /**
+ * 直接抛出业务异常对象
+ * @param string|int $message 错误码或错误消息，错误码的情况下将忽略参数二
+ * @param int $code 错误码
+ * @param array $data 附加数组
+ * @throws AppException
+ */
+function panic($message = "", int $code = 0, array $data = [])
+{
+    $exception = new AppException($message, $code);
+    if ($data) {
+        $exception->setData($data);
+    }
+
+    throw $exception;
+}
+
+/**
  * 闪存
  * @return AppFlash
  */

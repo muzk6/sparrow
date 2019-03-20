@@ -18,16 +18,16 @@ final class AppException extends Exception implements Throwable
 
     /**
      * AppException constructor.
-     * @param string|int $message
-     * @param int $code
-     * @param Throwable|null $previous
+     * @param string|int $message 错误码或错误消息，错误码的情况下将忽略参数二
+     * @param int $code 错误码
+     * @param Throwable|null $previous 前一个异常对象
      */
     public function __construct($message = "", int $code = 0, Throwable $previous = null)
     {
-        if (is_string($message)) {
-            parent::__construct($message, $code, $previous);
-        } else {
+        if (is_numeric($message)) {
             parent::__construct(trans($message), $message, $previous);
+        } else {
+            parent::__construct($message, $code, $previous);
         }
     }
 
