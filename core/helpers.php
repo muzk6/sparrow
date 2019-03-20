@@ -129,22 +129,13 @@ function logfile(string $index, $data, string $type = 'app')
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
-    if (!empty($_SERVER['REQUEST_URI'])) {
-        $uri = $_SERVER['REQUEST_URI'];
-    } else {
-        $scriptName = $_SERVER['PHP_SELF'];
-        $uri = empty($_SERVER['QUERY_STRING']) ?
-            $scriptName :
-            "{$scriptName}?{$_SERVER['QUERY_STRING']}";
-    }
-
     $log = json_encode([
         '__time' => date('Y-m-d H:i:s'),
         '__index' => $index,
         '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
         '__file' => "{$trace['file']}:{$trace['line']}",
         '__sapi' => PHP_SAPI,
-        '__uri' => $uri,
+        '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
