@@ -194,7 +194,7 @@ workers | 长驻运行的脚本
 `\App\Core\AppMiddleware extends \Core\AppMiddleware`, 后下以覆盖类方法来修改父类的
 默认行为
 
-*注意 `\Core\AppException`, `\Core\AppPDO` 都是 `final class`，不可承继*
+*注意 `\Core\AppException`, `\Core\AppPDO`, `\Core\AppMessage` 都是 `final class`，不可承继*
 
 ##### `BaseXXX`
 

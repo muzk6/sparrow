@@ -7,6 +7,7 @@ use Core\AppException;
 use Core\AppFlash;
 use Core\AppAes;
 use Core\AppInput;
+use Core\AppMessage;
 use Core\AppPDO;
 use Core\AppQueue;
 use Core\AppWhitelist;
@@ -259,28 +260,35 @@ function ip()
 
 /**
  * 构造接口响应格式
- * @param array|stdClass|Exception $data
+ * @param array|stdClass|Exception|AppMessage $data
  * @return array
  */
 function format2api($data)
 {
     $response = [
         'state' => false,
-        'errcode' => 0,
-        'errmsg' => '',
+        'code' => 0,
+        'msg' => '',
         'data' => new stdClass(),
     ];
 
     if ($data instanceof Exception) {
-        $response['errcode'] = $data->getCode();
-        $response['errmsg'] = $data->getMessage();
+        $response['code'] = intval($data->getCode());
+        $response['msg'] = strval($data->getMessage());
 
         if ($data instanceof AppException) {
             $response['data'] = (object)$data->getData();
         }
     } else {
         $response['state'] = true;
-        $response['data'] = is_array($data) ? (object)$data : $data;
+
+        if ($data instanceof AppMessage) {
+            $response['code'] = intval($data->getCode());
+            $response['msg'] = strval($data->getMessage());
+            $response['data'] = (object)$data->getData();
+        } else {
+            $response['data'] = is_array($data) ? (object)$data : $data;
+        }
     }
 
     return $response;
@@ -354,19 +362,31 @@ function csrf()
 
 /**
  * 直接抛出业务异常对象
- * @param string|int $message 错误码或错误消息，错误码的情况下将忽略参数二
- * @param int $code 错误码
+ * @param string|int|array $messageOrCode 错误码或错误消息<br>
+ * 带有参数的状态码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]
  * @param array $data 附加数组
  * @throws AppException
  */
-function panic($message = "", int $code = 0, array $data = [])
+function panic($messageOrCode = '', array $data = [])
 {
-    $exception = new AppException($message, $code);
+    $exception = new AppException($messageOrCode);
     if ($data) {
         $exception->setData($data);
     }
 
     throw $exception;
+}
+
+/**
+ * 成功消息结构
+ * @param string|int|array $messageOrCode 状态码或文本消息<br>
+ * 带有参数的状态码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]
+ * @param array $data 附带数组
+ * @return AppMessage
+ */
+function success($messageOrCode = '', array $data = [])
+{
+    return new AppMessage($messageOrCode, $data);
 }
 
 /**
