@@ -44,6 +44,8 @@ final class AppMessage
             $this->message = $messageOrCode;
             $this->code = 0;
         }
+
+        $this->data = $data;
     }
 
     /**
