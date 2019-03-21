@@ -19,7 +19,6 @@ class IndexController extends BaseController
      */
     public function index()
     {
-        return success(10010, ['anmd' => 10]);
         $data = DemoService::instance()->foo();
         return $data;
     }
