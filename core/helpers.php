@@ -13,15 +13,16 @@ use Core\AppWhitelist;
 use Core\AppXdebug;
 
 /**
- * 配置文件
+ * 配置文件<br>
+ * 优先从当前环境目录搜索配置文件
  * @param string $filename 无后缀的文件名
  * @return array|null 返回配置文件内容
  */
 function config(string $filename)
 {
-    if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
+    if (is_file($path = PATH_CONFIG_ENV . "/{$filename}.php")) {
         return include($path);
-    } else if (is_file($path = PATH_CONFIG_ENV . "/{$filename}.php")) {
+    } else if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
         return include($path);
     }
 

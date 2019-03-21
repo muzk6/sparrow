@@ -113,7 +113,7 @@ final class AppPDO
             && strpos(strtolower($arguments[0]), 'select') !== false;
 
         if (!$this->section) { // 默认区
-            if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // elect 使用从库(有 slave 配置的情况下)
+            if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
                 if (!$this->slaveConn) {
                     $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
                     $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '');
@@ -532,7 +532,7 @@ final class AppPDO
      * @param string|array|null $where 条件语句, 取消条件使用 null<br>
      * 无绑定参数: 'id=1' 或 ['id=1']<br>
      * 绑定匿名参数: ['name=?', 'super'] 或 ['name=?', ['super']]<br>
-     * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']]<br>
+     * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']] 或去掉后面的冒号 ['name=:name', ['name' => 'super']]<br>
      * @return array
      */
     protected function parseWhere($where)

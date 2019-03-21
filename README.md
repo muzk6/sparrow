@@ -243,3 +243,168 @@ if (is_file('/www/PUB')) { // publish
 - `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
 - `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
 - 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取
+
+---
+
+#### `helper` 辅助函数用例
+
+##### `config()` 配置文件
+
+- `config('app')`
+- 假设当前环境是`dev`
+- 依次搜索`config/app.php, config/dev/app.php`, 存在时返回第一个结果文件的内容，都不存在时返回`null`
+
+##### `trans()` 多语言文本
+
+- `trans(10001000)`
+- 假设当前语言是`zh_CN`, 默认语言是`en`
+- 依次搜索`lang/zh_CN.php, lang/en.php`, 存在`10001000`这个`key`时返回第一个结果内容，都不存在时返回`?`
+
+##### `core()` 实例化核心类
+
+- `core('AppFlash')`
+- 依次搜索类`App\Core\AppFlash, Core\AppFlash`, 存在时返回第一个结果类，都不存在时返回`null`
+
+##### `view()` 视图模板对象
+
+- 需要安装`blade`库`composer require duncan3dc/blade`
+- `view()`返回`blade`对象
+
+---
+
+#### 数据库查询
+> `db()`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入
+
+##### 查询1行所有列 `->selectOne()`
+> 成功时返回第1行记录的数组
+
+```php
+// select * from table0 limit 1
+db()->table('table0')->selectOne(null);
+
+// select * from table0 where id = 1 limit 1
+db()->table('table0')->selectOne('id=1'); // 有注入风险
+db()->table('table0')->selectOne(['id=1']); // 有注入风险
+db()->table('table0')->selectOne(['id=?', 1]); // 防注入
+db()->table('table0')->selectOne(['id=?', [1]]); // 防注入
+db()->table('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
+db()->table('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
+```
+
+##### 查询1行1列 `->selectColumn()`
+> 成功时返回第1行第1列的值<br>
+第二个参数`where`与`selectOne()`的`where`用法一样
+
+```php
+// select col1 from table0 limit 1
+db()->table('table0')->selectColumn('col1', null);
+db()->table('table0')->selectColumn(['col1'], null);
+
+// select COUNT(1) from table0 limit 1
+db()->table('table0')->selectColumn(['expr' => 'COUNT(1)'], null);
+```
+
+##### 查询多行 `->selectColumn()`
+> 成功时返回所有行的记录数组<br>
+第二个参数`where`与`->selectOne()`的`where`用法一样
+
+```php
+// select col1, col2 from table0
+db()->table('table0')->selectColumn('col1, col2', null);
+db()->table('table0')->selectColumn(['col1', 'col2'], null);
+
+// select col1, COUNT(1) from table0
+db()->table('table0')->selectColumn(['col1', ['expr' => 'COUNT(1)']], null);
+```
+
+##### 综合查询
+
+```php
+// select * from table0 where id > 100 order by col0 desc limit 0, 10 
+db()->table('table0')->append('order by col0 desc')->limit(10)->selectAll('*', ['id>?', 100]);
+
+// select col0, col1 from table0 where name like 'tom%' group by col0 limit 0, 10 
+db()->table('table0')->append('group by col0')->page(1, 10)->selectAll('col0, col1', ['name like :name', ['name' => 'tom%']]);
+
+// select count(1) from table0
+db()->table('table0')->count(null);
+```
+
+- `append('order by col0 desc')`把自己的`sql`(还支持`group by, having`等等)拼接到`where`语句后面
+- `limit(10)`等价于`limit([10]), limit(0, 10), limit([0, 10]), page(1, 10)`
+
+##### 插入 `->insert()`
+
+```php
+// insert into table0(col0) values(1)
+db()->table('table0')->insert(['col0' => 1]);
+
+// insert into table0(col0) values(1),(2)
+db()->table('table0')->insert([ ['col0' => 1], ['col0' => 2] ]);
+
+// insert into table0(ctime) values(UNIX_TIMESTAMP())
+db()->table('table0')->insert(['ctime' => ['expr' => 'UNIX_TIMESTAMP()']]);
+```
+
+以下两个的用法与`->insert()`一致
+
+- `->insertIgnore()` 即 `insert ignore ...`
+- `->replace()` 即 `replace into ...`
+
+##### 插入更新 `->insertUpdate()`
+
+```php
+// insert into table0(col0) values(1) on duplicate key update num = num + 1 
+db()->table('table0')->insertUpdate(['col0' => 1], ['num' => ['expr' => 'num + 1']]);
+
+// insert into table0(col0) values(1) on duplicate key update utime = UNIX_TIMESTAMP()
+db()->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['expr' => 'UNIX_TIMESTAMP()']);
+```
+
+##### 更新 `->update()`
+> 第二个参数`where`与`selectOne()`的`where`用法一样
+
+```php
+// update table0 set col0 = 1 where id = 10
+db()->table('table0')->update(['col0' => 1], ['id=?', 10]);
+
+// update table0 set num = num + 1 where id = 10
+db()->table('table0')->update(['num' => ['expr' => 'num + 1']], ['id=?', 10]);
+
+// update table0 set utime = UNIX_TIMESTAMP() where id = 10
+db()->table('table0')->update(['utime' => ['expr' => 'UNIX_TIMESTAMP()']], ['id=?', 10]);
+```
+
+##### 删除 `->delete()`
+> 参数`where`与`selectOne()`的`where`用法一样
+
+```php
+// delete from table0 where id = 10
+db()->table('table0')->delete(['id=?', 10]);
+```
+
+##### 上一次查询的影响行数 `->affectedRows()`
+> 在主库查询影响行数
+
+```php
+// select row_count()
+db()->affectedRows();
+```
+
+*另外`->lastInsertId()`也会自动切换到主库查询上次插入的`id`*
+
+##### 下一次强制使用主库 `->forceMaster()`
+> 一般用于`select`语句，因为非`select`都已默认是主库
+
+```php
+// 在主库查询 select * from table0 limit 1
+db()->forceMaster()->table('table0')->selectOne(['id=?', 1]);
+```
+
+##### 一次性切换分区 `->section()`
+> 相关配置在`config/.../database.php`的`sections`里配置
+
+```php
+// 切换到分区 sec0
+db()->section('sec0');
+```
