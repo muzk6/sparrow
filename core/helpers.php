@@ -324,7 +324,7 @@ function format2api($data)
  * 回调函数格式为 function ($val, $name) {}<br>
  * 有return: 以返回值为准 <br>
  * 无return: 字段值为用户输入值 <br>
- * 抛出异常: AppException, Exception 将会被捕获到返回结果的数组[1]里，🈯️多字段的情况下如果[1]里都没有异常，则[1]的值就是 null<br>
+ * 抛出异常: AppException, Exception 将会被捕获到返回结果的数组[1]里，批量多字段的情况下如果[1]里都没有异常，则[1]的值就是 null<br>
  *
  * @return array [0 => [column => value], 1 => [column => error]]
  */
