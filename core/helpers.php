@@ -384,7 +384,7 @@ function panic($messageOrCode = '', array $data = [])
  * @param array $data 附带数组
  * @return AppMessage
  */
-function success($messageOrCode = '', array $data = [])
+function message($messageOrCode = '', array $data = [])
 {
     return new AppMessage($messageOrCode, $data);
 }

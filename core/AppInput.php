@@ -28,7 +28,7 @@ class AppInput
             } catch (Exception $exception) {
                 $ret[1] = [
                     'code' => $exception->getCode(),
-                    'message' => $exception->getMessage(),
+                    'msg' => $exception->getMessage(),
                 ];
 
                 if ($exception instanceof AppException) {
