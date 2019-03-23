@@ -146,6 +146,13 @@ public function index()
 
 ---
 
+#### 测试文件
+
+- `cli/test.php` 为 `php-cli` 测试文件
+- `public/test.php` 为 `php-cgi` 测试文件 
+
+---
+
 #### 常用常量
 
 Name | Desc
