@@ -91,7 +91,14 @@ class AppInput
             $bucket = $this->pool($keyDot[0]);
             $name = $keyDot[1];
         } else {
-            $bucket = $this->pool();
+            if (IS_GET) {
+                $bucket = $this->pool('get');
+            } elseif (IS_POST) {
+                $bucket = $this->pool('post');
+            } else {
+                $bucket = $this->pool();
+            }
+
             $name = $key;
         }
 
@@ -99,7 +106,8 @@ class AppInput
     }
 
     /**
-     * 获取、过滤、验证请求参数 $_GET, $_POST<br>
+     * 获取、过滤、验证请求参数 $_GET,$_POST<br>
+     * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST<br>
      * list($data, $err) = input(...)
      * @see input()
      *

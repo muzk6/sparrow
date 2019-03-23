@@ -295,12 +295,13 @@ function format2api($data)
 }
 
 /**
- * 获取、过滤、验证请求参数 $_GET, $_POST<br>
+ * 获取、过滤、验证请求参数 $_GET,$_POST<br>
+ * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST<br>
  * list($data, $err) = input(...)
  * <p></p>
  *
  * <p>input('a', 10)<br>
- * -> !isset($_REQUEST['a']) 时取默认值10</p>
+ * -> eg. POST请求, !isset($_POST['a']) 时取默认值10</p>
  *
  * <p>input('get.a', function ($val) {return 'hello '.$val;})<br>
  * -> 'hello ' . $_GET['a']</p>
@@ -309,7 +310,7 @@ function format2api($data)
  * -> empty($_POST['a']) 时抛出异常</p>
  *
  * <p>input(), input(''), input('.')<br>
- * -> $_REQUEST</p>
+ * -> POST请求时，从 $_POST 里取全部；GET请求时，从 $_GET 里取全部</p>
  *
  * <p>input('post.')<br>
  * -> $_POST</p>
@@ -317,7 +318,7 @@ function format2api($data)
  * <p>input(['get.a' => 10, 'post.b' => function ($val) {return 'hello '.$val;}, 'c'], function () {...})<br>
  * -> !isset($_GET['a']) 时取默认值10<br>
  * -> 'hello ' . $_POST['b']<br>
- * -> $_REQUEST['c'], 参数c 没有定义默认值或回调，将会使用 input()参数二 来代替 </p>
+ * -> $_POST['c'], 参数c 没有定义默认值或回调，将会使用 input()参数二 来代替 </p>
  *
  * @param string|array $columns 单个或多个字段
  * @param mixed $defaultOrCallback 默认值或回调函数，优先级低于上面参数一的 array.value<br>

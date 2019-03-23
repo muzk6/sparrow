@@ -8,17 +8,23 @@ use App\Services\DemoService;
 use Core\BaseController;
 
 /**
- * @api
  * @package App\Controllers
  */
 class IndexController extends BaseController
 {
     /**
      * @get
-     * @return array
-     * @throws \Core\AppException
      */
     public function index()
+    {
+        echo '<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>';
+    }
+
+    /**
+     * @api
+     * @post
+     */
+    public function api()
     {
         list($type, $err) = input('type', function ($val) {
             $val || panic(10001000);
