@@ -150,27 +150,26 @@ function logfile(string $index, $data, string $type = 'app')
 
 /**
  * redis
- * @return \Predis\Client
+ * @return \Redis
  * @throws null
  */
 function redis()
 {
-    static $client = null;
+    static $redis = null;
 
-    if (!$client) {
-        if (!class_exists('\Predis\Client')) {
-            throw new AppException('composer require predis/predis');
+    if (!$redis) {
+        if (!extension_loaded('redis')) {
+            throw new AppException('pecl install redis');
         }
 
         $conf = config('redis');
-        $client = new Predis\Client([
-            'scheme' => $conf['scheme'],
-            'host' => $conf['host'],
-            'port' => $conf['port'],
-        ], ['prefix' => $conf['prefix']]);
+
+        $redis = new Redis();
+        $redis->pconnect($conf['host'], $conf['port']);
+        $redis->setOption(Redis::OPT_PREFIX, $conf['prefix']);
     }
 
-    return $client;
+    return $redis;
 }
 
 /**
