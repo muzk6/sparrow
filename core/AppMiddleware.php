@@ -6,6 +6,9 @@ use Closure;
 
 /**
  * 控制器中间件
+ * <p>
+ * $context = [ 'middleware' => ..., 'uri' => ..., 'controller' => ..., 'action' => ...]
+ * </p>
  * @package Core
  */
 class AppMiddleware
