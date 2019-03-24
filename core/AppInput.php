@@ -70,7 +70,7 @@ class AppInput
                 break;
             case 'post':
                 if (isset($_SERVER['HTTP_CONTENT_TYPE'])
-                    && strtolower($_SERVER['HTTP_CONTENT_TYPE']) == 'application/json') {
+                    && strpos(strtolower($_SERVER['HTTP_CONTENT_TYPE']), 'application/json') !== false) {
                     $bucket = (array)json_decode(file_get_contents('php://input'), true);
                 } else {
                     $bucket = $_POST;
