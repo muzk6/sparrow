@@ -1,11 +1,10 @@
 <?php
 
 /**
- * 缓存
+ * redis缓存
  */
 
 return [
-    'scheme' => 'tcp',
     'host' => 'localhost',
     'port' => 6379,
     'prefix' => 'SPARROW:',
