@@ -341,6 +341,37 @@ function input($columns = '', $defaultOrCallback = null)
 }
 
 /**
+ * 频率限制
+ * <p>ttl秒 内限制 limit次</p>
+ * @param string $key 缓存key
+ * @param int $limit 限制次数
+ * @param int $ttl 秒数
+ * @return int 0: 未触发限制(小于等于 limit)<br>
+ * >0: 触发限制后(大于等于第 limit+1 次)，剩余的重置秒数
+ */
+function throttle(string $key, int $limit, int $ttl)
+{
+    $now = time();
+    $len = redis()->lLen($key);
+    if ($len < $limit) {
+        redis()->lPush($key, $now);
+    } else {
+        $earliest = redis()->lIndex($key, -1);
+        $upToNow = $now - $earliest;
+        if ($upToNow < $ttl) {
+            redis()->expire($key, $ttl);
+            return $ttl - $upToNow;
+        } else {
+            redis()->lPush($key, $now);
+            redis()->lTrim($key, 0, $limit - 1);
+        }
+    }
+
+    redis()->expire($key, $ttl);
+    return 0;
+}
+
+/**
  * CSRF
  * @return AppCSRF
  */
