@@ -295,9 +295,9 @@ function format2api($data)
 }
 
 /**
- * 获取、过滤、验证请求参数 $_GET,$_POST<br>
- * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST<br>
- * list($data, $err) = input(...)
+ * 获取、过滤、验证请求参数 $_GET,$_POST 支持payload<br>
+ * list($data, $err) = input(...)<br>
+ * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
  * <p></p>
  *
  * <p>input('a', 10)<br>

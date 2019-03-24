@@ -69,7 +69,12 @@ class AppInput
                 $bucket = $_GET;
                 break;
             case 'post':
-                $bucket = $_POST;
+                if (isset($_SERVER['HTTP_CONTENT_TYPE'])
+                    && strtolower($_SERVER['HTTP_CONTENT_TYPE']) == 'application/json') {
+                    $bucket = (array)json_decode(file_get_contents('php://input'), true);
+                } else {
+                    $bucket = $_POST;
+                }
                 break;
             default:
                 $bucket = $_REQUEST;
@@ -106,9 +111,9 @@ class AppInput
     }
 
     /**
-     * 获取、过滤、验证请求参数 $_GET,$_POST<br>
-     * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST<br>
-     * list($data, $err) = input(...)
+     * 获取、过滤、验证请求参数 $_GET,$_POST 支持payload<br>
+     * list($data, $err) = input(...)<br>
+     * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
      * @see input()
      *
      * @param string|array $columns 单个或多个字段
