@@ -17,7 +17,7 @@ class IndexController extends BaseController
      */
     public function index()
     {
-        echo '<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>';
+        return '<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>';
     }
 
     /**
