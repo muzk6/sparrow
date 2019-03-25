@@ -294,10 +294,11 @@ function format2api($data)
 }
 
 /**
- * 获取、过滤、验证请求参数 $_GET,$_POST 支持payload<br>
+ * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload<br>
  * list($data, $err) = input(...)<br>
  * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
  * <p></p>
+ * <b>以下用例的用法可以自由组合</b>
  *
  * <p>input('a', 10)<br>
  * -> eg. POST请求, !isset($_POST['a']) 时取默认值10</p>
@@ -314,8 +315,13 @@ function format2api($data)
  * <p>input('post.')<br>
  * -> $_POST</p>
  *
- * <p>input(['a', 'get.']) == input('a, get.b')
+ * <p>input(['a', 'get.']) == input('a, get.b')<br>
  * -> POST请求时，读取 $_POST['a'], $_GET全部
+ * </p>
+ *
+ * <p>input('a:i, b:b')<br>
+ * -> POST请求时，intval($_POST['a']), boolval($_POST['b'])<br>
+ * -> 类型修饰符有：s(string), i(int), b(bool), a(array), f(float)
  * </p>
  *
  * <p>input(['get.a' => 10, 'post.b' => function ($val) {return 'hello '.$val;}, 'c'], function () {...})<br>

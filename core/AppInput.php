@@ -11,20 +11,16 @@ use Exception;
 class AppInput
 {
     /**
-     * @var array|null
-     */
-    protected $payload = null;
-
-    /**
      * 取出指定字段值
      * @param array &$refBucket $this->pool的参数集
      * @param string $name 字段名
+     * @param string $type 需要强转为指定的类型
      * @param mixed $defaultOrCallback 默认值或回调函数
-     * @return array
+     * @return array [$val, $err]
      */
-    protected function single(array &$refBucket, string $name, $defaultOrCallback)
+    protected function single(array &$refBucket, string $name, string $type, $defaultOrCallback)
     {
-        $val = isset($refBucket[$name]) ? trim(strval($refBucket[$name])) : null;
+        $val = isset($refBucket[$name]) ? trim(strval($refBucket[$name])) : null; // 请求里没有指定参数时则为null
         $ret = [$val, null];
         if (is_callable($defaultOrCallback)) {
             try {
@@ -44,8 +40,31 @@ class AppInput
             $ret[0] = is_null($val) ? $defaultOrCallback : $val;
         }
 
+        switch ($type) {
+            case 's':
+                $ret[0] = strval($ret[0]);
+                break;
+            case 'i':
+                $ret[0] = intval($ret[0]);
+                break;
+            case 'b':
+                $ret[0] = boolval($ret[0]);
+                break;
+            case 'a':
+                $ret[0] = (array)$ret[0];
+                break;
+            case 'f':
+                $ret[0] = floatval($ret[0]);
+                break;
+        }
+
         return $ret;
     }
+
+    /**
+     * @var array|null
+     */
+    protected $payload = null;
 
     /**
      * 扁平处理
@@ -93,7 +112,7 @@ class AppInput
     }
 
     /**
-     * 解析键值，取对应请求类型的参数集及当前参数名
+     * 解析键值，取对应请求类型的参数集、当前参数名、类型
      * @param string $key
      * @return array
      */
@@ -116,13 +135,21 @@ class AppInput
             $name = $key;
         }
 
-        return [$bucket, $name];
+        $type = '';
+        if (strpos($name, ':') !== false) {
+            $nameDot = explode(':', $name);
+            $name = $nameDot[0];
+            $type = $nameDot[1];
+        }
+
+        return [$bucket, $name, $type];
     }
 
     /**
-     * 获取、过滤、验证请求参数 $_GET,$_POST 支持payload<br>
+     * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload<br>
      * list($data, $err) = input(...)<br>
      * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
+     *
      * @see input()
      *
      * @param string|array $columns 单个或多个字段
@@ -165,14 +192,14 @@ class AppInput
         $groups = [];
         $keys = [];
         foreach ($rawColumnWithDefCB as $rawItem) {
-            list($bucket, $name) = $this->key2name($rawItem['column']);
+            list($bucket, $name, $type) = $this->key2name($rawItem['column']);
             if (empty($name)) { // 通配字段 eg. '', '.', 'get.' 'post.'
                 foreach ($bucket as $k => $v) {
-                    $groups[] = $this->single($bucket, $k, $rawItem['defCB']);
+                    $groups[] = $this->single($bucket, $k, $type, $rawItem['defCB']);
                     $keys[] = $k;
                 }
             } else { // 指定一个字段
-                $groups[] = $this->single($bucket, $name, $rawItem['defCB']);
+                $groups[] = $this->single($bucket, $name, $type, $rawItem['defCB']);
                 $keys[] = $name;
             }
         }
