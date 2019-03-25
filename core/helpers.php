@@ -305,7 +305,7 @@ function format2api($data)
  * <p>input('get.a', function ($val) {return 'hello '.$val;})<br>
  * -> 'hello ' . $_GET['a']</p>
  *
- * <p>input('post.a', function ($val) {if (empty($val)) throw new AppException('...')})<br>
+ * <p>input('post.a', function ($val) {$val || panic(...);})<br>
  * -> empty($_POST['a']) 时抛出异常</p>
  *
  * <p>input(), input(''), input('.')<br>
@@ -313,6 +313,10 @@ function format2api($data)
  *
  * <p>input('post.')<br>
  * -> $_POST</p>
+ *
+ * <p>input(['a', 'get.']) == input('a, get.b')
+ * -> POST请求时，读取 $_POST['a'], $_GET全部
+ * </p>
  *
  * <p>input(['get.a' => 10, 'post.b' => function ($val) {return 'hello '.$val;}, 'c'], function () {...})<br>
  * -> !isset($_GET['a']) 时取默认值10<br>

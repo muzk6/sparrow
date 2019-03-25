@@ -11,6 +11,11 @@ use Exception;
 class AppInput
 {
     /**
+     * @var array|null
+     */
+    protected $payload = null;
+
+    /**
      * 取出指定字段值
      * @param array &$refBucket $this->pool的参数集
      * @param string $name 字段名
@@ -71,7 +76,10 @@ class AppInput
             case 'post':
                 if (isset($_SERVER['HTTP_CONTENT_TYPE'])
                     && strpos(strtolower($_SERVER['HTTP_CONTENT_TYPE']), 'application/json') !== false) {
-                    $bucket = (array)json_decode(file_get_contents('php://input'), true);
+                    if (is_null($this->payload)) {
+                        $this->payload = (array)json_decode(file_get_contents('php://input'), true);
+                    }
+                    $bucket = $this->payload;
                 } else {
                     $bucket = $_POST;
                 }
@@ -91,6 +99,7 @@ class AppInput
      */
     protected function key2name(string $key)
     {
+        $key = trim($key);
         if (strpos($key, '.') !== false) {
             $keyDot = explode('.', $key);
             $bucket = $this->pool($keyDot[0]);
@@ -127,12 +136,10 @@ class AppInput
      */
     public function parse($columns = '', $defaultOrCallback = null)
     {
-        // 指定多个字段
+        $rawColumnWithDefCB = [];
         if (is_array($columns)) {
-            $groups = [];
-            $keys = [];
             foreach ($columns as $k => $v) {
-                if (is_numeric($k)) {
+                if (is_numeric($k)) { // eg. $columns=['col1','col2'] 即没有 value 也就是没有默认值回调
                     $column = $v;
                     $defCB = $defaultOrCallback;
                 } else {
@@ -140,28 +147,36 @@ class AppInput
                     $defCB = $v;
                 }
 
-                list($bucket, $name) = $this->key2name($column);
-                $groups[] = $this->single($bucket, $name, $defCB);
-                $keys[] = $name;
+                $rawColumnWithDefCB[] = [
+                    'column' => $column,
+                    'defCB' => $defCB
+                ];
             }
 
-            $ret = $this->flat($keys, $groups);
         } else {
-            list($bucket, $name) = $this->key2name($columns);
-            if (empty($name)) { // 所有字段
-                $groups = [];
-                $keys = [];
-                foreach ($bucket as $k => $v) {
-                    $groups[] = $this->single($bucket, $k, $defaultOrCallback);
-                    $keys[] = $k;
-                }
-
-                $ret = $this->flat($keys, $groups);
-            } else { // 指定一个字段
-                $ret = $this->single($bucket, $name, $defaultOrCallback);
+            foreach (explode(',', $columns) as $column) {
+                $rawColumnWithDefCB[] = [
+                    'column' => $column,
+                    'defCB' => $defaultOrCallback
+                ];
             }
         }
 
-        return $ret;
+        $groups = [];
+        $keys = [];
+        foreach ($rawColumnWithDefCB as $rawItem) {
+            list($bucket, $name) = $this->key2name($rawItem['column']);
+            if (empty($name)) { // 通配字段 eg. '', '.', 'get.' 'post.'
+                foreach ($bucket as $k => $v) {
+                    $groups[] = $this->single($bucket, $k, $rawItem['defCB']);
+                    $keys[] = $k;
+                }
+            } else { // 指定一个字段
+                $groups[] = $this->single($bucket, $name, $rawItem['defCB']);
+                $keys[] = $name;
+            }
+        }
+
+        return $this->flat($keys, $groups);
     }
 }
