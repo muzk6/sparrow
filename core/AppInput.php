@@ -204,6 +204,7 @@ class AppInput
             }
         }
 
-        return $this->flat($keys, $groups);
+        $ret = count($groups) == 1 ? $groups[0] : $this->flat($keys, $groups);
+        return $ret;
     }
 }

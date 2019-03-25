@@ -23,10 +23,11 @@ class IndexController extends BaseController
     /**
      * @api
      * @post
+     * @throws \Core\AppException
      */
     public function api()
     {
-        list($type, $err) = input('type', function ($val) {
+        list($type, $err) = input('type:i', function ($val) {
             $val || panic(10001000);
         });
 
@@ -34,10 +35,11 @@ class IndexController extends BaseController
             panic($err['code']);
         }
 
+        // 没有 return 时响应: {state: true, code: 0, msg: "", data: null}
         $data = DemoService::instance()->foo();
         if ($type == 1) {
             return $data;
-        } else {
+        } elseif ($type == 2) {
             return message([10002001, 'name' => 'Sparrow'], $data);
         }
     }
