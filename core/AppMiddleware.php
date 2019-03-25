@@ -81,13 +81,15 @@ class AppMiddleware
 
     /**
      * 请求频率限制
+     * <p>默认 60秒 内限制 60次</p>
+     * 带参数用法，60秒内限制10次: 10|throttle:60
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
      */
     public function throttle(Closure $next, array $context)
     {
-        $limit = $context['limit'] ?? 60;
-        $ttl = $context['ttl'] ?? 60;
+        $limit = intval($context['argv'][0]) ?? 60;
+        $ttl = intval($context['argv'][1]) ?? 60;
 
         $key = 'THROTTLE:' . session_id() . ":{$context{'uri'}}";
 

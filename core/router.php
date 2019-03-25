@@ -67,9 +67,25 @@ if ($found) {
         }
 
         if (!empty($appDocList)) {
-            // 过滤前后空格、转小写
-            foreach ($appDocList as &$appDocItem) {
+            $appDocItemPam = []; // 函数参数
+            // 过滤前后空格，如果存在函数参数则提取出来
+            foreach ($appDocList as $k => &$appDocItem) {
                 $appDocItem = trim($appDocItem);
+                if (strpos($appDocItem, '|') !== false) {
+                    preg_match('#(?<=\|).*?(?:(?=\:)|(?=$))#', $appDocItem, $appDocItemMatch);
+                    $appDocItemMethod = $appDocItemMatch[0];
+
+                    $appDocItemPam[$appDocItemMethod][] = explode('|', $appDocItem)[0];
+
+                    if (strpos($appDocItem, ':') !== false) {
+                        $appDocItemPam[$appDocItemMethod] = array_merge(
+                            $appDocItemPam[$appDocItemMethod],
+                            array_slice(explode(':', $appDocItem), 1)
+                        );
+                    }
+
+                    $appDocItem = $appDocItemMethod;
+                }
             }
             unset($appDocItem);
 
@@ -89,6 +105,7 @@ if ($found) {
             foreach ($appDocListRevert as $appDocItem) {
                 $middlewareMethod = $appDocItem;
                 $middlewareContext = [
+                    'argv' => $appDocItemPam[$middlewareMethod] ?? [],
                     'middleware' => $middlewareMethod,
                     'uri' => $uri,
                     'controller' => $controllerNs,
