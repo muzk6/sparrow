@@ -93,7 +93,7 @@ name | Desc
 `post` | 限于 POST, OPTIONS 请求
 `auth` | 限于已登录
 `csrf` | 检验`CSRF Token`，请求详情查看章节`CSRF(XSRF)`
-`throttle` | 请求频率限制，默认60秒内限制60次；`10|throttle:60`表示60秒内限制10次
+`throttle` | 请求频率限制，默认60秒内限制60次，支持参数
 
 ##### 自定义中间件
 
