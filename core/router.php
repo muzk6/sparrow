@@ -69,7 +69,7 @@ if ($found) {
         if (!empty($appDocList)) {
             // 过滤前后空格、转小写
             foreach ($appDocList as &$appDocItem) {
-                $appDocItem = strtolower(trim($appDocItem));
+                $appDocItem = trim($appDocItem);
             }
             unset($appDocItem);
 
@@ -87,7 +87,7 @@ if ($found) {
             $appDocListRevert = array_reverse(array_flip($appDocListFlip));
 
             foreach ($appDocListRevert as $appDocItem) {
-                $middlewareMethod = strtolower(trim($appDocItem));
+                $middlewareMethod = $appDocItem;
                 $middlewareContext = [
                     'middleware' => $middlewareMethod,
                     'uri' => $uri,

@@ -97,6 +97,10 @@ name | Desc
 ```php
 // \App\Core\AppMiddleware
 
+/**
+ * @param Closure $next 下一个中间件
+ * @param array $context 上下文参数
+ */
 public function myMiddleware(Closure $next, array $context)
 {
     //todo before;
