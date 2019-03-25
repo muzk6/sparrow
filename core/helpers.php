@@ -355,7 +355,7 @@ function throttle(string $key, int $limit, int $ttl)
     if (redis()->lLen($key) < $limit) {
         $len = redis()->lPush($key, $now);
     } else {
-        $earliest = redis()->lIndex($key, -1);
+        $earliest = intval(redis()->lIndex($key, -1));
         if ($now - $earliest < $ttl) {
             redis()->expire($key, $ttl);
             panic('', [
