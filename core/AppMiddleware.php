@@ -94,9 +94,11 @@ class AppMiddleware
         $key = 'THROTTLE:' . session_id() . ":{$context{'uri'}}";
 
         try {
+            $stop = false;
             $remaining = throttle($key, $limit, $ttl);
             $reset = time() + $ttl;
         } catch (AppException $appException) {
+            $stop = true;
             $remaining = 0;
 
             $exceptionData = $appException->getData();
@@ -107,7 +109,7 @@ class AppMiddleware
         header("X-RateLimit-Remaining	: {$remaining}");
         header("X-RateLimit-Reset	: {$reset}");
 
-        if (!$remaining) {
+        if ($stop) {
             http_response_code(429);
             return;
         }

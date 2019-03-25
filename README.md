@@ -59,7 +59,8 @@ class IndexController extends BaseController
 - `action`使用文档注释`@get`或`@post`来声明中间件，同时`@get`,`@post`自身也是中间件(eg. `@post,name1,name2`)
 - 中间件名称前面加`!`表示忽略对应的中间件(不支持`@get`,`@post`)，一般用于在方法忽略控制器声明的中间件
 - 优先级 `action > Controller`
-- 所有业务逻辑中不能使用`exit`或`throw`, 否则中间件不能正常工作 
+- 所有业务逻辑中不能使用`exit`或`throw`, 否则中间件不能正常工作
+- 带参数的中间件语法与`smarty`模板的管道用法一样，`pam1|throttle:pam2`相当于`throttle(pam1, pam2)`
 
 ##### 例子
 
@@ -91,6 +92,7 @@ name | Desc
 `post` | 限于 POST, OPTIONS 请求
 `auth` | 限于已登录
 `csrf` | 检验`CSRF Token`，请求详情查看章节`CSRF(XSRF)`
+`throttle` | 请求频率限制，默认60秒内限制60次；`10|throttle:60`表示60秒内限制10次
 
 ##### 自定义中间件
 
