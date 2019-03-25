@@ -9,7 +9,7 @@ define('PATH_LOG', PATH_DATA . '/log');
 define('PATH_TRACE', PATH_DATA . '/trace');
 define('PATH_CONFIG', PATH_ROOT . '/config');
 define('PATH_LANG', PATH_ROOT . '/lang');
-define('TIME', $_SERVER['REQUEST_TIME']);
+define('TIME', $_SERVER['REQUEST_TIME']); // 注意：不能在 worker 里使用，否则不会变化
 
 // 环境与配置文件
 if (file_exists(PATH_APP . '/Core/env.php')) {
