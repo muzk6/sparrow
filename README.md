@@ -16,6 +16,7 @@
 
 URI | Controller | Action
 --- | --- | ---
+`/` | `IndexController` | `index()`
 `/foo` | `FooController` | `index()`
 `/foo/` | `FooController` | `index()`
 `/foo/bar` | `FooController` | `bar()`
@@ -96,9 +97,8 @@ name | Desc
 
 ##### 自定义中间件
 
+*app/Core/AppMiddleware.php*
 ```php
-// \App\Core\AppMiddleware
-
 /**
  * @param Closure $next 下一个中间件
  * @param array $context 上下文参数
@@ -107,17 +107,19 @@ public function myMiddleware(Closure $next, array $context)
 {
     //todo before;
     
-    // 退出当前中间件用 return void, 不能 throw, 更不能 exit
-    // return;
+    // 退出当前中间件用 return, 不能 throw, 更不能 exit
+    if ($failed) {
+        return;
+    }
+    
     $next();
     
     //todo after;
 }
 ```
 
+*app/Core/AppMiddleware.php*
 ```php
-// \App\Controllers\IndexController
-
 /**
  * @get,myMiddelware
  */
@@ -135,10 +137,10 @@ public function index()
 #### XDebug Trace
 > 跟踪调试日志
 
-以下任意方式可开启跟踪
+以下任意方式可开启跟踪，日志位于`data/trace/`
 
-- CLI `php cli/trace.php --help` 命令行开启，`--help` 查看帮助
-- URI `/?_xt=name0` URI开启，`name0`是当前日志的标识名
+- CLI `php cli/trace.php --help`，`--help` 查看帮助
+- URI `/?_xt=name0`，`name0`是当前日志的标识名
 - Cookie `_xt=name0;`
 
 *注意：`URI`, `Cookie`方式的的前提必须先设置`config/dev/whitelist.php`白名单`IP`*
@@ -198,22 +200,22 @@ workers | 长驻运行的脚本
 
 ---
 
-#### Core 空间类继承
-> 继承 Core 空间类，修改默认行为<br>
+#### Core 框架类继承
+> 继承 Core 框架类，修改默认行为
 
 ##### `AppXXX`
 
 以 `\Core\AppMiddleware` 为例，在目录 `app/Core` 里新建同名类文件，
-`\App\Core\AppMiddleware extends \Core\AppMiddleware`, 后下以覆盖类方法来修改父类的
-默认行为
+`\App\Core\AppMiddleware extends \Core\AppMiddleware`, 
+接下来以覆盖类方法来修改父类的默认行为，
+例子可参考`app/Core/AppMiddleware.php`
 
 *注意 `\Core\AppException`, `\Core\AppPDO`, `\Core\AppMessage` 都是 `final class`，不可承继*
 
 ##### `BaseXXX`
 
 由于 `BaseController`, `BaseModel`, `BaseService` 都是给业务逻辑类继承的，
-记得在对最底层的类 `extends \App\Core\BaseXXX`，
-例如 
+记得在对最底层的类 `extends \App\Core\BaseXXX`，例如：
 - `\App\Core\BaseController extends \Core\BaseController extends`
 - `\App\Controllers\IndexController extends \App\Core\BaseController`
 
