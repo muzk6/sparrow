@@ -345,30 +345,30 @@ function input($columns = '', $defaultOrCallback = null)
  * <p>ttl秒 内限制 limit次</p>
  * @param string $key 缓存key
  * @param int $limit 限制次数
- * @param int $ttl 秒数
- * @return int 0: 未触发限制(小于等于 limit)<br>
- * >0: 触发限制后(大于等于第 limit+1 次)，剩余的重置秒数
+ * @param int $ttl 指定秒数内
+ * @return int 剩余次数
+ * @throws AppException ['reset' => 重置时间]
  */
 function throttle(string $key, int $limit, int $ttl)
 {
     $now = time();
-    $len = redis()->lLen($key);
-    if ($len < $limit) {
-        redis()->lPush($key, $now);
+    if (redis()->lLen($key) < $limit) {
+        $len = redis()->lPush($key, $now);
     } else {
         $earliest = redis()->lIndex($key, -1);
-        $upToNow = $now - $earliest;
-        if ($upToNow < $ttl) {
+        if ($now - $earliest < $ttl) {
             redis()->expire($key, $ttl);
-            return $ttl - $upToNow;
+            panic('', [
+                'reset' => $earliest + $ttl,
+            ]);
         } else {
-            redis()->lPush($key, $now);
-            redis()->lTrim($key, 0, $limit - 1);
+            redis()->lTrim($key, 1, 0);
+            $len = redis()->lPush($key, $now);
         }
     }
 
     redis()->expire($key, $ttl);
-    return 0;
+    return $limit - $len;
 }
 
 /**

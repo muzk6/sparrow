@@ -79,4 +79,38 @@ class AppMiddleware
         $next();
     }
 
+    /**
+     * 请求频率限制
+     * @param Closure $next 下一个中间件
+     * @param array $context 上下文参数
+     */
+    public function throttle(Closure $next, array $context)
+    {
+        $limit = $context['limit'] ?? 60;
+        $ttl = $context['ttl'] ?? 60;
+
+        $key = 'THROTTLE:' . session_id() . ":{$context{'uri'}}";
+
+        try {
+            $remaining = throttle($key, $limit, $ttl);
+            $reset = time() + $ttl;
+        } catch (AppException $appException) {
+            $remaining = 0;
+
+            $exceptionData = $appException->getData();
+            $reset = $exceptionData['reset'];
+        }
+
+        header("X-RateLimit-Limit: {$limit}");
+        header("X-RateLimit-Remaining	: {$remaining}");
+        header("X-RateLimit-Reset	: {$reset}");
+
+        if (!$remaining) {
+            http_response_code(429);
+            return;
+        }
+
+        $next();
+    }
+
 }
