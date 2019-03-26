@@ -175,6 +175,7 @@ final class AppPDO
      * @return false|string
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @see AppPDO::quoteColumn() 参考字段参数
+     * @throws AppException
      */
     public function selectColumn($column, $where)
     {
@@ -202,6 +203,7 @@ final class AppPDO
      * @param string|array|null $where 条件，格式看下面
      * @return false|array
      * @see AppPDO::parseWhere() 参考 $where 参数
+     * @throws AppException
      */
     public function selectOne($where)
     {
@@ -233,6 +235,7 @@ final class AppPDO
      * @return array 失败返回空数组
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @see AppPDO::quoteColumn() 参考字段参数
+     * @throws AppException
      */
     public function selectAll($columns, $where)
     {
@@ -392,6 +395,7 @@ final class AppPDO
      * @param string|array|null $where 条件，格式看下面
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
+     * @throws AppException
      */
     public function update(array $data, $where)
     {
@@ -445,6 +449,7 @@ final class AppPDO
      * @param string|array|null $where 条件，格式看下面
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
+     * @throws AppException
      */
     public function delete($where)
     {
@@ -534,6 +539,7 @@ final class AppPDO
      * 绑定匿名参数: ['name=?', 'super'] 或 ['name=?', ['super']]<br>
      * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']] 或去掉后面的冒号 ['name=:name', ['name' => 'super']]<br>
      * @return array
+     * @throws AppException
      */
     protected function parseWhere($where)
     {
@@ -542,6 +548,10 @@ final class AppPDO
         } elseif (is_string($where)) {
             $wherePam[0] = 'WHERE ' . $where;
         } else {
+            if (!isset($where[0])) {
+                panic('"$where 参数格式不正确"');
+            }
+
             $wherePam[0] = 'WHERE ' . $where[0];
             if (isset($where[1])) {
                 $wherePam[1] = is_array($where[1]) ? $where[1] : array_slice($where, 1);
