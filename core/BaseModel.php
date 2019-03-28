@@ -35,6 +35,19 @@ abstract class BaseModel implements InstanceInterface
     }
 
     /**
+     * @inheritdoc
+     * @return static
+     */
+    public static function instance()
+    {
+        if (!static::$instance instanceof static) {
+            static::$instance = new static();
+        }
+
+        return static::$instance;
+    }
+
+    /**
      * 分区分表逻辑<br>
      * 具体逻辑在子类中覆盖实现<br>
      * 修改 $this->section, $this->database, $this->table
@@ -68,29 +81,18 @@ abstract class BaseModel implements InstanceInterface
      * @param int|string $index 分区分表索引值
      * @return string
      */
-    public function getTable($index = '')
+    public static function table($index = '')
     {
-        $index && $this->sharding($index);
-        if ($this->database) {
-            $table = $this->quote($this->database) . '.' . $this->quote($this->table);
+        $instance = static::instance();
+        $index && $instance->sharding($index);
+
+        if ($instance->database) {
+            $table = $instance->quote($instance->database) . '.' . $instance->quote($instance->table);
         } else {
-            $table = $this->quote($this->table);
+            $table = $instance->quote($instance->table);
         }
 
         return $table;
-    }
-
-    /**
-     * @inheritdoc
-     * @return static
-     */
-    public static function instance()
-    {
-        if (!static::$instance instanceof static) {
-            static::$instance = new static();
-        }
-
-        return static::$instance;
     }
 
     /**
@@ -100,7 +102,7 @@ abstract class BaseModel implements InstanceInterface
     public static function db()
     {
         $instance = static::instance();
-        return db()->section($instance->section)->table($instance->getTable());
+        return db()->section($instance->section)->table(static::table());
     }
 
     /**
