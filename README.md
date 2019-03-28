@@ -285,6 +285,144 @@ if (is_file('/www/PUB')) { // publish
 - 需要安装`blade`库`composer require duncan3dc/blade`
 - `view()`返回`blade`对象
 
+##### `logfile()` 文件日志
+
+- `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
+- 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
+
+##### `redis()` 缓存对象
+
+- `redis()->setex('key0', 3600, 'foo')` 设置3600过期的缓存
+- 配置文件`config/dev/redis.php`
+
+##### `queue()` 消息队列对象
+
+- `queue()->publish('queue0', ['foo', 'bar'])` 把内容发布到队列`queue0`去
+- 发布例子`workers/worker_demo.php`
+- 消费者`worker`例子`workers/worker_demo.php`
+- 配置文件`config/dev/rabbitmq.php`
+
+##### `aes()` AES加密解密对象
+
+- `$data = aes()->encrypt('foo')` 加密返回密串和初始向量
+- `aes()->decrypt($data['cipher'], $data['iv'])` 解密
+
+##### `back()` 网页跳转回上一步
+
+- `back()` 网页跳转回上一步
+- 不要`exit`
+
+##### `redirect()` 网页跳转到指定地址
+
+- `redirect('/foo/bar')` 跳转到当前域名的`/foo/bar`地址去
+- `redirect('https://google.com')` 跳转到谷歌
+
+##### `ip()` 客户端IP
+
+- `ip()` 客户端IP
+
+##### `format2api()` 构造接口响应格式
+
+- `format2api(['foo', 'bar'])`
+```
+array (size=4)
+  'state' => boolean true
+  'code' => int 0
+  'msg' => string '' (length=0)
+  'data' => 
+    object(stdClass)[7]
+      public '0' => string 'foo' (length=3)
+``` 
+
+- `format2api(new \Core\AppException(10001000))`
+```
+array (size=4)
+  'state' => boolean false
+  'code' => int 10001000
+  'msg' => string '参数错误' (length=12)
+  'data' => 
+    object(stdClass)[8]
+```
+
+##### `throttle()` 频率限制
+
+- `throttle('foo', 10, 60)` 限制60秒内只能调用10次，超过10次则抛出异常
+- 可参考`中间件-请求频率限制`
+
+##### `panic()` 直接抛出业务异常对象
+
+- `panic('foo')` 等于 `new AppException('foo')`
+- `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
+- `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
+
+##### `message()` 成功消息结构
+
+- 用法与`panic()`一样
+- 用于控制器的方法中
+
+- `return ['bar'];` 没有使用，则`code, msg`不会改变
+```json
+{
+    "state": true,
+    "code": 0,
+    "msg": "",
+    "data": {
+        "0": "bar"
+    }
+}
+```
+
+- `return message('foo', ['bar'])` 使用后，则`code, msg`会根据第一个参数改变
+```json
+{
+    "state": true,
+    "code": 0,
+    "msg": "foo",
+    "data": {
+        "0": "bar"
+    }
+}
+```
+
+##### `flash()` 闪存对象
+
+- 非全局，只相对于`session_id`
+- 用于一次性读取的缓存，读取后自动删除对应缓存
+
+##### `auth()` 用户登录信息对象
+
+- 管理用户登录登出的会话
+
+##### `admin()` 后台用户登录信息对象
+
+- 管理后台管理员登录登出的会话
+
+##### `whitelist()` 白名单对象
+
+- `IP`白名单
+- `用户ID`白名单
+- 配置文件位于 `config/dev/whitelist.php`
+
+##### `xdebug()` 调试对象
+
+- `xdebug()->trace('foo')` 开始记录调试栈信息，以`foo`为相关名字的记录文件保存在`data/trace/` 
+
+##### `email()` 电子邮件对象
+
+- `email()->sendText('foo@qq.com', 'title0', 'body0')` 向`foo@qq.com`发送电子邮件
+- 配置文件`config/dev/email.php`
+
+##### `es()` elasticsearch 对象
+
+- 配置文件`config/dev/elasticsearch.php`
+
+---
+
+#### RPC 远程过程调用
+
+- 客户端参考`config/dev/rabbitmq.php`
+- 服务端参考`rpc/rpc_server_demo.php`
+
 ---
 
 #### `db()`数据库查询
@@ -445,3 +583,56 @@ db()->section('sec0');
 用法与`db()`一样，不同的是不需要再使用`->table()`来指定表
 
 `\App\Models\DemoModel::db()->selectOne(['id=?', 1])`
+
+---
+
+#### 请求参数`Request params`
+> 获取、过滤、验证、类型强转 请求参数`$_GET,$_POST`支持`payload`
+
+- `list($data, $err) = input(...)`
+- 参数一 没指定 get,post 时，自动根据请求方法来决定使用`$_GET,$_POST`
+
+##### 用例(以下用例的用法可以自由组合)
+
+```php
+// eg. POST请求, !isset($_POST['a']) 时取默认值10
+input('a', 10);
+
+// 'hello ' . $_GET['a']
+input('get.a', function ($val) {return 'hello '.$val;});
+
+// empty($_POST['a']) 时抛出异常
+input('post.a', function ($val) {$val || panic(...);});
+
+// POST请求时，从 $_POST 里取全部；GET请求时，从 $_GET 里取全部
+input();
+input('');
+input('.');
+
+// $_POST
+input('post.');
+
+// POST请求时，读取 $_POST['a'], $_GET全部
+input(['a', 'get.']);
+input('a, get.b');
+
+// POST请求时，intval($_POST['a']), boolval($_POST['b'])
+// 类型修饰符有：s(string), i(int), b(bool), a(array), f(float)
+input('a:i, b:b');
+
+// !isset($_GET['a']) 时取默认值10
+// 'hello ' . $_POST['b']
+// $_POST['c'], 参数c 没有定义默认值或回调，将会使用 input()参数二 来代替
+input(
+    [
+        'get.a' => 10,
+        'post.b' => function ($val) {
+            return 'hello ' . $val;
+        },
+        'c'
+    ],
+    function () {
+        ...
+    }
+);
+```
