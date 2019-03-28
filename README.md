@@ -287,7 +287,7 @@ if (is_file('/www/PUB')) { // publish
 
 ---
 
-#### 数据库查询
+#### `db()`数据库查询
 > `db()`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入
 
 ##### 查询1行所有列 `->selectOne()`
@@ -408,7 +408,7 @@ db()->affectedRows();
 
 *另外`->lastInsertId()`也会自动切换到主库查询上次插入的`id`*
 
-##### 下一次强制使用主库 `->forceMaster()`
+##### 一次性强制使用主库 `->forceMaster()`
 > 一般用于`select`语句，因为非`select`都已默认是主库
 
 ```php
@@ -423,3 +423,25 @@ db()->forceMaster()->table('table0')->selectOne(['id=?', 1]);
 // 切换到分区 sec0
 db()->section('sec0');
 ```
+
+---
+
+#### `Model`数据库查询
+> 在`db()`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
+
+##### 配置说明 
+
+- 参考`app/Models/DemoModel.php`，配置类属性`$table`
+- 需要分表时，定义`sharding`规则，在子类覆盖`\Core\BaseModel::sharding()`即可
+
+##### 实用方法 
+
+- `\Core\BaseModel::table()`返回表名
+- `\Core\BaseModel::db()`返回`sharding`前的`AppPDO`对象(应用于不需分表的场景)
+- `\Core\BaseModel::sdb()`返回`sharding`后的`AppPDO`对象(应用于需要分表的场景)
+
+##### 用例
+
+用法与`db()`一样，不同的是不需要再使用`->table()`来指定表
+
+`\App\Models\DemoModel::db()->selectOne(['id=?', 1])`
