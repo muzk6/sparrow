@@ -108,9 +108,14 @@ final class AppPDO
      */
     public function __call($name, $arguments)
     {
+        $isSqlStatement = in_array($name, ['query', 'prepare', 'exec']);
         $isSlave = !$this->isForceMaster
-            && in_array($name, ['query', 'prepare', 'exec'])
+            && $isSqlStatement
             && strpos(strtolower($arguments[0]), 'select') !== false;
+
+        if ($isSqlStatement) {
+            $arguments[0] = preg_replace('/\s+/m', ' ', $arguments[0]);
+        }
 
         if (!$this->section) { // 默认区
             if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
