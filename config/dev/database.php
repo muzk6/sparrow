@@ -5,6 +5,8 @@
  */
 
 return [
+    'log' => true, // 日志位于 data/log/__sql_<ymd>.log
+
     // 默认区
     'user' => 'root',
     'passwd' => '123abc',

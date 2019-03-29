@@ -123,7 +123,7 @@ function db()
  * 文件日志
  * @param string $index 日志索引，用于正查和反查，建议传入 uniqid()
  * @param array|string $data 日志内容
- * @param string $type 日志类型，用于区分日志文件
+ * @param string $type 日志类型，用于区分日志文件，不要带下划线前缀(用于区分框架日志)
  * @return false|int
  */
 function logfile(string $index, $data, string $type = 'app')
@@ -139,6 +139,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        '__userid' => auth()->userId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
