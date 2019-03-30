@@ -45,17 +45,22 @@ final class AppPDO
     /**
      * @var string 表名
      */
-    private $table = '';
+    protected $table = '';
 
     /**
      * @var array LIMIT语句
      */
-    private $limit = '';
+    protected $limit = '';
 
     /**
      * @var string 追加的 SQL语句
      */
-    private $append = '';
+    protected $append = '';
+
+    /**
+     * @var array|null WHERE条件组
+     */
+    protected $where = null;
 
     private function __construct()
     {
@@ -493,6 +498,7 @@ final class AppPDO
      * @param string|array|null $where 条件，格式看下面
      * @return int
      * @see AppPDO::parseWhere() 参考 $where 参数
+     * @throws AppException
      */
     public function count($where)
     {
@@ -544,12 +550,16 @@ final class AppPDO
      * 无绑定参数: 'id=1' 或 ['id=1']<br>
      * 绑定匿名参数: ['name=?', 'super'] 或 ['name=?', ['super']]<br>
      * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']] 或去掉后面的冒号 ['name=:name', ['name' => 'super']]<br>
-     * @return array
+     * @return array eg. ['name=?', ['foo']]
      * @throws AppException
      */
     protected function parseWhere($where)
     {
         if (empty($where)) {
+            if ($this->where) {
+                return $this->parseWhere($this->where);
+            }
+
             $wherePam = [''];
         } elseif (is_string($where)) {
             $wherePam[0] = 'WHERE ' . $where;
@@ -565,6 +575,32 @@ final class AppPDO
         }
 
         return $wherePam;
+    }
+
+    /**
+     * WHERE
+     * <p>带有 $where 的查询中，$where=null 时才有效</p>
+     * <p>用法与 parseWhere 相同</p>
+     * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
+     * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
+     * @return AppPDO
+     */
+    public function where(string $statement, ...$parameters)
+    {
+        $this->where || $this->where = ['', []];
+        $this->where[0] .= $statement;
+
+        if ($parameters) {
+            foreach ($parameters as $parameter) {
+                if (is_array($parameter)) {
+                    $this->where[1] = array_merge($this->where[1], $parameter);
+                } else {
+                    $this->where[1][] = $parameter;
+                }
+            }
+        }
+
+        return $this;
     }
 
     /**
@@ -684,6 +720,7 @@ final class AppPDO
         $this->table = ''; // 重置表名
         $this->limit = ''; // 重置LIMIT
         $this->append = ''; // 重置附加语句
+        $this->where = null; // 重置WHERE
     }
 
 }
