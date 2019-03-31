@@ -479,6 +479,11 @@ db()->table('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'c
 
 // select col1, COUNT(1) from table0 order by 1 desc
 db()->table('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']], null);
+
+// 查询多行(分页查询)的同时返回记录总行数
+// select sql_calc_found_rows col1 from table0 limit 2
+// select found_rows()
+db()->table('table0')->limit(2)->foundRows('col1', null);
 ```
 
 ##### 综合查询

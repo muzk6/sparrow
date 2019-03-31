@@ -43,6 +43,11 @@ final class AppPDO
     protected $isForceMaster = false;
 
     /**
+     * @var bool 是否使用 SQL_CALC_FOUND_ROWS
+     */
+    protected $foundRows = false;
+
+    /**
      * @var string 表名
      */
     protected $table = '';
@@ -270,8 +275,9 @@ final class AppPDO
         $table = $this->getTable();
         $where = $this->parseWhere($where);
         $columns = $this->quoteColumn($columns);
+        $foundRows = $this->foundRows ? 'SQL_CALC_FOUND_ROWS' : '';
 
-        $sql = "SELECT {$columns} FROM {$table} {$where[0]}"
+        $sql = "SELECT {$foundRows} {$columns} FROM {$table} {$where[0]}"
             . $this->getOrder()
             . $this->getAppend()
             . $this->getLimit();
@@ -286,6 +292,30 @@ final class AppPDO
 
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         }
+    }
+
+    /**
+     * 查询多行同时返回记录总数
+     * @param string|array $columns 字段名<br>
+     * 字段: 'col1, col2' 或 ['col1', 'col2']<br>
+     * 表达式: ['col1', ['raw' => 'COUNT(1)']]<br>
+     * 更多用法参考 AppPDO::quoteColumn()
+     * @param string|array|null $where 条件，格式看下面
+     * @return array 失败返回空数组
+     * @see AppPDO::parseWhere() 参考 $where 参数
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @throws AppException
+     */
+    public function foundRows($columns, $where)
+    {
+        $this->foundRows = true;
+        $data['data'] = $this->selectAll($columns, $where);
+
+        // 因为 ->selectColumn() 需要指定表名，所以这里使用原生SQL
+        $sql = 'SELECT FOUND_ROWS()';
+        $data['count'] = intval($this->query($sql)->fetchColumn());
+
+        return $data;
     }
 
     /**
@@ -507,6 +537,7 @@ final class AppPDO
      */
     public function affectedRows()
     {
+        // 因为 ->selectColumn() 需要指定表名，所以这里使用原生SQL
         $sql = 'SELECT ROW_COUNT()';
         return intval($this->forceMaster()->query($sql)->fetchColumn());
     }
@@ -807,6 +838,7 @@ final class AppPDO
     {
         $this->section = ''; // 重置为默认分区
         $this->isForceMaster = false; // 使用完后自动切换为非强制
+        $this->foundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
         $this->table = ''; // 重置表名
         $this->limit = ''; // 重置LIMIT
         $this->append = ''; // 重置附加语句
