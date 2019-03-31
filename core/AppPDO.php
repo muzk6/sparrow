@@ -638,17 +638,17 @@ final class AppPDO
     }
 
     /**
-     * WHERE
-     * <p>带有 $where 的查询中，$where=null 时才有效</p>
-     * <p>用法与 parseWhere 相同</p>
-     * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
-     * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
-     * @return AppPDO
+     * 逻辑条件
+     * @param string $logic AND, OR
+     * @param string $statement
+     * @param array $parameters
+     * @see AppPDO::where()
+     * @return $this
      */
-    public function where(string $statement, ...$parameters)
+    protected function logicWhere(string $logic, string $statement, $parameters)
     {
         $this->where || $this->where = ['', []];
-        $this->where[0] .= $statement;
+        $this->where[0] .= ($this->where[0] ? " {$logic} {$statement}" : $statement);
 
         if ($parameters) {
             foreach ($parameters as $parameter) {
@@ -661,6 +661,36 @@ final class AppPDO
         }
 
         return $this;
+    }
+
+    /**
+     * WHERE ...AND...
+     * <p>带有 $where 的查询中，$where=null 时才有效</p>
+     * <p>支持多个 ->where()->where()</p>
+     * <p>用法与 parseWhere 相同</p>
+     * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
+     * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
+     * @see AppPDO::parseWhere()
+     * @return AppPDO
+     */
+    public function where(string $statement, ...$parameters)
+    {
+        return $this->logicWhere('AND', $statement, $parameters);
+    }
+
+    /**
+     * WHERE ...OR...
+     * <p>带有 $where 的查询中，$where=null 时才有效</p>
+     * <p>支持多个 ->orWhere()->orWhere()</p>
+     * <p>用法与 parseWhere 相同</p>
+     * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
+     * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
+     * @see AppPDO::parseWhere()
+     * @return AppPDO
+     */
+    public function orWhere(string $statement, ...$parameters)
+    {
+        return $this->logicWhere('OR', $statement, $parameters);
     }
 
     /**

@@ -448,9 +448,11 @@ db()->table('table0')->where('id=1')->selectOne(null); // 有注入风险
 db()->table('table0')->where('id=?', 1)->selectOne(null); // 防注入
 db()->table('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
 
-// ->where() 支持调用多次
 // select * from table0 where id = 1 and (status=1 or type=2) limit 1
-db()->table('table0')->where('id=?', 1)->where('and (status=? or type=?)', 1, 2)->selectOne(null);
+db()->table('table0')->where('id=?', 1)->where('(status=? or type=?)', 1, 2)->selectOne(null);
+
+// select * from table0 where status=1 or type=2 limit 1 
+db()->table('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne(null);
 ```
 
 ##### 查询1行1列 `->selectColumn()`
