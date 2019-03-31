@@ -195,7 +195,7 @@ final class AppPDO
      * 查询1行1列
      * @param string|array $column 字段名<br>
      * 字段: 'col1' 或 ['col1']<br>
-     * 表达式: ['expr' => 'COUNT(1)']<br>
+     * 表达式: ['raw' => 'COUNT(1)']<br>
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return false|string
@@ -257,7 +257,7 @@ final class AppPDO
      * 查询多行
      * @param string|array $columns 字段名<br>
      * 字段: 'col1, col2' 或 ['col1', 'col2']<br>
-     * 表达式: ['col1', ['expr' => 'COUNT(1)']]<br>
+     * 表达式: ['col1', ['raw' => 'COUNT(1)']]<br>
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组
@@ -313,8 +313,8 @@ final class AppPDO
                     $columns[] = $this->quote($k);
                 }
 
-                if (is_array($v) && isset($v['expr'])) { // 表达式
-                    $placeholder[] = $v['expr'];
+                if (is_array($v) && isset($v['raw'])) { // 表达式
+                    $placeholder[] = $v['raw'];
                 } else { // 普通值
                     $placeholder[] = '?';
                     $values[] = $v;
@@ -327,8 +327,8 @@ final class AppPDO
         // on duplicate key update
         $updatePlaceHolder = [];
         foreach ($update as $k => $v) {
-            if (is_array($v) && isset($v['expr'])) { // 表达式
-                $updatePlaceHolder[] = $this->quote($k) . " = {$v['expr']}";
+            if (is_array($v) && isset($v['raw'])) { // 表达式
+                $updatePlaceHolder[] = $this->quote($k) . " = {$v['raw']}";
             } else { // 普通值
                 $updatePlaceHolder[] = $this->quote($k) . " = ?";
                 $values[] = $v;
@@ -358,7 +358,7 @@ final class AppPDO
     /**
      * 插入记录<br>
      * @param array $data 要插入的数据 ['column' => 1]<br>
-     * 表达式: ['ctime' => ['expr' => 'UNIX_TIMESTAMP()']]<br>
+     * 表达式: ['ctime' => ['raw' => 'UNIX_TIMESTAMP()']]<br>
      * 支持单条[...], 或批量 [[...], [...]]<br>
      * 批量插入时这里不限制长度不分批插入，
      * 由具体业务逻辑构造数组的同时控制批次（例如 $i%500===0 其中$i从1开始，或 array_chunk()，每执行完一次插入后记得重置$data）<br>
@@ -406,8 +406,8 @@ final class AppPDO
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @param array $update 要更新的字段 ['column' => 1]<br>
-     * 字段表达式: ['num' => ['expr' => 'num + 1']]<br>
-     * 函数表达式: ['utime' => ['expr' => 'UNIX_TIMESTAMP()']]
+     * 字段表达式: ['num' => ['raw' => 'num + 1']]<br>
+     * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @return int 返回成功插入或更新后记录的ID<br>
      * 批量时返回最后一条记录的ID
      */
@@ -419,8 +419,8 @@ final class AppPDO
     /**
      * 更新记录<br>
      * @param array $data 要更新的字段 ['column' => 1]<br>
-     * 字段表达式: ['num' => ['expr' => 'num + 1']]<br>
-     * 函数表达式: ['utime' => ['expr' => 'UNIX_TIMESTAMP()']]
+     * 字段表达式: ['num' => ['raw' => 'num + 1']]<br>
+     * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @param string|array|null $where 条件，格式看下面
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
@@ -435,9 +435,9 @@ final class AppPDO
         $placeholder = [];
         $set = [];
         foreach ($data as $k => $v) {
-            if (is_array($v) && isset($v['expr'])) { // 表达式
-                $placeholder[] = $this->quote($k) . " = {$v['expr']}";
-                $setVal = $v['expr'];
+            if (is_array($v) && isset($v['raw'])) { // 表达式
+                $placeholder[] = $this->quote($k) . " = {$v['raw']}";
+                $setVal = $v['raw'];
             } else { // 普通值
                 $placeholder[] = $this->quote($k) . " = ?";
                 $bind[] = $v;
@@ -520,7 +520,7 @@ final class AppPDO
      */
     public function count($where)
     {
-        return intval(db()->selectColumn(['expr' => 'COUNT(1)'], $where));
+        return intval(db()->selectColumn(['raw' => 'COUNT(1)'], $where));
     }
 
     /**
@@ -551,7 +551,7 @@ final class AppPDO
      * ORDER BY
      * @param string|array $columns 字段名<br>
      * 字段: 'col1, col2 desc' 或 ['col1', 'col2 desc']<br>
-     * 表达式: [['expr' => '1']]<br>
+     * 表达式: [['raw' => '1']]<br>
      * 更多用法参考 AppPDO::quoteColumn()
      * @return $this
      */
@@ -563,8 +563,8 @@ final class AppPDO
 
         $order = [];
         foreach ($arrColumn as $v) {
-            if (isset($v['expr'])) {
-                $order[] = $v['expr'];
+            if (isset($v['raw'])) {
+                $order[] = $v['raw'];
             } else {
                 $v = trim($v);
                 if (preg_match('/(asc|desc)/i', $v)) {
@@ -753,8 +753,8 @@ final class AppPDO
      * <p>'order,utime' -> '`order`,`utime`'</p>
      * <p>['order','utime'] -> '`order`,`utime`'</p>
      * <p>['order'] -> '`order`'</p>
-     * <p>['order', ['expr' => 'COUNT(1)']] -> '`order`, COUNT(1)'</p>
-     * <p>['expr' => 'COUNT(1)'] -> 'COUNT(1)'</p>
+     * <p>['order', ['raw' => 'COUNT(1)']] -> '`order`, COUNT(1)'</p>
+     * <p>['raw' => 'COUNT(1)'] -> 'COUNT(1)'</p>
      * @param string|array $column
      * @return string
      */
@@ -764,7 +764,7 @@ final class AppPDO
             ? explode(',', $column)
             : (isset($column[0]) ? $column : [$column]);
         foreach ($arrColumn as &$v) {
-            $v = $v['expr'] ?? $this->quote($v);
+            $v = $v['raw'] ?? $this->quote($v);
         }
 
         return implode(',', $arrColumn);

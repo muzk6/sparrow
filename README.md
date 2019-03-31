@@ -463,7 +463,7 @@ db()->table('table0')->selectColumn('col1', null);
 db()->table('table0')->selectColumn(['col1'], null);
 
 // select COUNT(1) from table0 limit 1
-db()->table('table0')->selectColumn(['expr' => 'COUNT(1)'], null);
+db()->table('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
 ```
 
 ##### 查询多行 `->selectColumn()`
@@ -473,10 +473,10 @@ db()->table('table0')->selectColumn(['expr' => 'COUNT(1)'], null);
 ```php
 // select col1, col2 from table0 order by col1, col2 desc
 db()->table('table0')->orderBy('col1, col2')->selectAll('col1, col2', null);
-db()->table('table0')->orderBy(['col1', 'expr' => 'col2'])->selectAll(['col1', 'col2'], null);
+db()->table('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2'], null);
 
 // select col1, COUNT(1) from table0 order by 1 desc
-db()->table('table0')->orderBy(['expr' => '1 desc'])->selectAll(['col1', ['expr' => 'COUNT(1)']], null);
+db()->table('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']], null);
 ```
 
 ##### 综合查询
@@ -505,7 +505,7 @@ db()->table('table0')->insert(['col0' => 1]);
 db()->table('table0')->insert([ ['col0' => 1], ['col0' => 2] ]);
 
 // insert into table0(ctime) values(UNIX_TIMESTAMP())
-db()->table('table0')->insert(['ctime' => ['expr' => 'UNIX_TIMESTAMP()']]);
+db()->table('table0')->insert(['ctime' => ['raw' => 'UNIX_TIMESTAMP()']]);
 ```
 
 以下两个的用法与`->insert()`一致
@@ -517,10 +517,10 @@ db()->table('table0')->insert(['ctime' => ['expr' => 'UNIX_TIMESTAMP()']]);
 
 ```php
 // insert into table0(col0) values(1) on duplicate key update num = num + 1 
-db()->table('table0')->insertUpdate(['col0' => 1], ['num' => ['expr' => 'num + 1']]);
+db()->table('table0')->insertUpdate(['col0' => 1], ['num' => ['raw' => 'num + 1']]);
 
 // insert into table0(col0) values(1) on duplicate key update utime = UNIX_TIMESTAMP()
-db()->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['expr' => 'UNIX_TIMESTAMP()']);
+db()->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['raw' => 'UNIX_TIMESTAMP()']);
 ```
 
 ##### 更新 `->update()`
@@ -531,10 +531,10 @@ db()->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['expr' => 'UNIX_
 db()->table('table0')->update(['col0' => 1], ['id=?', 10]);
 
 // update table0 set num = num + 1 where id = 10
-db()->table('table0')->update(['num' => ['expr' => 'num + 1']], ['id=?', 10]);
+db()->table('table0')->update(['num' => ['raw' => 'num + 1']], ['id=?', 10]);
 
 // update table0 set utime = UNIX_TIMESTAMP() where id = 10
-db()->table('table0')->update(['utime' => ['expr' => 'UNIX_TIMESTAMP()']], ['id=?', 10]);
+db()->table('table0')->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']], ['id=?', 10]);
 ```
 
 ##### 删除 `->delete()`
