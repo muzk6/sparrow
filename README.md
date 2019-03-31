@@ -442,6 +442,11 @@ db()->table('table0')->selectOne(['id=?', 1]); // 防注入
 db()->table('table0')->selectOne(['id=?', [1]]); // 防注入
 db()->table('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
 db()->table('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
+
+// 这里用到的 ->where(), 仅当 ->selectOne() 参数为 null 时生效，其它查询同理
+db()->table('table0')->where('id=1')->selectOne(null); // 有注入风险
+db()->table('table0')->where('id=?', 1)->selectOne(null); // 防注入
+db()->table('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
 ```
 
 ##### 查询1行1列 `->selectColumn()`
