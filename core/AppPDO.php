@@ -62,6 +62,21 @@ final class AppPDO
      */
     protected $where = null;
 
+    /**
+     * @var string ORDER语句
+     */
+    protected $order = '';
+
+    /**
+     * @var string GROUP语句
+     */
+    protected $group = '';
+
+    /**
+     * @var string HAVING语句
+     */
+    protected $having = '';
+
     private function __construct()
     {
     }
@@ -192,10 +207,11 @@ final class AppPDO
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
+        $order = $this->getOrder();
         $append = $this->getAppend();
         $column = $this->quoteColumn($column);
 
-        $sql = "SELECT {$column} FROM {$table} {$where[0]} {$append} LIMIT 1";
+        $sql = "SELECT {$column} FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -220,9 +236,10 @@ final class AppPDO
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
+        $order = $this->getOrder();
         $append = $this->getAppend();
 
-        $sql = "SELECT * FROM {$table} {$where[0]} {$append} LIMIT 1";
+        $sql = "SELECT * FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
         if (count($where) == 1) {
             /* @var PDO $this */
@@ -255,6 +272,7 @@ final class AppPDO
         $columns = $this->quoteColumn($columns);
 
         $sql = "SELECT {$columns} FROM {$table} {$where[0]}"
+            . $this->getOrder()
             . $this->getAppend()
             . $this->getLimit();
 
@@ -527,6 +545,48 @@ final class AppPDO
     public function page(int $page, int $size)
     {
         return $this->limit(($page - 1) * $size, $size);
+    }
+
+    /**
+     * ORDER BY
+     * @param string|array $columns 字段名<br>
+     * 字段: 'col1, col2 desc' 或 ['col1', 'col2 desc']<br>
+     * 表达式: [['expr' => '1']]<br>
+     * 更多用法参考 AppPDO::quoteColumn()
+     * @return $this
+     */
+    public function orderBy($columns)
+    {
+        $arrColumn = is_string($columns)
+            ? explode(',', $columns)
+            : (isset($columns[0]) ? $columns : [$columns]);
+
+        $order = [];
+        foreach ($arrColumn as $v) {
+            if (isset($v['expr'])) {
+                $order[] = $v['expr'];
+            } else {
+                $v = trim($v);
+                if (preg_match('/(asc|desc)/i', $v)) {
+                    $withSort = explode(' ', trim($v));
+                    $order[] = $this->quote($withSort[0]) . ' ' . strtoupper(end($withSort));
+                } else {
+                    $order[] = $this->quote($v) . ' ASC';
+                }
+            }
+        }
+
+        $this->order = $order ? ('ORDER BY ' . implode(',', $order)) : '';
+        return $this;
+    }
+
+    /**
+     * 返回 ORDER 语句
+     * @return string
+     */
+    protected function getOrder()
+    {
+        return ' ' . $this->order;
     }
 
     /**

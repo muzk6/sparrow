@@ -16,6 +16,7 @@ if (!whitelist()->isSafeIp()) {
 
 try {
     //todo...
+    var_dump(db()->table('test')->orderBy(['expr' => '1 desc'])->selectAll(['expr' => '*'], null));
 } catch (AppException $exception) {
     var_dump(format2api($exception));
 }

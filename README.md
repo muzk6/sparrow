@@ -447,6 +447,10 @@ db()->table('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
 db()->table('table0')->where('id=1')->selectOne(null); // 有注入风险
 db()->table('table0')->where('id=?', 1)->selectOne(null); // 防注入
 db()->table('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
+
+// ->where() 支持调用多次
+// select * from table0 where id = 1 and (status=1 or type=2) limit 1
+db()->table('table0')->where('id=?', 1)->where('and (status=? or type=?)', 1, 2)->selectOne(null);
 ```
 
 ##### 查询1行1列 `->selectColumn()`
@@ -467,12 +471,12 @@ db()->table('table0')->selectColumn(['expr' => 'COUNT(1)'], null);
 第二个参数`where`与`->selectOne()`的`where`用法一样
 
 ```php
-// select col1, col2 from table0
-db()->table('table0')->selectColumn('col1, col2', null);
-db()->table('table0')->selectColumn(['col1', 'col2'], null);
+// select col1, col2 from table0 order by col1, col2 desc
+db()->table('table0')->orderBy('col1, col2')->selectAll('col1, col2', null);
+db()->table('table0')->orderBy(['col1', 'expr' => 'col2'])->selectAll(['col1', 'col2'], null);
 
-// select col1, COUNT(1) from table0
-db()->table('table0')->selectColumn(['col1', ['expr' => 'COUNT(1)']], null);
+// select col1, COUNT(1) from table0 order by 1 desc
+db()->table('table0')->orderBy(['expr' => '1 desc'])->selectAll(['col1', ['expr' => 'COUNT(1)']], null);
 ```
 
 ##### 综合查询
