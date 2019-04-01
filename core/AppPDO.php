@@ -72,16 +72,6 @@ final class AppPDO
      */
     protected $order = '';
 
-    /**
-     * @var string GROUP语句
-     */
-    protected $group = '';
-
-    /**
-     * @var string HAVING语句
-     */
-    protected $having = '';
-
     private function __construct()
     {
     }
