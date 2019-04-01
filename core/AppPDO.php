@@ -301,21 +301,24 @@ final class AppPDO
      * 表达式: ['col1', ['raw' => 'COUNT(1)']]<br>
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
-     * @return array 失败返回空数组
+     * @return array 失败返回空数组 ['count' => 数量, 'data' => 数据集']
      * @see AppPDO::parseWhere() 参考 $where 参数
      * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
      */
     public function foundRows($columns, $where)
     {
+        /* @var PDO $this */
         $this->foundRows = true;
-        $data['data'] = $this->selectAll($columns, $where);
+        $isForceMaster = $this->isForceMaster;
+        $data = $this->selectAll($columns, $where);
 
         // 因为 ->selectColumn() 需要指定表名，所以这里使用原生SQL
         $sql = 'SELECT FOUND_ROWS()';
-        $data['count'] = intval($this->query($sql)->fetchColumn());
+        $isForceMaster && $this->forceMaster();
+        $count = intval($this->query($sql)->fetchColumn());
 
-        return $data;
+        return ['count' => $count, 'data' => $data];
     }
 
     /**
