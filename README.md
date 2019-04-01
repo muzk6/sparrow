@@ -484,7 +484,7 @@ db()->table('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' =
 // 查询多行(分页查询)的同时返回记录总行数
 // select sql_calc_found_rows col1 from table0 limit 2
 // select found_rows()
-db()->table('table0')->limit(2)->foundRows('col1', null);
+db()->table('table0')->limit(2)->selectCalc('col1', null);
 ```
 
 ##### 综合查询

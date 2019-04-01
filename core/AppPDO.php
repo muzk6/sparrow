@@ -296,19 +296,33 @@ final class AppPDO
      * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
      */
-    public function foundRows($columns, $where)
+    public function selectCalc($columns, $where)
     {
         /* @var PDO $this */
         $this->foundRows = true;
         $isForceMaster = $this->isForceMaster;
         $data = $this->selectAll($columns, $where);
 
-        // 因为 ->selectColumn() 需要指定表名，所以这里使用原生SQL
-        $sql = 'SELECT FOUND_ROWS()';
         $isForceMaster && $this->forceMaster();
-        $count = intval($this->query($sql)->fetchColumn());
+        $count = $this->foundRows();
 
         return ['count' => $count, 'data' => $data];
+    }
+
+    /**
+     * 查询 FOUND_ROWS()
+     * <p>上一个查询必须有使用 SQL_CALC_FOUND_ROWS</p>
+     * @return int
+     */
+    public function foundRows()
+    {
+        // 因为 ->selectColumn() 需要指定表名，所以这里使用原生SQL
+        $sql = 'SELECT FOUND_ROWS()';
+
+        /* @var PDO $this */
+        $count = intval($this->query($sql)->fetchColumn());
+
+        return $count;
     }
 
     /**
