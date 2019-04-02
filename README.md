@@ -501,6 +501,23 @@ db()->table('table0')->append('group by col0')->page(1, 10)->selectAll('col0, co
 db()->table('table0')->count(null);
 ```
 
+##### `->getWhere()`, `->getLimit()` 方便拼接原生`sql`
+
+- 调用`->where()`后可以通过`->getWhere()`获取`['name=?', ['foo']]`这种格式的条件
+- 同理`->page()`, `->limit()` 也是可以通过`->getLimit()`返回` LIMIT 10,10`这个格式的字符串
+
+```php
+db()->where('code=?', $code);
+db()->page(1, 5);
+$where = db()->getWhere(); // 没有条件时返回 ['']
+$limit = db()->getLimit();
+
+$sql = "select SQL_CALC_FOUND_ROWS * from table0 {$where[0]} {$limit}"
+$st = db()->prepare($sql);
+$st->execute($where[1] ?? null);
+var_dump(db()->foundRows(), $st->fetchAll(2)); 
+```
+
 - `append('order by col0 desc')`把自己的`sql`(还支持`group by, having`等等)拼接到`where`语句后面
 - `limit(10)`等价于`limit([10]), limit(0, 10), limit([0, 10]), page(1, 10)`
 

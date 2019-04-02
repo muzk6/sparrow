@@ -171,7 +171,7 @@ final class AppPDO
             }
         }
 
-        $this->reset();
+        in_array($name, ['prepare']) || $this->reset();
         return call_user_func_array([$pdo, $name], $arguments);
     }
 
@@ -298,7 +298,6 @@ final class AppPDO
      */
     public function selectCalc($columns, $where)
     {
-        /* @var PDO $this */
         $this->foundRows = true;
         $isForceMaster = $this->isForceMaster;
         $data = $this->selectAll($columns, $where);
@@ -631,7 +630,7 @@ final class AppPDO
      * 返回 LIMIT 语句
      * @return string
      */
-    protected function getLimit()
+    public function getLimit()
     {
         $limit = $this->limit;
         if ($limit) {
@@ -660,19 +659,29 @@ final class AppPDO
 
             $wherePam = [''];
         } elseif (is_string($where)) {
-            $wherePam[0] = 'WHERE ' . $where;
+            $wherePam[0] = ' WHERE ' . $where;
         } else {
             if (!isset($where[0])) {
                 panic('"$where 参数格式不正确"');
             }
 
-            $wherePam[0] = 'WHERE ' . $where[0];
+            $wherePam[0] = ' WHERE ' . $where[0];
             if (isset($where[1])) {
                 $wherePam[1] = is_array($where[1]) ? $where[1] : array_slice($where, 1);
             }
         }
 
         return $wherePam;
+    }
+
+    /**
+     * 返回参数绑定格式的 WHERE
+     * @return array eg. ['name=?', ['foo']]; 没有条件时返回 ['']
+     * @throws AppException
+     */
+    public function getWhere()
+    {
+        return $this->parseWhere(null);
     }
 
     /**
