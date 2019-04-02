@@ -475,6 +475,7 @@ db()->table('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
 
 ```php
 // select col1, col2 from table0 order by col1, col2 desc
+// ->orderBy('col1, col2') 等价于 ->append('order by col1, col2')
 db()->table('table0')->orderBy('col1, col2')->selectAll('col1, col2', null);
 db()->table('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2'], null);
 
