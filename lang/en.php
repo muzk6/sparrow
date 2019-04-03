@@ -7,6 +7,8 @@ return [
     10001002 => 'The page has expired, please refresh',
     10001003 => 'Required field',
     10001004 => 'Request failed',
+    10001005 => 'Please login first',
+    10001006 => 'Request too frequent, please try again at {time}',
 
     // 业务
     10002000 => 'Wrong account or password',

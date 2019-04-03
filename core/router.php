@@ -30,29 +30,24 @@ if ($found) {
         strpos($actionDoc, '@page') !== false && $responseTypeApi = false;
         strpos($actionDoc, '@api') !== false && $responseTypeApi = true;
 
-        // 执行控制方法
-        $next = function () use ($controllerNs, $action, $responseTypeApi) {
-            $response2client = function ($responseContent) use ($responseTypeApi) {
-                if ($responseTypeApi) { // 接口响应格式
-                    headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
-                    echo json_encode(format2api($responseContent));
-                } else { // 网页响应格式
-                    if ($responseContent instanceof Exception) {
-                        throw $responseContent;
-                    }
-
-                    echo (is_array($responseContent) || is_object($responseContent))
-                        ? json_encode($responseContent)
-                        : $responseContent;
+        $response2client = function ($responseContent) use ($responseTypeApi) {
+            if ($responseTypeApi) { // 接口响应格式
+                headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
+                echo json_encode(format2api($responseContent));
+            } else { // 网页响应格式
+                if ($responseContent instanceof Exception) {
+                    throw $responseContent;
                 }
-            };
 
-            try {
-                $responseContent = call_user_func([call_user_func([$controllerNs, 'instance']), $action]);
-                $response2client($responseContent);
-            } catch (Exception $e) {
-                $response2client($e);
+                echo (is_array($responseContent) || is_object($responseContent))
+                    ? json_encode($responseContent)
+                    : $responseContent;
             }
+        };
+
+        // 执行控制方法
+        $next = function () use ($controllerNs, $action, $response2client) {
+            $response2client(call_user_func([call_user_func([$controllerNs, 'instance']), $action]));
         };
 
         // 控制器中间件
@@ -116,8 +111,12 @@ if ($found) {
                     throw new Exception("中间件 Core\\AppMiddleware::{$middlewareMethod}() 不存在");
                 }
 
-                $next = function () use ($next, $middlewareInstance, $middlewareMethod, $middlewareContext) {
-                    call_user_func_array([$middlewareInstance, $middlewareMethod], [$next, $middlewareContext]);
+                $next = function () use ($next, $response2client, $middlewareInstance, $middlewareMethod, $middlewareContext) {
+                    try {
+                        call_user_func_array([$middlewareInstance, $middlewareMethod], [$next, $middlewareContext]);
+                    } catch (Exception $e) {
+                        $response2client($e);
+                    }
                 };
             }
         }

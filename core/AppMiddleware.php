@@ -17,21 +17,13 @@ class AppMiddleware
      * CSRF 校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
+     * @throws AppException
      */
     public function csrf(Closure $next, array $context)
     {
-        try {
-            csrf()->check();
-        } catch (AppException $e) {
-            //todo 可在子类覆盖本方法修改默认行为
-            echo $e->getMessage();
-            return;
-        }
-
+        csrf()->check();
         $next();
-
-        // 请求完自动刷新令牌过期时间
-        csrf()->refresh();
+        csrf()->refresh();  // 请求完自动刷新令牌过期时间
     }
 
     /**
@@ -68,12 +60,13 @@ class AppMiddleware
      * 登录校验
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
+     * @throws AppException
      */
     public function auth(Closure $next, array $context)
     {
         if (!auth()->isLogin()) {
             http_response_code(401);
-            return;
+            panic(10001005);
         }
 
         $next();
@@ -85,6 +78,7 @@ class AppMiddleware
      * 带参数用法，60秒内限制10次: 10|throttle:60
      * @param Closure $next 下一个中间件
      * @param array $context 上下文参数
+     * @throws AppException
      */
     public function throttle(Closure $next, array $context)
     {
@@ -111,7 +105,8 @@ class AppMiddleware
 
         if ($stop) {
             http_response_code(429);
-            return;
+            panic([10001006, ['time' => date('H:i', $reset)]],
+                ['limit' => $limit, 'ttl' => $ttl, 'reset' => $reset]);
         }
 
         $next();
