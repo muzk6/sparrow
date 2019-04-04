@@ -100,6 +100,7 @@ final class AppPDO
      */
     public function close()
     {
+        $this->reset();
         $this->masterConn = null;
         $this->slaveConn = null;
         $this->sectionConn = [];
