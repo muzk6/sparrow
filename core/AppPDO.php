@@ -78,9 +78,7 @@ final class AppPDO
 
     public function __destruct()
     {
-        $this->masterConn = null;
-        $this->slaveConn = null;
-        $this->sectionConn = [];
+        $this->close();
     }
 
     /**
@@ -94,6 +92,19 @@ final class AppPDO
         $instance->conf = $conf;
 
         return $instance;
+    }
+
+    /**
+     * 关闭所有连接资源
+     * @return $this
+     */
+    public function close()
+    {
+        $this->masterConn = null;
+        $this->slaveConn = null;
+        $this->sectionConn = [];
+
+        return $this;
     }
 
     /**
