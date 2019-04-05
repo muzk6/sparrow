@@ -233,6 +233,18 @@ final class AppPDO
     }
 
     /**
+     * 查询是否存在记录
+     * @param string|array|null $where 条件，格式看下面
+     * @return bool
+     * @see AppPDO::parseWhere() 参考 $where 参数
+     * @throws AppException
+     */
+    public function exists($where)
+    {
+        return boolval($this->selectColumn(['raw' => 1], $where));
+    }
+
+    /**
      * 查询1行
      * @param string|array|null $where 条件，格式看下面
      * @return false|array

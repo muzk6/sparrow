@@ -492,6 +492,13 @@ db()->table('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' =
 db()->table('table0')->limit(2)->selectCalc('col1', null);
 ```
 
+##### 查询是否存在
+
+```
+select 1 from table0 limit 1
+db()->table('table0')->exists('id=128'); // return true, false
+```
+
 ##### 综合查询
 
 ```php
@@ -613,7 +620,7 @@ db()->section('sec0');
 
 ##### 实用方法 
 
-- `\Core\BaseModel::table()`返回表名
+- `\Core\BaseModel::getTable()`返回表名
 - `\Core\BaseModel::db()`返回`sharding`前的`AppPDO`对象(应用于不需分表的场景)
 - `\Core\BaseModel::sdb()`返回`sharding`后的`AppPDO`对象(应用于需要分表的场景)
 
