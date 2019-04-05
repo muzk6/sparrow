@@ -220,7 +220,7 @@ final class AppPDO
 
         $sql = "SELECT {$column} FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
-        if (empty($where[0])) {
+        if (empty($where[1])) {
             /* @var PDO $this */
             return $this->query($sql)->fetchColumn();
         } else {
@@ -248,7 +248,7 @@ final class AppPDO
 
         $sql = "SELECT * FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
-        if (empty($where[0])) {
+        if (empty($where[1])) {
             /* @var PDO $this */
             return $this->query($sql)->fetch(PDO::FETCH_ASSOC);
         } else {
@@ -284,7 +284,7 @@ final class AppPDO
             . $this->getAppend()
             . $this->getLimit();
 
-        if (empty($where[0])) {
+        if (empty($where[1])) {
             /* @var PDO $this */
             return $this->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         } else {
@@ -495,7 +495,7 @@ final class AppPDO
             $set[] = $this->quote($k) . " = {$setVal}";
         }
 
-        if (empty($where[0])) {
+        if (empty($where[1])) {
             $sql = sprintf('UPDATE %s SET %s %s %s',
                 $table,
                 implode(',', $set),
@@ -537,7 +537,7 @@ final class AppPDO
             $this->getLimit()
         );
 
-        if (empty($where[0])) {
+        if (empty($where[1])) {
             /* @var PDO $this */
             return $this->query($sql)->rowCount();
         } else {
