@@ -81,7 +81,7 @@ abstract class BaseModel implements InstanceInterface
      * @param int|string $index 分区分表索引值
      * @return string
      */
-    public static function table($index = '')
+    public static function getTable($index = '')
     {
         $instance = static::instance();
         $index && $instance->sharding($index);
@@ -102,7 +102,7 @@ abstract class BaseModel implements InstanceInterface
     public static function db()
     {
         $instance = static::instance();
-        return db()->section($instance->section)->table(static::table());
+        return db()->section($instance->section)->table(static::getTable());
     }
 
     /**
