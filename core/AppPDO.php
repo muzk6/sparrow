@@ -220,13 +220,13 @@ final class AppPDO
 
         $sql = "SELECT {$column} FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
-        if (count($where) == 1) {
+        if (empty($where[0])) {
             /* @var PDO $this */
             return $this->query($sql)->fetchColumn();
         } else {
             /* @var PDO $this */
             $statement = $this->prepare($sql);
-            $statement->execute($where[1] ?? null);
+            $statement->execute($where[1]);
 
             return $statement->fetchColumn();
         }
@@ -248,13 +248,13 @@ final class AppPDO
 
         $sql = "SELECT * FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
-        if (count($where) == 1) {
+        if (empty($where[0])) {
             /* @var PDO $this */
             return $this->query($sql)->fetch(PDO::FETCH_ASSOC);
         } else {
             /* @var PDO $this */
             $statement = $this->prepare($sql);
-            $statement->execute($where[1] ?? null);
+            $statement->execute($where[1]);
 
             return $statement->fetch(PDO::FETCH_ASSOC);
         }
@@ -284,7 +284,7 @@ final class AppPDO
             . $this->getAppend()
             . $this->getLimit();
 
-        if (count($where) == 1) {
+        if (empty($where[0])) {
             /* @var PDO $this */
             return $this->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         } else {
@@ -495,7 +495,7 @@ final class AppPDO
             $set[] = $this->quote($k) . " = {$setVal}";
         }
 
-        if (count($where) == 1) {
+        if (empty($where[0])) {
             $sql = sprintf('UPDATE %s SET %s %s %s',
                 $table,
                 implode(',', $set),
@@ -537,7 +537,7 @@ final class AppPDO
             $this->getLimit()
         );
 
-        if (count($where) == 1) {
+        if (empty($where[0])) {
             /* @var PDO $this */
             return $this->query($sql)->rowCount();
         } else {
@@ -659,7 +659,7 @@ final class AppPDO
      * 无绑定参数: 'id=1' 或 ['id=1']<br>
      * 绑定匿名参数: ['name=?', 'super'] 或 ['name=?', ['super']]<br>
      * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']] 或去掉后面的冒号 ['name=:name', ['name' => 'super']]<br>
-     * @return array eg. ['name=?', ['foo']]
+     * @return array eg. ['name=?', ['foo']]; ['', null]
      * @throws AppException
      */
     protected function parseWhere($where)
@@ -669,7 +669,7 @@ final class AppPDO
                 return $this->parseWhere($this->where);
             }
 
-            $wherePam = [''];
+            $wherePam = ['', null];
         } elseif (is_string($where)) {
             $wherePam[0] = ' WHERE ' . $where;
         } else {
