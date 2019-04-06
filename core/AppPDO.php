@@ -114,13 +114,15 @@ final class AppPDO
      * @param string $user
      * @param string $passwd
      * @param string $dbname
+     * @param string $charset
      * @return PDO
      */
-    protected function initConnection(array $host, string $user, string $passwd, string $dbname = '')
+    protected function initConnection(array $host, string $user, string $passwd, string $dbname = '', string $charset = '')
     {
         $dbnameDsn = $dbname ? "dbname={$dbname};" : '';
+        $charsetDsn = $charset ? "charset={$charset}" : '';
 
-        $pdo = new PDO("mysql:{$dbnameDsn}host={$host['host']};port={$host['port']}", $user, $passwd,
+        $pdo = new PDO("mysql:{$dbnameDsn}host={$host['host']};port={$host['port']};{$charsetDsn}", $user, $passwd,
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
 
@@ -149,14 +151,14 @@ final class AppPDO
             if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
                 if (!$this->slaveConn) {
                     $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
-                    $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '');
+                    $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
                 }
                 $pdo = $this->slaveConn;
 
             } else { // 其它查询使用主库
                 if (!$this->masterConn) {
                     $master = $this->conf['hosts']['master'];
-                    $this->masterConn = $this->initConnection($master, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '');
+                    $this->masterConn = $this->initConnection($master, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
                 }
                 $pdo = $this->masterConn;
             }
@@ -168,7 +170,7 @@ final class AppPDO
                 $sectionConn = &$this->sectionConn[$this->section]['slave'];
                 if (empty($sectionConn)) {
                     $slave = $sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)];
-                    $sectionConn = $this->initConnection($slave, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '');
+                    $sectionConn = $this->initConnection($slave, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
                 }
 
                 $pdo = $sectionConn;
@@ -176,7 +178,7 @@ final class AppPDO
                 $sectionConn = &$this->sectionConn[$this->section]['master'];
                 if (empty($sectionConn)) {
                     $master = $sectionConf['hosts']['master'];
-                    $sectionConn = $this->initConnection($master, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '');
+                    $sectionConn = $this->initConnection($master, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
                 }
 
                 $pdo = $sectionConn;

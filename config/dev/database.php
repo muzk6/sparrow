@@ -11,6 +11,7 @@ return [
     'user' => 'root',
     'passwd' => '123abc',
     'dbname' => 'test',
+    'charset' => 'utf8mb4',
     'hosts' => [
         'master' => ['host' => 'direwolf', 'port' => 3306],
         'slaves' => [
