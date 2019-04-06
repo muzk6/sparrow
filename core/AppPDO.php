@@ -884,6 +884,7 @@ final class AppPDO
         $this->table = ''; // 重置表名
         $this->limit = ''; // 重置LIMIT
         $this->append = ''; // 重置附加语句
+        $this->order = ''; // 重置ORDER
         $this->where = null; // 重置WHERE
     }
 
