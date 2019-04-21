@@ -164,6 +164,7 @@ class AppInput
     public function parse($columns = '', $defaultOrCallback = null)
     {
         $rawColumnWithDefCB = [];
+        $isSingle = false;
         if (is_array($columns)) {
             foreach ($columns as $k => $v) {
                 if (is_numeric($k)) { // eg. $columns=['col1','col2'] 即没有 value 也就是没有默认值回调
@@ -187,6 +188,11 @@ class AppInput
                     'defCB' => $defaultOrCallback
                 ];
             }
+
+            // 只有 input('col0') 才返回一维数组
+            if (count($rawColumnWithDefCB) == 1) {
+                $isSingle = true;
+            }
         }
 
         $groups = [];
@@ -204,7 +210,7 @@ class AppInput
             }
         }
 
-        $ret = count($groups) == 1 ? $groups[0] : $this->flat($keys, $groups);
+        $ret = (count($groups) == 1 && $isSingle) ? $groups[0] : $this->flat($keys, $groups);
         return $ret;
     }
 }

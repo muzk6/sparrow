@@ -641,8 +641,11 @@ db()->section('sec0');
 ##### 用例(以下用例的用法可以自由组合)
 
 ```php
-// eg. POST请求, !isset($_POST['a']) 时取默认值10
+// eg. POST请求, !isset($_POST['a']) 时取默认值10，返回一维数组的结果
 input('a', 10);
+
+// 'a' 换成 ['a'], 返回二维数组的结果
+input(['a']);
 
 // 'hello ' . $_GET['a']
 input('get.a', function ($val) {return 'hello '.$val;});

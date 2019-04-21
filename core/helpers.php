@@ -303,6 +303,7 @@ function format2api($data)
  *
  * <p>input('a', 10)<br>
  * -> eg. POST请求, !isset($_POST['a']) 时取默认值10</p>
+ * -> 返回一维数组的结果，而 input(['a'], 10) 则返回二维数组的结果
  *
  * <p>input('get.a', function ($val) {return 'hello '.$val;})<br>
  * -> 'hello ' . $_GET['a']</p>
