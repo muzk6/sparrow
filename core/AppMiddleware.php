@@ -82,8 +82,8 @@ class AppMiddleware
      */
     public function throttle(Closure $next, array $context)
     {
-        $limit = intval($context['argv'][0]) ?? 60;
-        $ttl = intval($context['argv'][1]) ?? 60;
+        $limit = isset($context['argv'][0]) ? intval($context['argv'][0]) : 60;
+        $ttl = isset($context['argv'][1]) ? intval($context['argv'][1]) : 60;
 
         $key = 'THROTTLE:' . session_id() . ":{$context{'uri'}}";
 
