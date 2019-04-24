@@ -36,7 +36,7 @@ class AppCSRF
             return false;
         }
 
-        return $_SESSION['csrf_token']['expire'] = TIME + $this->expire;
+        return $_SESSION['csrf_token']['expire'] = $this->expire ? TIME + $this->expire : 0;
     }
 
     /**
@@ -51,7 +51,7 @@ class AppCSRF
 
             $_SESSION['csrf_token'] = [
                 'token' => $token,
-                'expire' => TIME + $this->expire,
+                'expire' => $this->expire ? TIME + $this->expire : 0,
             ];
         } else {
             // 每次获取令牌时都刷新过期时间
@@ -96,7 +96,7 @@ class AppCSRF
             throw new AppException(10001002);
         }
 
-        if (TIME > $_SESSION['csrf_token']['expire']) {
+        if ($_SESSION['csrf_token']['expire'] && (TIME > $_SESSION['csrf_token']['expire'])) {
             throw new AppException(10001002);
         }
 
