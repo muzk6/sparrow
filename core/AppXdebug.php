@@ -115,10 +115,10 @@ class AppXdebug
 
     /**
      * 手动跟踪
-     * @param string $name 日志名，即日志文件名的 xt: 的值<br>
-     * 建议把 uniqid() 作为 $name
+     * @param string $traceName 日志名，即日志文件名的 xt: 的值
+     * <p>建议把 uniqid() 作为 $name</p>
      */
-    public function trace($name)
+    public function trace($traceName)
     {
         if (!file_exists(PATH_TRACE)) {
             mkdir(PATH_TRACE, 0777, true);
@@ -139,7 +139,7 @@ class AppXdebug
         $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.uri:%s',
             uniqid(), // 目的是排序用，和保证文件名唯一
             date('ymd_His'),
-            $name,
+            $traceName,
             auth()->userId(),
             isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : ''
         );

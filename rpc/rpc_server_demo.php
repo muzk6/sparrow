@@ -1,7 +1,7 @@
 <?php
 
 /**
- * yar的服务端
+ * yar 服务端
  */
 
 require_once dirname(__DIR__) . '/init.php';
@@ -14,7 +14,4 @@ class Foo
     }
 }
 
-$service = new Yar_Server(new Foo());
-
-xdebug()->auto();
-$service->handle();
+yar()->server(new Foo());

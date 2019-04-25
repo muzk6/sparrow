@@ -12,6 +12,7 @@ use Core\AppPDO;
 use Core\AppQueue;
 use Core\AppWhitelist;
 use Core\AppXdebug;
+use Core\AppYar;
 
 /**
  * 配置文件<br>
@@ -209,6 +210,27 @@ function aes()
     }
 
     return $openssl;
+}
+
+/**
+ * yar
+ * @return AppYar
+ * @throws AppException
+ */
+function yar()
+{
+    /* @var AppYar $yar */
+    static $yar = null;
+
+    if (!$yar) {
+        if (!class_exists('\Yar_Client')) {
+            throw new AppException('pecl install msgpack && pecl install yar');
+        }
+
+        $yar = core('AppYar', config('yar'));
+    }
+
+    return $yar;
 }
 
 /**
