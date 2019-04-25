@@ -84,11 +84,14 @@ class AppYar
 
     /**
      * RPC 并行调用 等待请求
+     * @param bool $reset 调用完后清除所有回调，其作用参考下面的链接
+     * @see https://github.com/laruence/yar/issues/26
      */
-    public function concurrentLoop()
+    public function concurrentLoop($reset = true)
     {
         try {
             \Yar_Concurrent_Client::loop();
+            $reset && \Yar_Concurrent_Client::reset();
         } catch (Exception $exception) {
             logfile('concurrent_loop', $exception->getMessage(), '__rpc');
         }
