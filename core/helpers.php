@@ -167,8 +167,9 @@ function redis()
         $conf = config('redis');
 
         $redis = new Redis();
-        $redis->pconnect($conf['host'], $conf['port']);
+        $redis->pconnect($conf['host'], $conf['port'], $conf['timeout']);
         $redis->setOption(Redis::OPT_PREFIX, $conf['prefix']);
+        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
     }
 
     return $redis;
