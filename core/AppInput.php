@@ -294,7 +294,7 @@ class AppInput
         return [true, null];
     }
 
-    private function checkResult($fieldValue, string $ruleName, bool $ruleReverse, string $ruleRange, string $ruleValue1, string $ruleValue2)
+    private function checkResult($fieldValue, string $ruleName, bool $ruleReverse, array $ruleRange, string $ruleValue1, string $ruleValue2)
     {
         $ret = false;
         switch ($ruleName) {
@@ -322,6 +322,7 @@ class AppInput
                 break;
             case 'url':
                 $ret = filter_var($fieldValue, FILTER_SANITIZE_URL);
+                break;
             case 'ip':
                 $ret = filter_var($fieldValue, FILTER_VALIDATE_IP);
                 break;
@@ -333,6 +334,38 @@ class AppInput
                 break;
             case 'in':
                 $ret = in_array($fieldValue, $ruleRange);
+                break;
+            case 'between':
+                $ret = ($fieldValue >= $ruleValue1) && ($fieldValue <= $ruleValue2);
+                break;
+            case 'max':
+                $ret = $fieldValue <= $ruleValue1;
+                break;
+            case 'min':
+                $ret = $fieldValue >= $ruleValue1;
+                break;
+            case 'len':
+            case 'length':
+                $length = is_array($fieldValue) ? count($fieldValue) : strlen($fieldValue);
+                $ret = $length == $ruleValue1;
+                break;
+            case 'confirm'://todo 指定字段
+                $ret = $fieldValue == $ruleValue1;
+                break;
+            case 'gt':
+                $ret = $fieldValue > $ruleValue1;
+                break;
+            case 'lt':
+                $ret = $fieldValue < $ruleValue1;
+                break;
+            case 'egt':
+                $ret = $fieldValue >= $ruleValue1;
+                break;
+            case 'elt':
+                $ret = $fieldValue <= $ruleValue1;
+                break;
+            case 'eq':
+                $ret = $fieldValue == $ruleValue1;
                 break;
             default:
                 break;
