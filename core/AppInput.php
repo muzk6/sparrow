@@ -177,8 +177,6 @@ class AppInput
      * list($data, $err) = input(...)<br>
      * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
      *
-     * @see input()
-     *
      * @param string|array $columns 单个或多个字段
      * @param mixed $defaultOrCallback 自定义回调函数，$columns 为 array 时无效<br>
      * 回调函数格式为 function ($val, $name) {}<br>
@@ -187,6 +185,8 @@ class AppInput
      * 可抛出异常: AppException, Exception <br>
      *
      * @return array [0 => [column => value], 1 => [column => error]]
+     * @see input()
+     *
      */
     public function parse($columns = '', $defaultOrCallback = null)
     {
@@ -241,18 +241,63 @@ class AppInput
         return $ret;
     }
 
-    public function parse2(string $field, $rules, $default = null, callable $callback = null)
+    protected function convert($value, string $type)
     {
-        list($bucket, $name, $type) = $this->key2name($field);
+        switch ($type) {
+            case 's':
+                $value = strval($value);
+                break;
+            case 'i':
+                $value = intval($value);
+                break;
+            case 'b':
+                $value = boolval($value);
+                break;
+            case 'a':
+                $value = (array)$value;
+                break;
+            case 'f':
+                $value = floatval($value);
+                break;
+        }
 
-        $title = $name;
-        $value = isset($bucket[$name]) ? trim(strval($bucket[$name])) : null; // 请求里没有指定参数时则为null
-        $this->check($value, $rules, $title);
-
-        $this->single($value, $name, $type, $default, $callback);
+        return $value;
     }
 
-    private function check($rules, $fieldValue, $fieldTitle)
+
+    public function parse2(string $field, $rules, $default = null, callable $callback = null)
+    {
+        list($bucket, $fieldName, $fieldType) = $this->key2name($field);
+        $fieldTitle = $fieldName;
+
+        if (isset($bucket[$fieldName])) {
+            $fieldValue = trim(strval($bucket[$fieldName]));
+            $this->check($fieldValue, $rules, $fieldTitle);
+        } else {
+            $fieldValue = $default;
+        }
+
+        $error = null;
+        if ($callback) {
+            try {
+                $callValue = $callback($fieldValue, $fieldTitle, $fieldName);
+                is_null($callValue) || $ret[0] = $callValue;
+            } catch (Exception $exception) {
+                $error = [
+                    'code' => $exception->getCode(),
+                    'msg' => $exception->getMessage(),
+                ];
+
+                if ($exception instanceof AppException) {
+                    $error['data'] = $exception->getData();
+                }
+            }
+        }
+
+        $this->convert($fieldValue, $fieldType);
+    }
+
+    protected function check($rules, $fieldValue, $fieldTitle)
     {
         is_string($rules) && $rules = explode('|', $rules);
         foreach ($rules as $k => $v) {
@@ -285,8 +330,8 @@ class AppInput
                 $ruleValue2 = $ruleValues[1] ?? '';
             }
 
-            if (!$this->checkResult($fieldValue, $ruleName, $ruleReverse, $ruleRange, $ruleValue1, $ruleValue2)) {
-                $msg = $customMsg ? $customMsg : $this->getMessage($fieldTitle, $rule);
+            if (!$this->checkResult($fieldValue, $ruleName, $ruleReverse, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
+                $msg = $customMsg ? $customMsg : $this->getMessage($fieldTitle, $ruleName, $ruleRange, $ruleValue1, $ruleValue2);
                 return [false, $msg];
             }
         }
@@ -294,7 +339,7 @@ class AppInput
         return [true, null];
     }
 
-    private function checkResult($fieldValue, string $ruleName, bool $ruleReverse, array $ruleRange, string $ruleValue1, string $ruleValue2)
+    protected function checkResult($fieldValue, string $ruleName, bool $ruleReverse, array $ruleRange, string $ruleValue1, string $ruleValue2)
     {
         $ret = false;
         switch ($ruleName) {
@@ -374,10 +419,10 @@ class AppInput
         return $ruleReverse ? !$ret : !!$ret;
     }
 
-    private function getMessage(string $title, string $rule)
+    protected function getMessage(string $title, string $rule, string $range, string $value1, string $value2)
     {
-        if (isset($this->error_msg[$error_key])) {
-            return str_replace([':attribute', ':range', ':1', ':2'], [$title, $range, $value1, $value2], $this->error_msg[$error_key]);
+        if (isset($this->error_msg[$rule])) {
+            return str_replace([':attribute', ':range', ':1', ':2'], [$title, $range, $value1, $value2], $this->error_msg[$rule]);
         }
         return false;
     }
