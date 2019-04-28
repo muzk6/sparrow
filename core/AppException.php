@@ -33,7 +33,7 @@ final class AppException extends Exception implements Throwable
                         : array_slice($message, 1)),
                 $message[0], $previous
             );
-        } elseif (is_numeric($message)) {
+        } elseif (is_int($message)) {
             parent::__construct(trans($message), $message, $previous);
         } else {
             parent::__construct($message, $code, $previous);
