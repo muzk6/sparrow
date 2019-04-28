@@ -143,7 +143,7 @@ class AppInput
      * @param string $key
      * @return array
      */
-    protected function key2name(string $key)
+    protected function parse2(string $key)
     {
         $key = trim($key);
         if (strpos($key, '.') !== false) {
@@ -163,13 +163,24 @@ class AppInput
         }
 
         $type = '';
+        $title = '';
         if (strpos($name, ':') !== false) {
             $nameDot = explode(':', $name);
             $name = $nameDot[0];
             $type = $nameDot[1];
+
+            if (strpos($type, '/') !== false) {
+                $typeSlash = explode('/', $type);
+                $type = $typeSlash[0];
+                $title = $typeSlash[1];
+            }
+        } elseif (strpos($name, '/') !== false) {
+            $nameSlash = explode('/', $name);
+            $name = $nameSlash[0];
+            $title = $nameSlash[1];
         }
 
-        return [$bucket, $name, $type];
+        return [$bucket, $name, $type, $title];
     }
 
     /**
@@ -225,7 +236,7 @@ class AppInput
         $groups = [];
         $keys = [];
         foreach ($rawColumnWithDefCB as $rawItem) {
-            list($bucket, $name, $type) = $this->key2name($rawItem['column']);
+            list($bucket, $name, $type) = $this->parse2($rawItem['column']);
             if (empty($name)) { // 通配字段 eg. '', '.', 'get.' 'post.'
                 foreach ($bucket as $k => $v) {
                     $groups[] = $this->single($bucket, $k, $type, $rawItem['defCB']);
@@ -265,23 +276,34 @@ class AppInput
     }
 
 
-    public function parse2(string $field, $rules, $default = null, callable $callback = null)
+    public function input(string $field, $rules = null, $default = null, callable $callback = null)
     {
-        list($bucket, $fieldName, $fieldType) = $this->key2name($field);
-        $fieldTitle = $fieldName;
+        $error = null;
 
-        if (isset($bucket[$fieldName])) {
-            $fieldValue = trim(strval($bucket[$fieldName]));
-            $this->check($fieldValue, $rules, $fieldTitle);
-        } else {
-            $fieldValue = $default;
+        list($bucket, $fieldName, $fieldType, $fieldTitle) = $this->parse2($field);
+
+        // 默认值
+        $fieldValue = isset($bucket[$fieldName]) ? trim(strval($bucket[$fieldName])) : $default;
+
+        // 表单验证
+        if ($rules) {
+            list($checkStatus, $msg) = $this->check($rules, $fieldValue, $fieldTitle);
+            if (!$checkStatus) {
+                $error = [
+                    'code' => 0,
+                    'msg' => $msg,
+                ];
+            }
         }
 
-        $error = null;
+        // 类型转换
+        $fieldValue = $this->convert($fieldValue, $fieldType);
+
+        // 自定义回调
         if ($callback) {
             try {
                 $callValue = $callback($fieldValue, $fieldTitle, $fieldName);
-                is_null($callValue) || $ret[0] = $callValue;
+                is_null($callValue) || $fieldValue = $callValue;
             } catch (Exception $exception) {
                 $error = [
                     'code' => $exception->getCode(),
@@ -294,7 +316,7 @@ class AppInput
             }
         }
 
-        $this->convert($fieldValue, $fieldType);
+        return [$fieldValue, $error];
     }
 
     protected function check($rules, $fieldValue, $fieldTitle)
@@ -330,6 +352,7 @@ class AppInput
                 $ruleValue2 = $ruleValues[1] ?? '';
             }
 
+            is_null($fieldValue) && $ruleName = 'require';
             if (!$this->checkResult($fieldValue, $ruleName, $ruleReverse, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
                 $msg = $customMsg ? $customMsg : $this->getMessage($fieldTitle, $ruleName, $ruleRange, $ruleValue1, $ruleValue2);
                 return [false, $msg];
@@ -343,7 +366,7 @@ class AppInput
     {
         $ret = false;
         switch ($ruleName) {
-            case 'req':
+//            case 'req':
             case 'require':
                 $ret = !is_null($fieldValue);
                 break;
@@ -351,14 +374,14 @@ class AppInput
             case 'number':
                 $ret = filter_var($fieldValue, FILTER_SANITIZE_NUMBER_INT);
                 break;
-            case 'arr':
+//            case 'arr':
             case 'array':
                 $ret = is_array($fieldValue);
                 break;
             case 'float':
                 $ret = filter_var($fieldValue, FILTER_VALIDATE_FLOAT);
                 break;
-            case 'bool':
+//            case 'bool':
             case 'boolean':
                 $ret = filter_var($fieldValue, FILTER_VALIDATE_BOOLEAN);
                 break;
@@ -413,6 +436,7 @@ class AppInput
                 $ret = $fieldValue == $ruleValue1;
                 break;
             default:
+                panic('校验规则不存在');
                 break;
         }
 

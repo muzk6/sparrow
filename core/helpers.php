@@ -363,7 +363,7 @@ function format2api($data)
  *
  * @return array [0 => [column => value], 1 => [column => error]]
  */
-function input($columns = '', $defaultOrCallback = null)
+function input(string $field, $rules = null, $default = null, callable $callback = null)
 {
     /** @var AppInput $input */
     static $input = null;
@@ -372,7 +372,8 @@ function input($columns = '', $defaultOrCallback = null)
         $input = new AppInput();
     }
 
-    return $input->parse($columns, $defaultOrCallback);
+//    return $input->parse($columns, $defaultOrCallback);
+    return $input->input($field, $rules, $default, $callback);
 }
 
 /**
