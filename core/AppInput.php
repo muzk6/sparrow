@@ -10,31 +10,31 @@ use Exception;
  */
 class AppInput
 {
-    private $error_msg = [
-        'require' => ':attribute不能为空',
-        'number' => ':attribute必须为数字',
-        'array' => ':attribute必须为数组',
-        'float' => ':attribute必须为浮点数',
-        'boolean' => ':attribute必须为布尔值',
-        'email' => ':attribute必须为正确的邮件地址',
-        'url' => ':attribute必须为正确的url格式',
-        'ip' => ':attribute必须为正确的ip地址',
-        'timestamp' => ':attribute必须为正确的时间戳格式',
-        'date' => ':attribute必须为正确的日期格式',
-        'regex' => ':attribute格式不正确',
-        'in' => ':attribute必须在:range内',
-        'notIn' => ':attribute必须不在:range内',
-        'between' => ':attribute必须在:1-:2范围内',
-        'notBetween' => ':attribute必须不在:1-:2范围内',
-        'max' => ':attribute最大值为:1',
-        'min' => ':attribute最小值为:1',
-        'length' => ':attribute长度必须为:1',
-        'confirm' => ':attribute和:1不一致',
-        'gt' => ':attribute必须大于:1',
-        'lt' => ':attribute必须小于:1',
-        'egt' => ':attribute必须大于等于:1',
-        'elt' => ':attribute必须小于等于:1',
-        'eq' => ':attribute必须等于:1',
+    protected $errorMsg = [
+        'require' => 10001100,
+        'number' => 10001101,
+        'array' => 10001102,
+        'float' => 10001103,
+        'bool' => 10001104,
+        'email' => 10001105,
+        'url' => 10001106,
+        'ip' => 10001107,
+        'timestamp' => 10001108,
+        'date' => 10001109,
+        'regex' => 10001110,
+        'in' => 10001111,
+        'notIn' => 10001112,
+        'between' => 10001113,
+        'notBetween' => 10001114,
+        'max' => 10001115,
+        'min' => 10001116,
+        'length' => 10001117,
+        'confirm' => 10001118,
+        'gt' => 10001119,
+        'lt' => 10001120,
+        'gte' => 10001121,
+        'lte' => 10001122,
+        'eq' => 10001123,
     ];
 
     /**
@@ -252,6 +252,12 @@ class AppInput
         return $ret;
     }
 
+    /**
+     * 类型转换
+     * @param $value
+     * @param string $type
+     * @return array|bool|float|int|string
+     */
     protected function convert($value, string $type)
     {
         switch ($type) {
@@ -335,12 +341,6 @@ class AppInput
             $ruleValue2 = '';
             $ruleRange = '';
             $ruleName = $rule;
-            $ruleReverse = false;
-
-            if ($rule[0] === '!') {
-                $ruleReverse = true;
-                $rule = ltrim($rule, '!');
-            }
 
             if (strpos($rule, ':')) {
                 $ruleSplit = explode(':', $rule);
@@ -353,7 +353,7 @@ class AppInput
             }
 
             is_null($fieldValue) && $ruleName = 'require';
-            if (!$this->checkResult($fieldValue, $ruleName, $ruleReverse, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
+            if (!$this->checkResult($fieldValue, $ruleName, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
                 $msg = $customMsg ? $customMsg : $this->getMessage($fieldTitle, $ruleName, $ruleRange, $ruleValue1, $ruleValue2);
                 return [false, $msg];
             }
@@ -362,27 +362,23 @@ class AppInput
         return [true, null];
     }
 
-    protected function checkResult($fieldValue, string $ruleName, bool $ruleReverse, array $ruleRange, string $ruleValue1, string $ruleValue2)
+    protected function checkResult($fieldValue, string $ruleName, array $ruleRange, string $ruleValue1, string $ruleValue2)
     {
         $ret = false;
         switch ($ruleName) {
-//            case 'req':
             case 'require':
                 $ret = !is_null($fieldValue);
                 break;
-            case 'num':
             case 'number':
                 $ret = filter_var($fieldValue, FILTER_SANITIZE_NUMBER_INT);
                 break;
-//            case 'arr':
             case 'array':
                 $ret = is_array($fieldValue);
                 break;
             case 'float':
                 $ret = filter_var($fieldValue, FILTER_VALIDATE_FLOAT);
                 break;
-//            case 'bool':
-            case 'boolean':
+            case 'bool':
                 $ret = filter_var($fieldValue, FILTER_VALIDATE_BOOLEAN);
                 break;
             case 'email':
@@ -403,7 +399,13 @@ class AppInput
             case 'in':
                 $ret = in_array($fieldValue, $ruleRange);
                 break;
+            case 'notIn':
+                $ret = !in_array($fieldValue, $ruleRange);
+                break;
             case 'between':
+                $ret = ($fieldValue >= $ruleValue1) && ($fieldValue <= $ruleValue2);
+                break;
+            case 'notBetween':
                 $ret = ($fieldValue >= $ruleValue1) && ($fieldValue <= $ruleValue2);
                 break;
             case 'max':
@@ -412,13 +414,13 @@ class AppInput
             case 'min':
                 $ret = $fieldValue >= $ruleValue1;
                 break;
-            case 'len':
             case 'length':
                 $length = is_array($fieldValue) ? count($fieldValue) : strlen($fieldValue);
                 $ret = $length == $ruleValue1;
                 break;
-            case 'confirm'://todo 指定字段
-                $ret = $fieldValue == $ruleValue1;
+            case 'confirm':
+                list($bucket, $fieldName) = $this->parse2($ruleValue1);
+                $ret = isset($bucket[$fieldName]) && $fieldValue == $bucket[$fieldName];
                 break;
             case 'gt':
                 $ret = $fieldValue > $ruleValue1;
@@ -426,27 +428,35 @@ class AppInput
             case 'lt':
                 $ret = $fieldValue < $ruleValue1;
                 break;
-            case 'egt':
+            case 'gte':
                 $ret = $fieldValue >= $ruleValue1;
                 break;
-            case 'elt':
+            case 'lte':
                 $ret = $fieldValue <= $ruleValue1;
                 break;
             case 'eq':
                 $ret = $fieldValue == $ruleValue1;
+                break;
+            case 'regex':
+                $ret = preg_match($ruleValue1, $fieldValue);
                 break;
             default:
                 panic('校验规则不存在');
                 break;
         }
 
-        return $ruleReverse ? !$ret : !!$ret;
+        return !!$ret;
     }
 
     protected function getMessage(string $title, string $rule, string $range, string $value1, string $value2)
     {
-        if (isset($this->error_msg[$rule])) {
-            return str_replace([':attribute', ':range', ':1', ':2'], [$title, $range, $value1, $value2], $this->error_msg[$rule]);
+        if (isset($this->errorMsg[$rule])) {
+            if ($title) {
+                $title = is_numeric($title) ? trans(intval($title)) : trim($title);
+                $title = '"' . $title . '"';
+            }
+
+            return trans($this->errorMsg[$rule], ['name' => $title, 'range' => $range, '1' => $value1, '2' => $value2]);
         }
         return false;
     }

@@ -17,8 +17,8 @@ if (!whitelist()->isSafeIp()) {
 try {
     //todo...
 //    var_dump(input('get.b/基斯柯达基本'));
-    var_dump(input('get.b:i/基斯柯达基本', ['lt:20'], 123, function ($val) {
-    }));
+    var_dump(input('get.b:i/10002000', 'require|min:2', null));
+    list($da, $err) = inputcollect();
 } catch (AppException $exception) {
     var_dump(format2api($exception));
 }
