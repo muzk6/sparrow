@@ -635,53 +635,63 @@ db()->section('sec0');
 #### 请求参数`Request params`
 > 获取、过滤、验证、类型强转 请求参数`$_GET,$_POST`支持`payload`
 
-- `list($data, $err) = input(...)`
-- 参数一 没指定 get,post 时，自动根据请求方法来决定使用`$_GET,$_POST`
+- `$data = input(...)` 返回不带错误信息的单个字段
+- `list($req, $err) = collect()` 返回所有带错误信息的请求字段集合
 
-##### 用例(以下用例的用法可以自由组合)
+##### 用例
 
 ```php
-// eg. POST请求, !isset($_POST['a']) 时取默认值10，返回一维数组的结果
-input('a', 10);
-
-// 'a' 换成 ['a'], 返回二维数组的结果
-input(['a']);
-
-// 'hello ' . $_GET['a']
-input('get.a', function ($val) {return 'hello '.$val;});
-
-// empty($_POST['a']) 时抛出异常
-input('post.a', function ($val) {$val || panic(...);});
-
-// POST请求时，从 $_POST 里取全部；GET请求时，从 $_GET 里取全部
-input();
-input('');
-input('.');
-
-// $_POST
-input('post.');
-
-// POST请求时，读取 $_POST['a'], $_GET全部
-input(['a', 'get.']);
-input('a, get.b');
-
 // POST请求时，intval($_POST['a']), boolval($_POST['b'])
 // 类型修饰符有：s(string), i(int), b(bool), a(array), f(float)
-input('a:i, b:b');
 
-// !isset($_GET['a']) 时取默认值10
-// 'hello ' . $_POST['b']
-// $_POST['c'], 参数c 没有定义默认值或回调，将会使用 input()参数二 来代替
-input(
-    [
-        'get.a' => 10,
-        'post.b' => function ($val) {
-            return 'hello ' . $val;
-        },
-        'c'
-    ],
-    function () {
-        ...
-    }
-);
+$age = input('age'); // 取字段 age, 没指定 get,post，自动根据请求方法来决定使用 $_GET,$_POST
+
+// $_GET['age']不存在时默认为18
+// 必须为数字且大于或等于18
+// 验证通过后返回 intval($_GET['age'])+1
+$age = input('get.age:i/年龄', 'number|gte:18', 18, function ($val) { return $val+1; });
+
+// 自定义消息
+input('get.age:i/年龄', ['number' => '年龄必须为数字', 'gte' => '必须大于或等于18岁']);
 ```
+
+##### 参数说明
+
+`'get.age:i/年龄'` 中的类型转换`i`为整型，其它类型为：
+
+Name | Type
+--- | ---
+i | int
+s | string
+b | bool
+a | array
+f | float
+
+`number|gte:18` 为验证规则，其它规则为：
+
+Rule | Desc
+--- | ---
+require | 必填
+number | 数字
+array | 数组
+float | 浮点
+bool | 布尔
+email | 邮箱地址
+url | 网址
+ip | IP地址
+timestamp | 时间戳
+date | 日期
+regex | 正则表达式
+in | 在集合中 in:1,2,3
+notIn | 不在集合中
+between | 在范围内 between:1,10
+notBetween | 不在范围内
+max | 最大值
+min | 最小值
+length | 数组/字符串 长度
+confirm | 与指定字段的值相等 confirm:age 与age字段的值要一致
+gt | 大于
+lt | 小于
+gte | 大于或等于
+lte | 小于或等于
+eq | 等于

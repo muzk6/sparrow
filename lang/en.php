@@ -29,7 +29,7 @@ return [
     10001115 => '{name} max is {1}',
     10001116 => '{name} minimum is {1}',
     10001117 => '{name} must be {1} in length',
-    10001118 => '{name} is inconsistent with {1}',
+    10001118 => '{name} is inconsistent',
     10001119 => '{name} must be greater than {1}',
     10001120 => '{name} must be less than {1}',
     10001121 => '{name} must be greater than or equal to {1}',

@@ -318,62 +318,43 @@ function format2api($data)
 }
 
 /**
- * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload<br>
- * list($data, $err) = input(...)<br>
- * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
- * <p></p>
- * <b>以下用例的用法可以自由组合</b>
- *
- * <p>input('a', 10)<br>
- * -> eg. POST请求, !isset($_POST['a']) 时取默认值10</p>
- * -> 返回一维数组的结果，而 input(['a'], 10) 则返回二维数组的结果
- *
- * <p>input('get.a', function ($val) {return 'hello '.$val;})<br>
- * -> 'hello ' . $_GET['a']</p>
- *
- * <p>input('post.a', function ($val) {$val || panic(...);})<br>
- * -> empty($_POST['a']) 时抛出异常</p>
- *
- * <p>input(), input(''), input('.')<br>
- * -> POST请求时，从 $_POST 里取全部；GET请求时，从 $_GET 里取全部</p>
- *
- * <p>input('post.')<br>
- * -> $_POST</p>
- *
- * <p>input(['a', 'get.']) == input('a, get.b')<br>
- * -> POST请求时，读取 $_POST['a'], $_GET全部
- * </p>
- *
- * <p>input('a:i, b:b')<br>
- * -> POST请求时，intval($_POST['a']), boolval($_POST['b'])<br>
- * -> 类型修饰符有：s(string), i(int), b(bool), a(array), f(float)
- * </p>
- *
- * <p>input(['get.a' => 10, 'post.b' => function ($val) {return 'hello '.$val;}, 'c'], function () {...})<br>
- * -> !isset($_GET['a']) 时取默认值10<br>
- * -> 'hello ' . $_POST['b']<br>
- * -> $_POST['c'], 参数c 没有定义默认值或回调，将会使用 input()参数二 来代替 </p>
- *
- * @param string|array $columns 单个或多个字段
- * @param mixed $defaultOrCallback 默认值或回调函数，优先级低于上面参数一的 array.value<br>
- * 回调函数格式为 function ($val, $name) {}<br>
+ * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload
+ * <p>
+ * 简单用例：input('age') 取字段 age, 没指定 get,post，自动根据请求方法来决定使用 $_GET,$_POST <br>
+ * 高级用例：input('get.age:i/年龄', 'number|gte:18', 18, function ($val) { return $val+1; }) <br>
+ * 即 $_GET['age']不存在时默认为18，必须为数字且大于或等于18，验证通过后返回 intval($_GET['age'])+1
+ * @param string $field get.field0:i/字段名0 即 intval($_GET['field0']) 标题为 字段名0
+ * @param string|array|null $rules 验证规则，参考 \Core\AppInput::$errorMsg
+ * @param mixed|null $default 默认值
+ * @param callable|null $callback 自定义回调函数<br>
+ * 回调函数格式为 function ($value, $title, $name) {}<br>
  * 有return: 以返回值为准 <br>
  * 无return: 字段值为用户输入值 <br>
- * 抛出异常: AppException, Exception 将会被捕获到返回结果的数组[1]里，批量多字段的情况下如果[1]里都没有异常，则[1]的值就是 null<br>
- *
- * @return array [0 => [column => value], 1 => [column => error]]
+ * 可抛出异常: AppException, Exception <br>
+ * </p>
+ * @return mixed
+ * @throws AppException
  */
 function input(string $field, $rules = null, $default = null, callable $callback = null)
 {
-    /** @var AppInput $input */
-    static $input = null;
-
-    if (!$input) {
-        $input = new AppInput();
-    }
-
-//    return $input->parse($columns, $defaultOrCallback);
+    $input = AppInput::instance();
     return $input->input($field, $rules, $default, $callback);
+}
+
+/**
+ * 返回所有请求字段的集合
+ * <p>
+ * list($req, $err) = collect();
+ * </p>
+ *
+ * @return array <br>
+ * 存在验证不通过的字段时：[['field0' => 'value0'], ['field0' => 'error message']] <br>
+ * 所有验证通过且回调函数没异常时：[['field0' => 'value0'], null]
+ */
+function collect()
+{
+    $input = AppInput::instance();
+    return $input->collect();
 }
 
 /**

@@ -10,6 +10,27 @@ use Exception;
  */
 class AppInput
 {
+    /**
+     * @var null|AppInput
+     */
+    protected static $instance = null;
+
+    /**
+     * php://input
+     * @var null|array
+     */
+    protected $payload = null;
+
+    /**
+     * 所有 input() 的集合
+     * @var array
+     */
+    protected $results = [];
+
+    /**
+     * 验证失败时的错误消息
+     * @var array
+     */
     protected $errorMsg = [
         'require' => 10001100,
         'number' => 10001101,
@@ -38,74 +59,16 @@ class AppInput
     ];
 
     /**
-     * 取出指定字段值
-     * @param array &$refBucket $this->pool的参数集
-     * @param string $name 字段名
-     * @param string $type 需要强转为指定的类型
-     * @param mixed|null $default
-     * @param callable|null $callback
-     * @return array [$val, $err]
+     * 单例对象
+     * @return AppInput
      */
-    protected function single($value, string $name, string $type, $default = null, callable $callback = null)
+    public static function instance()
     {
-        $ret = [$value, null];
-        if (is_callable($callback)) {
-            try {
-                $callValue = $callback($value, $name);
-                is_null($callValue) || $ret[0] = $callValue;
-            } catch (Exception $exception) {
-                $ret[1] = [
-                    'code' => $exception->getCode(),
-                    'msg' => $exception->getMessage(),
-                ];
-
-                if ($exception instanceof AppException) {
-                    $ret[1]['data'] = $exception->getData();
-                }
-            }
-        } else {
-            $ret[0] = is_null($value) ? $default : $value;
+        if (!self::$instance) {
+            self::$instance = new static();
         }
 
-        switch ($type) {
-            case 's':
-                $ret[0] = strval($ret[0]);
-                break;
-            case 'i':
-                $ret[0] = intval($ret[0]);
-                break;
-            case 'b':
-                $ret[0] = boolval($ret[0]);
-                break;
-            case 'a':
-                $ret[0] = (array)$ret[0];
-                break;
-            case 'f':
-                $ret[0] = floatval($ret[0]);
-                break;
-        }
-
-        return $ret;
-    }
-
-    /**
-     * @var array|null
-     */
-    protected $payload = null;
-
-    /**
-     * 扁平处理
-     * @param array $keys 索引键
-     * @param array $groups 参数组
-     * @return array
-     */
-    protected function flat(array $keys, array $groups)
-    {
-        $ret[0] = array_combine($keys, array_column($groups, 0));
-        $ret[1] = array_combine($keys, array_column($groups, 1));
-        array_filter($ret[1]) || $ret[1] = null;
-
-        return $ret;
+        return self::$instance;
     }
 
     /**
@@ -139,11 +102,11 @@ class AppInput
     }
 
     /**
-     * 解析键值，取对应请求类型的参数集、当前参数名、类型
+     * 解析键值，取对应请求类型的参数集、当前参数名、类型、参数标题
      * @param string $key
-     * @return array
+     * @return array [参数集, 当前参数名, 类型, 参数标题]
      */
-    protected function parse2(string $key)
+    protected function parse(string $key)
     {
         $key = trim($key);
         if (strpos($key, '.') !== false) {
@@ -184,75 +147,6 @@ class AppInput
     }
 
     /**
-     * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload<br>
-     * list($data, $err) = input(...)<br>
-     * 参数一 没指定 get,post 时，自动根据请求方法来决定使用 $_GET,$_POST
-     *
-     * @param string|array $columns 单个或多个字段
-     * @param mixed $defaultOrCallback 自定义回调函数，$columns 为 array 时无效<br>
-     * 回调函数格式为 function ($val, $name) {}<br>
-     * 有return: 以返回值为准 <br>
-     * 无return: 字段值为用户输入值 <br>
-     * 可抛出异常: AppException, Exception <br>
-     *
-     * @return array [0 => [column => value], 1 => [column => error]]
-     * @see input()
-     *
-     */
-    public function parse($columns = '', $defaultOrCallback = null)
-    {
-        $rawColumnWithDefCB = [];
-        $isSingle = false;
-        if (is_array($columns)) {
-            foreach ($columns as $k => $v) {
-                if (is_numeric($k)) { // eg. $columns=['col1','col2'] 即没有 value 也就是没有默认值回调
-                    $column = $v;
-                    $defCB = $defaultOrCallback;
-                } else {
-                    $column = $k;
-                    $defCB = $v;
-                }
-
-                $rawColumnWithDefCB[] = [
-                    'column' => $column,
-                    'defCB' => $defCB
-                ];
-            }
-
-        } else {
-            foreach (explode(',', $columns) as $column) {
-                $rawColumnWithDefCB[] = [
-                    'column' => $column,
-                    'defCB' => $defaultOrCallback
-                ];
-            }
-
-            // 只有 input('col0') 才返回一维数组
-            if (count($rawColumnWithDefCB) == 1) {
-                $isSingle = true;
-            }
-        }
-
-        $groups = [];
-        $keys = [];
-        foreach ($rawColumnWithDefCB as $rawItem) {
-            list($bucket, $name, $type) = $this->parse2($rawItem['column']);
-            if (empty($name)) { // 通配字段 eg. '', '.', 'get.' 'post.'
-                foreach ($bucket as $k => $v) {
-                    $groups[] = $this->single($bucket, $k, $type, $rawItem['defCB']);
-                    $keys[] = $k;
-                }
-            } else { // 指定一个字段
-                $groups[] = $this->single($bucket, $name, $type, $rawItem['defCB']);
-                $keys[] = $name;
-            }
-        }
-
-        $ret = (count($groups) == 1 && $isSingle) ? $groups[0] : $this->flat($keys, $groups);
-        return $ret;
-    }
-
-    /**
      * 类型转换
      * @param $value
      * @param string $type
@@ -281,51 +175,37 @@ class AppInput
         return $value;
     }
 
-
-    public function input(string $field, $rules = null, $default = null, callable $callback = null)
+    /**
+     * 验证失败时的错误消息
+     * @param string $title
+     * @param string $rule
+     * @param string $range
+     * @param string $value1
+     * @param string $value2
+     * @return bool|string
+     */
+    protected function getMessage(string $title, string $rule, string $range, string $value1, string $value2)
     {
-        $error = null;
-
-        list($bucket, $fieldName, $fieldType, $fieldTitle) = $this->parse2($field);
-
-        // 默认值
-        $fieldValue = isset($bucket[$fieldName]) ? trim(strval($bucket[$fieldName])) : $default;
-
-        // 表单验证
-        if ($rules) {
-            list($checkStatus, $msg) = $this->check($rules, $fieldValue, $fieldTitle);
-            if (!$checkStatus) {
-                $error = [
-                    'code' => 0,
-                    'msg' => $msg,
-                ];
+        if (isset($this->errorMsg[$rule])) {
+            if ($title) {
+                $title = is_numeric($title) ? trans(intval($title)) : trim($title);
+                $title = '"' . $title . '"';
             }
+
+            return trans($this->errorMsg[$rule], ['name' => $title, 'range' => $range, '1' => $value1, '2' => $value2]);
         }
-
-        // 类型转换
-        $fieldValue = $this->convert($fieldValue, $fieldType);
-
-        // 自定义回调
-        if ($callback) {
-            try {
-                $callValue = $callback($fieldValue, $fieldTitle, $fieldName);
-                is_null($callValue) || $fieldValue = $callValue;
-            } catch (Exception $exception) {
-                $error = [
-                    'code' => $exception->getCode(),
-                    'msg' => $exception->getMessage(),
-                ];
-
-                if ($exception instanceof AppException) {
-                    $error['data'] = $exception->getData();
-                }
-            }
-        }
-
-        return [$fieldValue, $error];
+        return false;
     }
 
-    protected function check($rules, $fieldValue, $fieldTitle)
+    /**
+     * 表单验证
+     * @param string|array $rules
+     * @param mixed $fieldValue
+     * @param string $fieldTitle
+     * @return array
+     * @throws AppException
+     */
+    protected function validate($rules, $fieldValue, string $fieldTitle)
     {
         is_string($rules) && $rules = explode('|', $rules);
         foreach ($rules as $k => $v) {
@@ -353,7 +233,7 @@ class AppInput
             }
 
             is_null($fieldValue) && $ruleName = 'require';
-            if (!$this->checkResult($fieldValue, $ruleName, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
+            if (!$this->check($fieldValue, $ruleName, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
                 $msg = $customMsg ? $customMsg : $this->getMessage($fieldTitle, $ruleName, $ruleRange, $ruleValue1, $ruleValue2);
                 return [false, $msg];
             }
@@ -362,7 +242,17 @@ class AppInput
         return [true, null];
     }
 
-    protected function checkResult($fieldValue, string $ruleName, array $ruleRange, string $ruleValue1, string $ruleValue2)
+    /**
+     * 验证指定规则
+     * @param mixed $fieldValue
+     * @param string $ruleName
+     * @param array $ruleRange
+     * @param string $ruleValue1
+     * @param string $ruleValue2
+     * @return bool
+     * @throws AppException
+     */
+    protected function check($fieldValue, string $ruleName, array $ruleRange, string $ruleValue1, string $ruleValue2)
     {
         $ret = false;
         switch ($ruleName) {
@@ -419,7 +309,7 @@ class AppInput
                 $ret = $length == $ruleValue1;
                 break;
             case 'confirm':
-                list($bucket, $fieldName) = $this->parse2($ruleValue1);
+                list($bucket, $fieldName) = $this->parse($ruleValue1);
                 $ret = isset($bucket[$fieldName]) && $fieldValue == $bucket[$fieldName];
                 break;
             case 'gt':
@@ -441,24 +331,99 @@ class AppInput
                 $ret = preg_match($ruleValue1, $fieldValue);
                 break;
             default:
-                panic('校验规则不存在');
+                panic('验证规则不存在');
                 break;
         }
 
         return !!$ret;
     }
 
-    protected function getMessage(string $title, string $rule, string $range, string $value1, string $value2)
+    /**
+     * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload
+     * <p>
+     * 简单用例：input('age') 取字段 age, 没指定 get,post，自动根据请求方法来决定使用 $_GET,$_POST <br>
+     * 高级用例：input('get.age:i/年龄', 'number|gte:18', 18, function ($val) { return $val+1; }) <br>
+     * 即 $_GET['age']不存在时默认为18，必须为数字且大于或等于18，验证通过后返回 intval($_GET['age'])+1
+     * @param string $field get.field0:i/字段名0 即 intval($_GET['field0']) 标题为 字段名0
+     * @param string|array|null $rules 验证规则，参考 \Core\AppInput::$errorMsg
+     * @param mixed|null $default 默认值
+     * @param callable|null $callback 自定义回调函数<br>
+     * 回调函数格式为 function ($value, $title, $name) {}<br>
+     * 有return: 以返回值为准 <br>
+     * 无return: 字段值为用户输入值 <br>
+     * 可抛出异常: AppException, Exception <br>
+     * </p>
+     * @return mixed
+     * @throws AppException
+     */
+    public function input(string $field, $rules = null, $default = null, callable $callback = null)
     {
-        if (isset($this->errorMsg[$rule])) {
-            if ($title) {
-                $title = is_numeric($title) ? trans(intval($title)) : trim($title);
-                $title = '"' . $title . '"';
-            }
+        $error = null;
 
-            return trans($this->errorMsg[$rule], ['name' => $title, 'range' => $range, '1' => $value1, '2' => $value2]);
+        list($bucket, $fieldName, $fieldType, $fieldTitle) = $this->parse($field);
+
+        // 默认值
+        $fieldValue = isset($bucket[$fieldName]) ? trim(strval($bucket[$fieldName])) : $default;
+
+        // 表单验证
+        if ($rules) {
+            list($checkStatus, $msg) = $this->validate($rules, $fieldValue, $fieldTitle);
+            if (!$checkStatus) {
+                $error = [
+                    'code' => 0,
+                    'msg' => $msg,
+                ];
+            }
         }
-        return false;
+
+        // 类型转换
+        $fieldValue = $this->convert($fieldValue, $fieldType);
+
+        // 自定义回调
+        if ($callback) {
+            try {
+                $callValue = $callback($fieldValue, $fieldTitle, $fieldName);
+                is_null($callValue) || $fieldValue = $callValue;
+            } catch (Exception $exception) {
+                $error = [
+                    'code' => $exception->getCode(),
+                    'msg' => $exception->getMessage(),
+                ];
+
+                if ($exception instanceof AppException) {
+                    $error['data'] = $exception->getData();
+                }
+            }
+        }
+
+        $this->results[$fieldName] = [$fieldValue, $error];
+        return $fieldValue;
+    }
+
+    /**
+     * 返回所有请求字段的集合
+     * <p>
+     * list($req, $err) = collect();
+     * </p>
+     *
+     * @return array <br>
+     * 存在验证不通过的字段时：[['field0' => 'value0'], ['field0' => 'error message']] <br>
+     * 所有验证通过且回调函数没异常时：[['field0' => 'value0'], null]
+     */
+    public function collect()
+    {
+        $results = $this->results;
+        $this->results = [];
+
+        $data = [];
+        $error = [];
+        foreach ($results as $fieldName => $result) {
+            $data[$fieldName] = $result[0];
+            $error[$fieldName] = $result[1];
+        }
+        array_filter($error) || $error = null;
+
+        return [$data, $error];
     }
 
 }
