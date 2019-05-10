@@ -27,20 +27,18 @@ class IndexController extends BaseController
      */
     public function api()
     {
-        list($type, $err) = input('type:i', function ($val) {
-            $val || panic(10001000);
-        });
+        list($req, $err) = input('type:i', 'require')->collect();
 
         if ($err) {
-            panic($err['code']);
+            panic(10001000, $err);
         }
 
         // 没有 return 时响应: {state: true, code: 0, msg: "", data: null}
         $data = DemoService::instance()->foo();
-        if ($type == 1) {
+        if ($req['type'] == 1) {
             return $data;
-        } elseif ($type == 2) {
-            return message([10002001, 'name' => 'Sparrow'], $data);
+        } elseif ($req['type'] == 2) {
+            return message([10002001, 'name' => 'Sparrow'], ['foo' => $data]);
         }
     }
 }

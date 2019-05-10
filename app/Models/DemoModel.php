@@ -8,9 +8,4 @@ class DemoModel extends BaseModel
 {
     protected $table = 'test';
 
-    public function fetch()
-    {
-        return ['name' => 'X'];
-    }
-
 }

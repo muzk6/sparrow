@@ -1,11 +1,11 @@
 <?php
 
+use Core\AppAes;
 use Core\AppAuth;
 use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
-use Core\AppAes;
 use Core\AppInput;
 use Core\AppMessage;
 use Core\AppPDO;
@@ -332,29 +332,13 @@ function format2api($data)
  * 无return: 字段值为用户输入值 <br>
  * 可抛出异常: AppException, Exception <br>
  * </p>
- * @return mixed
+ * @return AppInput
  * @throws AppException
  */
 function input(string $field, $rules = null, $default = null, callable $callback = null)
 {
     $input = AppInput::instance();
     return $input->input($field, $rules, $default, $callback);
-}
-
-/**
- * 返回所有请求字段的集合
- * <p>
- * list($req, $err) = collect();
- * </p>
- *
- * @return array <br>
- * 存在验证不通过的字段时：[['field0' => 'value0'], ['field0' => 'error message']] <br>
- * 所有验证通过且回调函数没异常时：[['field0' => 'value0'], null]
- */
-function collect()
-{
-    $input = AppInput::instance();
-    return $input->collect();
 }
 
 /**
