@@ -332,7 +332,6 @@ class AppInput
      * 可抛出异常: AppException, Exception <br>
      * </p>
      * @return mixed
-     * @throws AppException
      */
     public function input(string $field, $rules = null, $default = null, callable $callback = null)
     {
