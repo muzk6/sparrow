@@ -1,6 +1,7 @@
 {
     "require": {
-        "ext-json": "*"
+        "ext-json": "*",
+        "pimple/pimple": "^3.2"
     },
     "autoload": {
         "psr-4": {

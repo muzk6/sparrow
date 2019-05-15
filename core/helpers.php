@@ -1,11 +1,11 @@
 <?php
 
+use Core\AppAes;
 use Core\AppAuth;
 use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
 use Core\AppFlash;
-use Core\AppAes;
 use Core\AppInput;
 use Core\AppMessage;
 use Core\AppPDO;
@@ -13,6 +13,17 @@ use Core\AppQueue;
 use Core\AppWhitelist;
 use Core\AppXdebug;
 use Core\AppYar;
+use Pimple\Container;
+
+function app($name)
+{
+    static $container = null;
+
+    if (!$container) {
+        $container = new Container();
+//        $container->register();
+    }
+}
 
 /**
  * 配置文件<br>
