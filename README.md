@@ -635,8 +635,7 @@ db()->section('sec0');
 #### 请求参数`Request params`
 > 获取、过滤、验证、类型强转 请求参数`$_GET,$_POST`支持`payload`
 
-- `$data = input(...)` 返回不带错误信息的单个字段
-- `list($req, $err) = collect()` 返回所有带错误信息的请求字段集合
+- `list($data, $err) = input(...)->collect()` 返回所有带错误信息的请求字段集合
 
 ##### 用例
 
@@ -644,15 +643,16 @@ db()->section('sec0');
 // POST请求时，intval($_POST['a']), boolval($_POST['b'])
 // 类型修饰符有：s(string), i(int), b(bool), a(array), f(float)
 
-$age = input('age'); // 取字段 age, 没指定 get,post，自动根据请求方法来决定使用 $_GET,$_POST
+input('age')->collect(); // 取字段 age, 没指定 get,post，自动根据请求方法来决定使用 $_GET,$_POST
 
 // $_GET['age']不存在时默认为18
 // 必须为数字且大于或等于18
 // 验证通过后返回 intval($_GET['age'])+1
-$age = input('get.age:i/年龄', 'number|gte:18', 18, function ($val) { return $val+1; });
+input('get.age:i/年龄', 'number|gte:18', 18, function ($val) { return $val+1; })
+    ->collect();
 
 // 自定义消息
-input('get.age:i/年龄', ['number' => '年龄必须为数字', 'gte' => '必须大于或等于18岁']);
+input('get.age:i/年龄', ['number' => '年龄必须为数字', 'gte' => '必须大于或等于18岁'])->collect();
 ```
 
 ##### 参数说明

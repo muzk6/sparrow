@@ -176,33 +176,10 @@ class AppInput
     }
 
     /**
-     * 验证失败时的错误消息
-     * @param string $title
-     * @param string $rule
-     * @param string $range
-     * @param string $value1
-     * @param string $value2
-     * @return bool|string
-     */
-    protected function getMessage(string $title, string $rule, string $range, string $value1, string $value2)
-    {
-        if (isset($this->errorMsg[$rule])) {
-            if ($title) {
-                $title = is_numeric($title) ? trans(intval($title)) : trim($title);
-                $title = '"' . $title . '"';
-            }
-
-            return trans($this->errorMsg[$rule], ['name' => $title, 'range' => $range, '1' => $value1, '2' => $value2]);
-        }
-        return false;
-    }
-
-    /**
      * 表单验证
      * @param string|array $rules
      * @param mixed $fieldValue
      * @param string $fieldTitle
-     * @return array
      * @throws AppException
      */
     protected function validate($rules, $fieldValue, string $fieldTitle)
@@ -234,12 +211,13 @@ class AppInput
 
             is_null($fieldValue) && $ruleName = 'require';
             if (!$this->check($fieldValue, $ruleName, explode(',', $ruleRange), $ruleValue1, $ruleValue2)) {
-                $msg = $customMsg ? $customMsg : $this->getMessage($fieldTitle, $ruleName, $ruleRange, $ruleValue1, $ruleValue2);
-                return [false, $msg];
+                if ($fieldTitle) {
+                    $fieldTitle = is_numeric($fieldTitle) ? trans(intval($fieldTitle)) : trim($fieldTitle);
+                    $fieldTitle = '"' . $fieldTitle . '"';
+                }
+                panic([$customMsg ?: $this->errorMsg[$ruleName], ['name' => $fieldTitle, 'range' => $ruleRange, '1' => $ruleValue1, '2' => $ruleValue2]]);
             }
         }
-
-        return [true, null];
     }
 
     /**
@@ -354,7 +332,6 @@ class AppInput
      * 可抛出异常: AppException, Exception <br>
      * </p>
      * @return mixed
-     * @throws AppException
      */
     public function input(string $field, $rules = null, $default = null, callable $callback = null)
     {
@@ -367,11 +344,12 @@ class AppInput
 
         // 表单验证
         if ($rules) {
-            list($checkStatus, $msg) = $this->validate($rules, $fieldValue, $fieldTitle);
-            if (!$checkStatus) {
+            try {
+                $this->validate($rules, $fieldValue, $fieldTitle);
+            } catch (AppException $appException) {
                 $error = [
-                    'code' => 0,
-                    'msg' => $msg,
+                    'code' => $appException->getCode(),
+                    'msg' => $appException->getMessage(),
                 ];
             }
         }
@@ -397,7 +375,7 @@ class AppInput
         }
 
         $this->results[$fieldName] = [$fieldValue, $error];
-        return $fieldValue;
+        return $this;
     }
 
     /**
