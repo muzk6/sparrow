@@ -8,13 +8,8 @@ use PDO;
  * 模型基类
  * @package Core
  */
-abstract class BaseModel implements InstanceInterface
+abstract class BaseModel
 {
-    /**
-     * @var static 单例对象
-     */
-    protected static $instance = null;
-
     /**
      * @var string 分区名
      */
@@ -29,23 +24,6 @@ abstract class BaseModel implements InstanceInterface
      * @var string 表名
      */
     protected $table = '';
-
-    protected function __construct()
-    {
-    }
-
-    /**
-     * @inheritdoc
-     * @return static
-     */
-    public static function instance()
-    {
-        if (!static::$instance instanceof static) {
-            static::$instance = new static();
-        }
-
-        return static::$instance;
-    }
 
     /**
      * 分区分表逻辑<br>
@@ -81,15 +59,14 @@ abstract class BaseModel implements InstanceInterface
      * @param int|string $index 分区分表索引值
      * @return string
      */
-    public static function getTable($index = '')
+    public function getTable($index = '')
     {
-        $instance = static::instance();
-        $index && $instance->sharding($index);
+        $index && $this->sharding($index);
 
-        if ($instance->database) {
-            $table = $instance->quote($instance->database) . '.' . $instance->quote($instance->table);
+        if ($this->database) {
+            $table = $this->quote($this->database) . '.' . $this->quote($this->table);
         } else {
-            $table = $instance->quote($instance->table);
+            $table = $this->quote($this->table);
         }
 
         return $table;
@@ -99,10 +76,9 @@ abstract class BaseModel implements InstanceInterface
      * 模型数据库对象<br>
      * @return AppPDO|PDO
      */
-    public static function db()
+    public function db()
     {
-        $instance = static::instance();
-        return db()->section($instance->section)->table(static::getTable());
+        return db()->section($this->section)->table($this->getTable());
     }
 
     /**
@@ -110,10 +86,10 @@ abstract class BaseModel implements InstanceInterface
      * @param int|string $index 分区分表索引值
      * @return AppPDO|PDO
      */
-    public static function sdb($index)
+    public function sdb($index)
     {
-        static::instance()->sharding($index);
-        return static::db();
+        $this->sharding($index);
+        return $this->db();
     }
 
 }

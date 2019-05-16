@@ -1,7 +1,7 @@
 <?php
 
-use Core\AppAes;
 use Core\AppAuth;
+use Core\AppContainer;
 use Core\AppCSRF;
 use Core\AppEmail;
 use Core\AppException;
@@ -13,16 +13,16 @@ use Core\AppQueue;
 use Core\AppWhitelist;
 use Core\AppXdebug;
 use Core\AppYar;
-use Pimple\Container;
 
-function app($name)
+/**
+ * 取容器元素
+ * @param string $name
+ * @return mixed
+ */
+function app(string $name)
 {
-    static $container = null;
-
-    if (!$container) {
-        $container = new Container();
-//        $container->register();
-    }
+    $container = AppContainer::init();
+    return $container[$name];
 }
 
 /**
@@ -205,23 +205,6 @@ function queue()
     }
 
     return $queue;
-}
-
-/**
- * aes
- * @return AppAes
- */
-function aes()
-{
-    /* @var AppAes $openssl */
-    static $openssl = null;
-
-    if (!$openssl) {
-        $conf = config('app');
-        $openssl = core('AppAes', $conf['secret_key']);
-    }
-
-    return $openssl;
 }
 
 /**
@@ -446,22 +429,6 @@ function flash()
     }
 
     return $flash;
-}
-
-/**
- * 用户登录信息
- * @return AppAuth
- */
-function auth()
-{
-    /** @var AppAuth $auth */
-    static $auth = null;
-
-    if (!$auth) {
-        $auth = core('AppAuth', 'AUTH:');
-    }
-
-    return $auth;
 }
 
 /**
