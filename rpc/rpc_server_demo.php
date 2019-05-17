@@ -14,4 +14,4 @@ class Foo
     }
 }
 
-yar()->server(new Foo());
+app('core.yar')->server(new Foo());

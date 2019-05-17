@@ -11,7 +11,6 @@ use Core\AppMessage;
 use Core\AppPDO;
 use Core\AppWhitelist;
 use Core\AppXdebug;
-use Core\AppYar;
 
 /**
  * 取容器元素
@@ -158,27 +157,6 @@ function logfile(string $index, $data, string $type = 'app')
         PATH_LOG, $type, date('ymd'));
 
     return file_put_contents($path, $log . PHP_EOL, FILE_APPEND);
-}
-
-/**
- * yar
- * @return AppYar
- * @throws AppException
- */
-function yar()
-{
-    /* @var AppYar $yar */
-    static $yar = null;
-
-    if (!$yar) {
-        if (!class_exists('\Yar_Client')) {
-            throw new AppException('pecl install msgpack && pecl install yar');
-        }
-
-        $yar = core('AppYar', config('yar'));
-    }
-
-    return $yar;
 }
 
 /**
