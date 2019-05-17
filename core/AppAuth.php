@@ -16,11 +16,11 @@ class AppAuth
 
     /**
      * AppAuth constructor.
-     * @param string $prefix 缓存键前缀
+     * @param array $config
      */
-    public function __construct(string $prefix)
+    public function __construct(array $config)
     {
-        $this->prefix = $prefix;
+        $this->prefix = $config['prefix'];
     }
 
     /**

@@ -21,8 +21,11 @@ class AppContainer
      */
     public static function init()
     {
-        if (!self::$container) {
-            self::$container = new Container();
+        $container = self::$container;
+        if (!$container) {
+            $container = new Container();
+            $container->register(new CoreProvider());
+
             $appProviders = glob(PATH_APP . '/Providers/*.php');
             foreach ($appProviders as $appProvider) {
                 $className = '\App\Providers\\' . rtrim(basename($appProvider), '.php');
@@ -31,10 +34,10 @@ class AppContainer
                     continue;
                 }
 
-                self::$container->register($obj);
+                $container->register($obj);
             }
         }
 
-        return self::$container;
+        return $container;
     }
 }

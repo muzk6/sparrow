@@ -294,9 +294,9 @@ if (is_file('/www/PUB')) { // publish
 - `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
 - 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
 
-##### `redis()` 缓存对象
+##### `app('core.redis')` 缓存对象
 
-- `redis()->setex('key0', 3600, 'foo')` 设置3600过期的缓存
+- `app('core.redis')->setex('key0', 3600, 'foo')` 设置3600过期的缓存
 - 配置文件`config/dev/redis.php`
 
 ##### `queue()` 消息队列对象
@@ -306,10 +306,10 @@ if (is_file('/www/PUB')) { // publish
 - 消费者`worker`例子`workers/worker_demo.php`
 - 配置文件`config/dev/rabbitmq.php`
 
-##### `aes()` AES加密解密对象
+##### app('core.aes') AES加密解密对象
 
-- `$data = aes()->encrypt('foo')` 加密返回密串和初始向量
-- `aes()->decrypt($data['cipher'], $data['iv'])` 解密
+- `$data = app('core.aes')->encrypt('foo')` 加密返回密串和初始向量
+- `app('core.aes')->decrypt($data['cipher'], $data['iv'])` 解密
 
 ##### `back()` 网页跳转回上一步
 
@@ -393,7 +393,7 @@ array (size=4)
 - 非全局，只相对于`session_id`
 - 用于一次性读取的缓存，读取后自动删除对应缓存
 
-##### `auth()` 用户登录信息对象
+##### `app('core.auth')` 用户登录信息对象
 
 - 管理用户登录登出的会话
 

@@ -64,7 +64,7 @@ class AppMiddleware
      */
     public function auth(Closure $next, array $context)
     {
-        if (!auth()->isLogin()) {
+        if (!app('core.auth')->isLogin()) {
             http_response_code(401);
             panic(10001005);
         }

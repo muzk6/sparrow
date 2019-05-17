@@ -6,8 +6,8 @@ namespace PHPSTORM_META {
         \app(),
         map(
             [
-                'Core\AppAes' => \Core\AppAes::class,
-                'Core\AppAuth' => \Core\AppAuth::class,
+                'core.AppAes' => \Core\AppAes::class,
+                'core.AppAuth' => \Core\AppAuth::class,
                 'App\Models\DemoModel' => \App\Models\DemoModel::class,
                 'App\Services\DemoService' => \App\Services\DemoService::class,
             ]

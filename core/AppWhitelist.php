@@ -59,11 +59,11 @@ class AppWhitelist
      */
     public function isSafeUserId()
     {
-        if (!auth()->isLogin()) {
+        if (!app('core.auth')->isLogin()) {
             return false;
         }
 
-        return in_array(auth()->userId(), $this->conf['user_id']);
+        return in_array(app('core.auth')->userId(), $this->conf['user_id']);
     }
 
 }

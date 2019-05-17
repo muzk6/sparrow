@@ -9,7 +9,6 @@ use Core\AppFlash;
 use Core\AppInput;
 use Core\AppMessage;
 use Core\AppPDO;
-use Core\AppQueue;
 use Core\AppWhitelist;
 use Core\AppXdebug;
 use Core\AppYar;
@@ -151,7 +150,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => auth()->userId(),
+        '__userid' => app('core.auth')->userId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
@@ -159,52 +158,6 @@ function logfile(string $index, $data, string $type = 'app')
         PATH_LOG, $type, date('ymd'));
 
     return file_put_contents($path, $log . PHP_EOL, FILE_APPEND);
-}
-
-/**
- * redis
- * @return \Redis
- * @throws null
- */
-function redis()
-{
-    static $redis = null;
-
-    if (!$redis) {
-        if (!extension_loaded('redis')) {
-            throw new AppException('pecl install redis');
-        }
-
-        $conf = config('redis');
-
-        $redis = new Redis();
-        $redis->pconnect($conf['host'], $conf['port'], $conf['timeout']);
-        $redis->setOption(Redis::OPT_PREFIX, $conf['prefix']);
-        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
-    }
-
-    return $redis;
-}
-
-/**
- * 消息队列
- * @return AppQueue
- * @throws null
- */
-function queue()
-{
-    /** @var AppQueue $queue */
-    static $queue = null;
-
-    if (!$queue) {
-        if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
-            throw new AppException('composer require php-amqplib/php-amqplib');
-        }
-
-        $queue = core('AppQueue', config('rabbitmq'));
-    }
-
-    return $queue;
 }
 
 /**
@@ -347,22 +300,22 @@ function input(string $field, $rules = null, $default = null, callable $callback
 function throttle(string $key, int $limit, int $ttl)
 {
     $now = time();
-    if (redis()->lLen($key) < $limit) {
-        $len = redis()->lPush($key, $now);
+    if (app('core.redis')->lLen($key) < $limit) {
+        $len = app('core.redis')->lPush($key, $now);
     } else {
-        $earliest = intval(redis()->lIndex($key, -1));
+        $earliest = intval(app('core.redis')->lIndex($key, -1));
         if ($now - $earliest < $ttl) {
-            redis()->expire($key, $ttl);
+            app('core.redis')->expire($key, $ttl);
             panic('', [
                 'reset' => $earliest + $ttl,
             ]);
         } else {
-            redis()->lTrim($key, 1, 0);
-            $len = redis()->lPush($key, $now);
+            app('core.redis')->lTrim($key, 1, 0);
+            $len = app('core.redis')->lPush($key, $now);
         }
     }
 
-    redis()->expire($key, $ttl);
+    app('core.redis')->expire($key, $ttl);
     return $limit - $len;
 }
 
