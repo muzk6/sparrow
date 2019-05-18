@@ -10,7 +10,7 @@
 
 <h1>My Webpage</h1>
 <form method="post" action="/index/index">
-    {!! csrf()->field() !!}
+    {!! app('app.csrf')->field() !!}
     <button type="submit">submit</button>
 </form>
 </body>

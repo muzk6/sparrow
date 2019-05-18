@@ -6,8 +6,15 @@
 
 require __DIR__ . '/init.php';
 
+$baseMeta = [
+    'app.redis' => 'Redis',
+    'app.queue' => 'Core\AppQueue',
+    'app.yar' => 'Core\AppYar',
+    'app.mail' => 'Core\AppMail',
+    'app.es' => 'Elasticsearch\Client',
+];
 
-function main()
+function main($baseMeta)
 {
     $content = <<<EOT
 <?php
@@ -18,7 +25,7 @@ namespace PHPSTORM_META {
         \app(),
         map(
             [
-{class}
+{meta}
             ]
         )
     );
@@ -28,18 +35,25 @@ namespace PHPSTORM_META {
 EOT;
 
     $blank = str_repeat(' ', 16);
-    $classes = '';
+    $meta = '';
+
+    foreach ($baseMeta as $k => $v) {
+        $meta .= sprintf("%s'%s' => \%s::class,\n", $blank, $k, $v);
+    }
 
     $container = Core\AppContainer::init();
     foreach ($container->keys() as $key) {
-        $className = get_class($container[$key]);
-        if ($className) {
-            $classes .= sprintf("%s'%s' => \%s::class,\n", $blank, $key, $className);
+        try {
+            $className = get_class($container[$key]);
+            if ($className) {
+                $meta .= sprintf("%s'%s' => \%s::class,\n", $blank, $key, $className);
+            }
+        } catch (Exception $exception) {
         }
     }
 
-    $classes = rtrim($classes);
-    $content = str_replace('{class}', $classes, $content);
+    $meta = rtrim($meta);
+    $content = str_replace('{meta}', $meta, $content);
 
     $filename = '.phpstorm.meta.php';
     $rs = file_put_contents(__DIR__ . '/' . $filename, $content);
@@ -51,4 +65,4 @@ EOT;
     echo 'Success: ' . $filename, PHP_EOL;
 }
 
-main();
+main($baseMeta);

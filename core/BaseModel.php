@@ -78,7 +78,7 @@ abstract class BaseModel
      */
     public function db()
     {
-        return db()->section($this->section)->table($this->getTable());
+        return app('app.db')->section($this->section)->table($this->getTable());
     }
 
     /**
@@ -89,7 +89,7 @@ abstract class BaseModel
     public function sdb($index)
     {
         $this->sharding($index);
-        return $this->db();
+        return $this->app('app.db');
     }
 
 }

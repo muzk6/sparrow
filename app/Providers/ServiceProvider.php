@@ -16,7 +16,7 @@ class ServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple[DemoService::class] = function () {
+        $pimple['.DemoService'] = function () {
             return new DemoService();
         };
     }

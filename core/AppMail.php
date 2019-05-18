@@ -12,7 +12,7 @@ use Swift_SmtpTransport;
  * 消息文档 https://swiftmailer.symfony.com/docs/messages.html
  * @package Core
  */
-class AppEmail extends Swift_Mailer
+class AppMail extends Swift_Mailer
 {
     /**
      * @var array 配置文件

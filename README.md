@@ -252,8 +252,8 @@ if (is_file('/www/PUB')) { // publish
 
 使用以下任意一种方法
 
-- `csrf()->field()`直接生成`HTML`
-- `csrf()->token()`生成纯`Token`, 通过接口返回
+- `app('app.csrf')->field()`直接生成`HTML`
+- `app('app.csrf')->token()`生成纯`Token`, 通过接口返回
 
 ##### 请求时带上`Token`
 
@@ -279,11 +279,6 @@ if (is_file('/www/PUB')) { // publish
 - 假设当前语言是`zh_CN`, 默认语言是`en`
 - 依次搜索`lang/zh_CN.php, lang/en.php`, 存在`10001000`这个`key`时返回第一个结果内容，都不存在时返回`?`
 
-##### `core()` 实例化核心类
-
-- `core('AppFlash')`
-- 依次搜索类`App\Core\AppFlash, Core\AppFlash`, 存在时返回第一个结果类，都不存在时返回`null`
-
 ##### `view()` 视图模板对象
 
 - 需要安装`blade`库`composer require duncan3dc/blade`
@@ -294,22 +289,22 @@ if (is_file('/www/PUB')) { // publish
 - `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
 - 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
 
-##### `app('core.redis')` 缓存对象
+##### `app('app.redis')` 缓存对象
 
-- `app('core.redis')->setex('key0', 3600, 'foo')` 设置3600过期的缓存
+- `app('app.redis')->setex('key0', 3600, 'foo')` 设置3600过期的缓存
 - 配置文件`config/dev/redis.php`
 
-##### `queue()` 消息队列对象
+##### `app('app.queue')` 消息队列对象
 
-- `queue()->publish('queue0', ['foo', 'bar'])` 把内容发布到队列`queue0`去
+- `app('app.queue')->publish('queue0', ['foo', 'bar'])` 把内容发布到队列`queue0`去
 - 发布例子`workers/worker_demo.php`
 - 消费者`worker`例子`workers/worker_demo.php`
 - 配置文件`config/dev/rabbitmq.php`
 
-##### app('core.aes') AES加密解密对象
+##### app('app.aes') AES加密解密对象
 
-- `$data = app('core.aes')->encrypt('foo')` 加密返回密串和初始向量
-- `app('core.aes')->decrypt($data['cipher'], $data['iv'])` 解密
+- `$data = app('app.aes')->encrypt('foo')` 加密返回密串和初始向量
+- `app('app.aes')->decrypt($data['cipher'], $data['iv'])` 解密
 
 ##### `back()` 网页跳转回上一步
 
@@ -388,35 +383,35 @@ array (size=4)
 }
 ```
 
-##### `flash()` 闪存对象
+##### `app('app.flash')` 闪存对象
 
 - 非全局，只相对于`session_id`
 - 用于一次性读取的缓存，读取后自动删除对应缓存
 
-##### `app('core.auth')` 用户登录信息对象
+##### `app('app.auth')` 用户登录信息对象
 
 - 管理用户登录登出的会话
 
-##### `admin()` 后台用户登录信息对象
+##### `app('app.admin')` 后台用户登录信息对象
 
 - 管理后台管理员登录登出的会话
 
-##### `whitelist()` 白名单对象
+##### `app('app.whitelist')` 白名单对象
 
 - `IP`白名单
 - `用户ID`白名单
 - 配置文件位于 `config/dev/whitelist.php`
 
-##### `xdebug()` 调试对象
+##### `app('app.xdebug')` 调试对象
 
-- `xdebug()->trace('foo')` 开始记录调试栈信息，以`foo`为相关名字的记录文件保存在`data/trace/` 
+- `app('app.xdebug')->trace('foo')` 开始记录调试栈信息，以`foo`为相关名字的记录文件保存在`data/trace/` 
 
-##### `email()` 电子邮件对象
+##### `app('app.mail')` 电子邮件对象
 
-- `email()->sendText('foo@qq.com', 'title0', 'body0')` 向`foo@qq.com`发送电子邮件
+- `app('app.mail')->sendText('foo@qq.com', 'title0', 'body0')` 向`foo@qq.com`发送电子邮件
 - 配置文件`config/dev/email.php`
 
-##### `es()` elasticsearch 对象
+##### `app('app.es')` elasticsearch 对象
 
 - 配置文件`config/dev/elasticsearch.php`
 
@@ -429,8 +424,8 @@ array (size=4)
 
 ---
 
-#### `db()`数据库查询
-> `db()`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入<br>
+#### `app('app.db')`数据库查询
+> `app('app.db')`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入<br>
 以下所有方法只支持单表操作，需要连表操作请使用原生SQL(原因是使用封装好的连表查询会大大增加复杂度和开发成本)
 
 ##### 查询1行所有列 `->selectOne()`
@@ -438,26 +433,26 @@ array (size=4)
 
 ```php
 // select * from table0 limit 1
-db()->table('table0')->selectOne(null);
+app('app.db')->table('table0')->selectOne(null);
 
 // select * from table0 where id = 1 limit 1
-db()->table('table0')->selectOne('id=1'); // 有注入风险
-db()->table('table0')->selectOne(['id=1']); // 有注入风险
-db()->table('table0')->selectOne(['id=?', 1]); // 防注入
-db()->table('table0')->selectOne(['id=?', [1]]); // 防注入
-db()->table('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
-db()->table('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
+app('app.db')->table('table0')->selectOne('id=1'); // 有注入风险
+app('app.db')->table('table0')->selectOne(['id=1']); // 有注入风险
+app('app.db')->table('table0')->selectOne(['id=?', 1]); // 防注入
+app('app.db')->table('table0')->selectOne(['id=?', [1]]); // 防注入
+app('app.db')->table('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
+app('app.db')->table('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
 
 // 这里用到的 ->where(), 仅当 ->selectOne() 参数为 null 时生效，其它查询同理
-db()->table('table0')->where('id=1')->selectOne(null); // 有注入风险
-db()->table('table0')->where('id=?', 1)->selectOne(null); // 防注入
-db()->table('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
+app('app.db')->table('table0')->where('id=1')->selectOne(null); // 有注入风险
+app('app.db')->table('table0')->where('id=?', 1)->selectOne(null); // 防注入
+app('app.db')->table('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
 
 // select * from table0 where id = 1 and (status=1 or type=2) limit 1
-db()->table('table0')->where('id=?', 1)->where('(status=? or type=?)', 1, 2)->selectOne(null);
+app('app.db')->table('table0')->where('id=?', 1)->where('(status=? or type=?)', 1, 2)->selectOne(null);
 
 // select * from table0 where status=1 or type=2 limit 1 
-db()->table('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne(null);
+app('app.db')->table('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne(null);
 ```
 
 ##### 查询1行1列 `->selectColumn()`
@@ -466,11 +461,11 @@ db()->table('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne(nul
 
 ```php
 // select col1 from table0 limit 1
-db()->table('table0')->selectColumn('col1', null);
-db()->table('table0')->selectColumn(['col1'], null);
+app('app.db')->table('table0')->selectColumn('col1', null);
+app('app.db')->table('table0')->selectColumn(['col1'], null);
 
 // select COUNT(1) from table0 limit 1
-db()->table('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
+app('app.db')->table('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
 ```
 
 ##### 查询多行 `->selectColumn()`
@@ -480,36 +475,36 @@ db()->table('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
 ```php
 // select col1, col2 from table0 order by col1, col2 desc
 // ->orderBy('col1, col2') 等价于 ->append('order by col1, col2')
-db()->table('table0')->orderBy('col1, col2')->selectAll('col1, col2', null);
-db()->table('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2'], null);
+app('app.db')->table('table0')->orderBy('col1, col2')->selectAll('col1, col2', null);
+app('app.db')->table('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2'], null);
 
 // select col1, COUNT(1) from table0 order by 1 desc
-db()->table('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']], null);
+app('app.db')->table('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']], null);
 
 // 查询多行(分页查询)的同时返回记录总行数
 // select sql_calc_found_rows col1 from table0 limit 2
 // select found_rows()
-db()->table('table0')->limit(2)->selectCalc('col1', null);
+app('app.db')->table('table0')->limit(2)->selectCalc('col1', null);
 ```
 
 ##### 查询是否存在
 
 ```
 select 1 from table0 limit 1
-db()->table('table0')->exists('id=128'); // return true, false
+app('app.db')->table('table0')->exists('id=128'); // return true, false
 ```
 
 ##### 综合查询
 
 ```php
 // select * from table0 where id > 100 order by col0 desc limit 0, 10 
-db()->table('table0')->append('order by col0 desc')->limit(10)->selectAll('*', ['id>?', 100]);
+app('app.db')->table('table0')->append('order by col0 desc')->limit(10)->selectAll('*', ['id>?', 100]);
 
 // select col0, col1 from table0 where name like 'tom%' group by col0 limit 0, 10 
-db()->table('table0')->append('group by col0')->page(1, 10)->selectAll('col0, col1', ['name like :name', ['name' => 'tom%']]);
+app('app.db')->table('table0')->append('group by col0')->page(1, 10)->selectAll('col0, col1', ['name like :name', ['name' => 'tom%']]);
 
 // select count(1) from table0
-db()->table('table0')->count(null);
+app('app.db')->table('table0')->count(null);
 ```
 
 ##### `->getWhere()`, `->getLimit()` 方便拼接原生`sql`
@@ -518,15 +513,15 @@ db()->table('table0')->count(null);
 - 同理`->page()`, `->limit()` 也是可以通过`->getLimit()`返回` LIMIT 10,10`这个格式的字符串
 
 ```php
-db()->where('code=?', $code);
-db()->page(1, 5);
-$where = db()->getWhere(); // 没有条件时返回 ['']
-$limit = db()->getLimit();
+app('app.db')->where('code=?', $code);
+app('app.db')->page(1, 5);
+$where = app('app.db')->getWhere(); // 没有条件时返回 ['']
+$limit = app('app.db')->getLimit();
 
 $sql = "select SQL_CALC_FOUND_ROWS * from table0 {$where[0]} {$limit}"
-$st = db()->prepare($sql);
+$st = app('app.db')->prepare($sql);
 $st->execute($where[1] ?? null);
-var_dump(db()->foundRows(), $st->fetchAll(2)); 
+var_dump(app('app.db')->foundRows(), $st->fetchAll(2)); 
 ```
 
 - `append('order by col0 desc')`把自己的`sql`(还支持`group by, having`等等)拼接到`where`语句后面
@@ -536,13 +531,13 @@ var_dump(db()->foundRows(), $st->fetchAll(2));
 
 ```php
 // insert into table0(col0) values(1)
-db()->table('table0')->insert(['col0' => 1]);
+app('app.db')->table('table0')->insert(['col0' => 1]);
 
 // insert into table0(col0) values(1),(2)
-db()->table('table0')->insert([ ['col0' => 1], ['col0' => 2] ]);
+app('app.db')->table('table0')->insert([ ['col0' => 1], ['col0' => 2] ]);
 
 // insert into table0(ctime) values(UNIX_TIMESTAMP())
-db()->table('table0')->insert(['ctime' => ['raw' => 'UNIX_TIMESTAMP()']]);
+app('app.db')->table('table0')->insert(['ctime' => ['raw' => 'UNIX_TIMESTAMP()']]);
 ```
 
 以下两个的用法与`->insert()`一致
@@ -554,10 +549,10 @@ db()->table('table0')->insert(['ctime' => ['raw' => 'UNIX_TIMESTAMP()']]);
 
 ```php
 // insert into table0(col0) values(1) on duplicate key update num = num + 1 
-db()->table('table0')->insertUpdate(['col0' => 1], ['num' => ['raw' => 'num + 1']]);
+app('app.db')->table('table0')->insertUpdate(['col0' => 1], ['num' => ['raw' => 'num + 1']]);
 
 // insert into table0(col0) values(1) on duplicate key update utime = UNIX_TIMESTAMP()
-db()->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['raw' => 'UNIX_TIMESTAMP()']);
+app('app.db')->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['raw' => 'UNIX_TIMESTAMP()']);
 ```
 
 ##### 更新 `->update()`
@@ -565,13 +560,13 @@ db()->table('table0')->insertUpdate(['col0' => 1], ['utime' => ['raw' => 'UNIX_T
 
 ```php
 // update table0 set col0 = 1 where id = 10
-db()->table('table0')->update(['col0' => 1], ['id=?', 10]);
+app('app.db')->table('table0')->update(['col0' => 1], ['id=?', 10]);
 
 // update table0 set num = num + 1 where id = 10
-db()->table('table0')->update(['num' => ['raw' => 'num + 1']], ['id=?', 10]);
+app('app.db')->table('table0')->update(['num' => ['raw' => 'num + 1']], ['id=?', 10]);
 
 // update table0 set utime = UNIX_TIMESTAMP() where id = 10
-db()->table('table0')->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']], ['id=?', 10]);
+app('app.db')->table('table0')->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']], ['id=?', 10]);
 ```
 
 ##### 删除 `->delete()`
@@ -579,7 +574,7 @@ db()->table('table0')->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']], ['id=?
 
 ```php
 // delete from table0 where id = 10
-db()->table('table0')->delete(['id=?', 10]);
+app('app.db')->table('table0')->delete(['id=?', 10]);
 ```
 
 ##### 上一次查询的影响行数 `->affectedRows()`
@@ -587,7 +582,7 @@ db()->table('table0')->delete(['id=?', 10]);
 
 ```php
 // select row_count()
-db()->affectedRows();
+app('app.db')->affectedRows();
 ```
 
 *另外`->lastInsertId()`也会自动切换到主库查询上次插入的`id`*
@@ -597,7 +592,7 @@ db()->affectedRows();
 
 ```php
 // 在主库查询 select * from table0 limit 1
-db()->forceMaster()->table('table0')->selectOne(['id=?', 1]);
+app('app.db')->forceMaster()->table('table0')->selectOne(['id=?', 1]);
 ```
 
 ##### 一次性切换分区 `->section()`
@@ -605,13 +600,13 @@ db()->forceMaster()->table('table0')->selectOne(['id=?', 1]);
 
 ```php
 // 切换到分区 sec0
-db()->section('sec0');
+app('app.db')->section('sec0');
 ```
 
 ---
 
 #### `Model`数据库查询
-> 在`db()`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
+> 在`app('app.db')`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
 
 ##### 配置说明 
 
@@ -626,7 +621,7 @@ db()->section('sec0');
 
 ##### 用例
 
-用法与`db()`一样，不同的是不需要再使用`->table()`来指定表
+用法与`app('app.db')`一样，不同的是不需要再使用`->table()`来指定表
 
 `\App\Models\DemoModel::db()->selectOne(['id=?', 1])`
 

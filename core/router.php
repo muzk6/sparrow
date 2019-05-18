@@ -16,7 +16,7 @@ if ($uri === '/') {
 if ($found) {
     $controllerNs = CONTROLLER_NAMESPACE . $controller;
     if (!is_callable([$controllerNs, $action])) {
-        return core('AppResponseCode')->status404();
+        return app('app.response.code')->status404();
     }
 
     /** ================================= 中间件 ================================= */
@@ -93,8 +93,7 @@ if ($found) {
                 }
             }
 
-            /** @var \Core\AppMiddleware $middlewareInstance */
-            $middlewareInstance = core('AppMiddleware');
+            $middlewareInstance = app('app.middleware');
             $appDocListRevert = array_reverse(array_flip($appDocListFlip));
 
             foreach ($appDocListRevert as $appDocItem) {
@@ -121,12 +120,12 @@ if ($found) {
             }
         }
     } catch (ReflectionException $e) {
-        return core('AppResponseCode')->status404();
+        return app('app.response.code')->status404();
     }
     /** ================================= /中间件 ================================= */
 
-    xdebug()->auto();
+    app('app.xdebug')->auto();
     $next();
 } else {
-    return core('AppResponseCode')->status404();
+    return app('app.response.code')->status404();
 }

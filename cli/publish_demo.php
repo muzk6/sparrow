@@ -6,4 +6,4 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-app('core.queue')->publish('app_task', [date('Y-m-d H:i:s')]);
+app('app.queue')->publish('app_task', [date('Y-m-d H:i:s')]);

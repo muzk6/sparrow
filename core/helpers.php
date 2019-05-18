@@ -1,16 +1,9 @@
 <?php
 
-use Core\AppAuth;
 use Core\AppContainer;
-use Core\AppCSRF;
-use Core\AppEmail;
 use Core\AppException;
-use Core\AppFlash;
 use Core\AppInput;
 use Core\AppMessage;
-use Core\AppPDO;
-use Core\AppWhitelist;
-use Core\AppXdebug;
 
 /**
  * 取容器元素
@@ -70,32 +63,6 @@ function trans(int $code, array $params = [])
 }
 
 /**
- * 实例化 App\Core\, Core\ 类
- * 优先实例化 App\Core\ 命名空间里的，不存在时才实例化 Core\ 里的
- * @param string $className 类名
- * @param mixed $args 构造函数的参数
- * @return stdClass|null
- */
-function core(string $className, ...$args)
-{
-    $appCore = 'App\Core\\' . $className;
-    if (class_exists($appCore)) {
-        $core = $appCore;
-    } else {
-        $core = 'Core\\' . $className;
-    }
-
-    try {
-        $reflector = new ReflectionClass($core);
-        $instance = $reflector->newInstanceArgs($args);
-
-        return $instance;
-    } catch (ReflectionException $e) {
-        return null;
-    }
-}
-
-/**
  * 视图模板
  * @return \duncan3dc\Laravel\BladeInstance
  * @throws null
@@ -113,20 +80,6 @@ function view()
     }
 
     return $blade;
-}
-
-/**
- * 数据库 pdo
- */
-function db()
-{
-    static $pdo = null;
-
-    if (!$pdo) {
-        $pdo = AppPDO::instance(config('database'));
-    }
-
-    return $pdo;
 }
 
 /**
@@ -149,7 +102,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app('core.auth')->userId(),
+        '__userid' => app('app.auth')->userId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
@@ -278,43 +231,23 @@ function input(string $field, $rules = null, $default = null, callable $callback
 function throttle(string $key, int $limit, int $ttl)
 {
     $now = time();
-    if (app('core.redis')->lLen($key) < $limit) {
-        $len = app('core.redis')->lPush($key, $now);
+    if (app('app.redis')->lLen($key) < $limit) {
+        $len = app('app.redis')->lPush($key, $now);
     } else {
-        $earliest = intval(app('core.redis')->lIndex($key, -1));
+        $earliest = intval(app('app.redis')->lIndex($key, -1));
         if ($now - $earliest < $ttl) {
-            app('core.redis')->expire($key, $ttl);
+            app('app.redis')->expire($key, $ttl);
             panic('', [
                 'reset' => $earliest + $ttl,
             ]);
         } else {
-            app('core.redis')->lTrim($key, 1, 0);
-            $len = app('core.redis')->lPush($key, $now);
+            app('app.redis')->lTrim($key, 1, 0);
+            $len = app('app.redis')->lPush($key, $now);
         }
     }
 
-    app('core.redis')->expire($key, $ttl);
+    app('app.redis')->expire($key, $ttl);
     return $limit - $len;
-}
-
-/**
- * CSRF
- * @return AppCSRF
- */
-function csrf()
-{
-    /** @var AppCSRF $csrf */
-    static $csrf = null;
-
-    if (!$csrf) {
-        $conf = config('app');
-        $csrf = core('AppCSRF', [
-            'secret_key' => $conf['secret_key'],
-            'expire' => $conf['csrf_token_expire'],
-        ]);
-    }
-
-    return $csrf;
 }
 
 /**
@@ -344,116 +277,4 @@ function panic($messageOrCode = '', array $data = [])
 function message($messageOrCode = '', array $data = [])
 {
     return new AppMessage($messageOrCode, $data);
-}
-
-/**
- * 闪存
- * @return AppFlash
- */
-function flash()
-{
-    /** @var AppFlash $flash */
-    static $flash = null;
-
-    if (!$flash) {
-        $flash = core('AppFlash');
-    }
-
-    return $flash;
-}
-
-/**
- * 后台用户登录信息
- * @return AppAuth
- */
-function admin()
-{
-    /** @var AppAuth $admin */
-    static $admin = null;
-
-    if (!$admin) {
-        $admin = core('AppAuth', 'ADMIN:');
-    }
-
-    return $admin;
-}
-
-/**
- * 白名单
- * @return AppWhitelist
- */
-function whitelist()
-{
-    /** @var AppWhitelist $whitelist */
-    static $whitelist = null;
-
-    if (!$whitelist) {
-        $whitelist = core('AppWhitelist', config('whitelist'));
-    }
-
-    return $whitelist;
-}
-
-/**
- * Xdebug Trace
- * @return AppXdebug
- */
-function xdebug()
-{
-    /** @var AppXdebug $xdebug */
-    static $xdebug = null;
-
-    if (!$xdebug) {
-        $xdebug = core('AppXdebug');
-    }
-
-    return $xdebug;
-}
-
-/**
- * 电子邮件
- * @return AppEmail
- * @throws null
- */
-function email()
-{
-    /** @var AppEmail $email */
-    static $email = null;
-
-    if (!$email) {
-        if (!class_exists('\Swift_SmtpTransport')) {
-            throw new AppException('composer require swiftmailer/swiftmailer');
-        }
-
-        $email = core('AppEmail', config('email'));
-    }
-
-    return $email;
-}
-
-/**
- * elasticsearch<br>
- * 文档 https://github.com/elastic/elasticsearch-php
- * @return \Elasticsearch\Client
- * @throws null
- */
-function es()
-{
-    static $es = null;
-
-    if (!$es) {
-        if (!class_exists('\Elasticsearch\ClientBuilder')) {
-            throw new AppException('composer require elasticsearch/elasticsearch');
-        }
-
-        $conf = config('elasticsearch');
-        $hosts = $conf['hosts'];
-        shuffle($hosts);
-
-        $es = Elasticsearch\ClientBuilder::create()
-            ->setHosts($hosts)
-            ->build();
-    }
-
-    return $es;
 }

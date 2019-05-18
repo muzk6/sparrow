@@ -21,9 +21,9 @@ class AppMiddleware
      */
     public function csrf(Closure $next, array $context)
     {
-        csrf()->check();
+        app('app.csrf')->check();
         $next();
-        csrf()->refresh();  // 请求完自动刷新令牌过期时间
+        app('app.csrf')->refresh();  // 请求完自动刷新令牌过期时间
     }
 
     /**
@@ -64,7 +64,7 @@ class AppMiddleware
      */
     public function auth(Closure $next, array $context)
     {
-        if (!app('core.auth')->isLogin()) {
+        if (!app('app.auth')->isLogin()) {
             http_response_code(401);
             panic(10001005);
         }

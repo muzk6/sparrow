@@ -9,7 +9,7 @@ use Core\AppException;
 
 require_once dirname(__DIR__) . '/init.php';
 
-if (!whitelist()->isSafeIp()) {
+if (!app('app.whitelist')->isSafeIp()) {
     http_response_code(404);
     exit;
 }

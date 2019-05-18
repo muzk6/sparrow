@@ -7,15 +7,15 @@
 require_once dirname(__DIR__) . '/init.php';
 
 // 串行调用；
-// 开启 Xdebug Trace 跟踪: app('core.yar')->trace('demo_bar')->bar('boo', 'bar')
-var_dump(app('core.yar')->client('demo')->bar('boo', 'bar'));
+// 开启 Xdebug Trace 跟踪: app('app.yar')->trace('demo_bar')->bar('boo', 'bar')
+var_dump(app('app.yar')->client('demo')->bar('boo', 'bar'));
 
 echo str_repeat('-', 50) . PHP_EOL;
 
 // 并行调用
-app('core.yar')->concurrentClient('demo', 'callback')->bar('a1', '并行调用1', 'callback');
-app('core.yar')->concurrentClient('demo', 'callback')->bar('a2', '并行调用2', 'callback');
-app('core.yar')->concurrentLoop();
+app('app.yar')->concurrentClient('demo', 'callback')->bar('a1', '并行调用1', 'callback');
+app('app.yar')->concurrentClient('demo', 'callback')->bar('a2', '并行调用2', 'callback');
+app('app.yar')->concurrentLoop();
 
 function callback($retval, $callinfo)
 {

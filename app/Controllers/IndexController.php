@@ -4,7 +4,6 @@
 namespace App\Controllers;
 
 
-use App\Services\DemoService;
 use Core\BaseController;
 
 /**
@@ -34,7 +33,7 @@ class IndexController extends BaseController
         }
 
         // 没有 return 时响应: {state: true, code: 0, msg: "", data: null}
-        $data = DemoService::instance()->foo();
+        $data = app('.DemoService')->foo();
         if ($req['type'] == 1) {
             return $data;
         } elseif ($req['type'] == 2) {
