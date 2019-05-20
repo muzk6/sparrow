@@ -21,7 +21,7 @@ class AppContainer
      */
     public static function init()
     {
-        $container = self::$container;
+        $container = &self::$container;
         if (!$container) {
             $container = new Container();
             $container->register(new CoreProvider());
