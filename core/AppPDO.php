@@ -11,22 +11,26 @@ use PDO;
  */
 class AppPDO
 {
-    protected $pdoEngine;
+    /**
+     * 连接资源引擎
+     * @var AppPdoEngine
+     */
+    protected $engine;
 
     /**
-     * @var bool 是否强制使用主库
+     * @var string 数据库名
      */
-    protected $isForceMaster = false;
-
-    /**
-     * @var bool 是否使用 SQL_CALC_FOUND_ROWS
-     */
-    protected $foundRows = false;
+    protected $database = '';
 
     /**
      * @var string 表名
      */
     protected $table = '';
+
+    /**
+     * @var bool 是否使用 SQL_CALC_FOUND_ROWS
+     */
+    protected $withFoundRows = false;
 
     /**
      * @var array LIMIT语句
@@ -48,14 +52,9 @@ class AppPDO
      */
     protected $order = '';
 
-    public function __construct(AppPDOEngine $pdoEngine)
+    public function __construct(AppPdoEngine $pdoEngine)
     {
-        $this->pdoEngine = $pdoEngine;
-    }
-
-    public function __destruct()
-    {
-        $this->close();
+        $this->engine = $pdoEngine;
     }
 
     /**
@@ -65,7 +64,8 @@ class AppPDO
     public function close()
     {
         $this->reset();
-        $this->pdoEngine->close();
+        $this->engine->close();
+
         return $this;
     }
 
@@ -77,66 +77,17 @@ class AppPDO
      */
     public function __call($name, $arguments)
     {
-        $isSqlStatement = in_array($name, ['query', 'prepare', 'exec']);
-        if ($isSqlStatement) {
-            $arguments[0] = preg_replace('/\s+/m', ' ', trim($arguments[0]));
-            empty($this->conf['log']) || logfile('statement', ['name' => $name, 'arguments' => $arguments], '__sql');
-        }
-
-        $isSlave = !$this->isForceMaster
-            && $isSqlStatement
-            && strpos(strtolower($arguments[0]), 'select') === 0;
-
-        if (!$this->section) { // 默认区
-            if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
-                if (!$this->slaveConn) {
-                    $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
-                    $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
-                }
-                $pdo = $this->slaveConn;
-
-            } else { // 其它查询使用主库
-                if (!$this->masterConn) {
-                    $master = $this->conf['hosts']['master'];
-                    $this->masterConn = $this->initConnection($master, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
-                }
-                $pdo = $this->masterConn;
-            }
-
-        } else { // 扩展区
-            $sectionConf = &$this->conf['sections'][$this->section];
-
-            if ($isSlave && !empty($sectionConf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
-                $sectionConn = &$this->sectionConn[$this->section]['slave'];
-                if (empty($sectionConn)) {
-                    $slave = $sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)];
-                    $sectionConn = $this->initConnection($slave, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
-                }
-
-                $pdo = $sectionConn;
-            } else { // 其它查询使用主库
-                $sectionConn = &$this->sectionConn[$this->section]['master'];
-                if (empty($sectionConn)) {
-                    $master = $sectionConf['hosts']['master'];
-                    $sectionConn = $this->initConnection($master, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
-                }
-
-                $pdo = $sectionConn;
-            }
-        }
-
-        in_array($name, ['prepare']) || $this->reset();
-        return call_user_func_array([$pdo, $name], $arguments);
+        return $this->engine->call($name, $arguments);
     }
 
     /**
      * 下一次强制使用主库<br>
      * 操作完成后自动重置为非强制
-     * @return AppPDO|PDO
+     * @return static|PDO
      */
     public function forceMaster()
     {
-        $this->isForceMaster = true;
+        $this->engine->forceMaster();
         return $this;
     }
 
@@ -231,7 +182,7 @@ class AppPDO
         $table = $this->getTable();
         $where = $this->parseWhere($where);
         $columns = $this->quoteColumn($columns);
-        $foundRows = $this->foundRows ? 'SQL_CALC_FOUND_ROWS' : '';
+        $foundRows = $this->withFoundRows ? 'SQL_CALC_FOUND_ROWS' : '';
 
         $sql = "SELECT {$foundRows} {$columns} FROM {$table} {$where[0]}"
             . $this->getOrder()
@@ -264,8 +215,8 @@ class AppPDO
      */
     public function selectCalc($columns, $where)
     {
-        $this->foundRows = true;
-        $isForceMaster = $this->isForceMaster;
+        $this->withFoundRows = true;
+        $isForceMaster = $this->engine->getIsForceMaster();
         $data = $this->selectAll($columns, $where);
 
         $isForceMaster && $this->forceMaster();
@@ -348,13 +299,13 @@ class AppPDO
         );
 
         // 记住当前 section, 查询上次插入的 ID 用
-        $section = $this->section;
+        $section = $this->engine->getSection();
 
         /* @var PDO $this */
         $statement = $this->prepare($sql);
         $statement->execute($values);
 
-        return intval($this->section($section)->lastInsertId());
+        return intval($this->setSection($section)->lastInsertId());
     }
 
     /**
@@ -658,7 +609,7 @@ class AppPDO
      * @return $this
      * @see AppPDO::where()
      */
-    protected function logicWhere(string $logic, string $statement, $parameters)
+    private function logicWhere(string $logic, string $statement, $parameters)
     {
         $this->where || $this->where = ['', []];
         $this->where[0] .= ($this->where[0] ? " {$logic} {$statement}" : $statement);
@@ -722,7 +673,7 @@ class AppPDO
      * $this->append
      * @return string
      */
-    protected function getAppend()
+    private function getAppend()
     {
         $append = ' ' . $this->append;
         return $append;
@@ -734,9 +685,9 @@ class AppPDO
      * @param string $name
      * @return AppPDO|PDO
      */
-    public function section(string $name)
+    public function setSection(string $name)
     {
-        $this->section = $name;
+        $this->engine->setSection($name);
         return $this;
     }
 
@@ -746,31 +697,27 @@ class AppPDO
      * @param string $table 完整表名
      * @return AppPDO
      */
-    public function table(string $table)
+    public function setTable(string $table)
     {
         $this->table = $table;
         return $this;
     }
 
     /**
-     * 返回带反引号的表名(支持指定数据库)<br>
-     * <p>table -> `table`</p>
-     * <p>database.table -> `database`.`table`</p>
+     * 返回带反引号的表名(有设置 $this->database 时返回的表名会带上库名)
      * @return string
      * @throws null
      */
-    protected function getTable()
+    public function getTable()
     {
         if (empty($this->table)) {
-            throw new AppException('请先通过 $this->table(...) 指定表名');
+            throw new AppException('请先通过 $this->setTable(...) 指定表名');
         }
 
-        $table = $this->table;
-        if (strpos($table, '.') === false) { // 没有显式指定库名
-            $table = $this->quote($table);
+        if ($this->database) {
+            $table = $this->quote($this->database) . '.' . $this->quote($this->table);
         } else {
-            $dbTable = explode('.', $table);
-            $table = $this->quote($dbTable[0]) . '.' . $this->quote($dbTable[1]);
+            $table = $this->quote($this->table);
         }
 
         return $table;
@@ -781,7 +728,7 @@ class AppPDO
      * @param string $name
      * @return string
      */
-    protected function quote(string $name)
+    private function quote(string $name)
     {
         $name = trim($name);
         if (strpos($name, '`') === false) {
@@ -801,7 +748,7 @@ class AppPDO
      * @param string|array $column
      * @return string
      */
-    protected function quoteColumn($column)
+    private function quoteColumn($column)
     {
         $arrColumn = is_string($column)
             ? explode(',', $column)
@@ -816,11 +763,11 @@ class AppPDO
     /**
      * 参数重置
      */
-    protected function reset()
+    public function reset()
     {
-        $this->section = ''; // 重置为默认分区
-        $this->isForceMaster = false; // 使用完后自动切换为非强制
-        $this->foundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
+        $this->engine->reset();
+
+        $this->withFoundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
         $this->table = ''; // 重置表名
         $this->limit = ''; // 重置LIMIT
         $this->append = ''; // 重置附加语句

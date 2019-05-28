@@ -16,9 +16,13 @@ class CoreProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple[AppPDO::class] = $pimple['app.db'] = function () {
-            return new AppPDO(config('database'));
+        $pimple[AppPdoEngine::class] = function () {
+            return new AppPdoEngine(config('database'));
         };
+
+        $pimple[AppPDO::class] = $pimple['app.db'] = $pimple->factory(function ($container) {
+            return new AppPDO($container[AppPdoEngine::class]);
+        });
 
         $pimple['app.aes'] = function () {
             $conf = config('app');
