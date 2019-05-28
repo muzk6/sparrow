@@ -8,7 +8,7 @@ class DemoService extends BaseService
 {
     public function foo()
     {
-        return 'bar';
+        return 'foo';
     }
 
 }
