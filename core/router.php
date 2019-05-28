@@ -1,5 +1,7 @@
 <?php
 
+use Core\AppContainer;
+
 $uri = parse_url(rawurldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
 $found = false;
@@ -47,7 +49,15 @@ if ($found) {
 
         // 执行控制方法
         $next = function () use ($controllerNs, $action, $response2client) {
-            $response2client(call_user_func([call_user_func([$controllerNs, 'instance']), $action]));
+            $instance = AppContainer::get($controllerNs);
+
+            $ref = new ReflectionClass($controllerNs);
+            $actionParams = [];
+            foreach ($ref->getMethod($action)->getParameters() as $actionParam) {
+                $actionParams[] = AppContainer::get($actionParam->getClass()->getName());
+            }
+
+            $response2client(call_user_func([$instance, $action], ...$actionParams));
         };
 
         // 控制器中间件

@@ -4,6 +4,9 @@
 namespace App\Controllers;
 
 
+use App\Models\DemoModel;
+use App\Services\DemoService;
+use Core\AppContainer;
 use Core\BaseController;
 
 /**
@@ -11,6 +14,21 @@ use Core\BaseController;
  */
 class IndexController extends BaseController
 {
+    public function __construct(DemoService $demoService, DemoModel $model)
+    {
+        AppContainer::init()['ab'] = AppContainer::init()->protect(function () {
+            return mt_rand();
+        });
+        var_dump(app('ab')());
+        AppContainer::init()['model'] = app(DemoModel::class);
+    }
+
+    public function test(DemoService $demoService, DemoModel $model)
+    {
+        var_dump(app('model'));
+        var_dump($demoService->foo());
+    }
+
     /**
      * @get
      */

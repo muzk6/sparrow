@@ -12,8 +12,7 @@ use Core\AppMessage;
  */
 function app(string $name)
 {
-    $container = AppContainer::init();
-    return $container[$name];
+    return AppContainer::get($name);
 }
 
 /**

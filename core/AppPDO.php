@@ -9,33 +9,9 @@ use PDO;
  * 支持主从切换
  * @package Core
  */
-final class AppPDO
+class AppPDO
 {
-    /**
-     * @var PDO 主库连接对象
-     */
-    protected $masterConn;
-
-    /**
-     * @var PDO 从库连接对象
-     */
-    protected $slaveConn;
-
-    /**
-     * @var string 分区<br>
-     * 空为默认分区
-     */
-    protected $section = '';
-
-    /**
-     * @var array 分区的连接对象集合
-     */
-    protected $sectionConn = [];
-
-    /**
-     * @var array 数据库配置
-     */
-    protected $conf;
+    protected $pdoEngine;
 
     /**
      * @var bool 是否强制使用主库
@@ -72,26 +48,14 @@ final class AppPDO
      */
     protected $order = '';
 
-    private function __construct()
+    public function __construct(AppPDOEngine $pdoEngine)
     {
+        $this->pdoEngine = $pdoEngine;
     }
 
     public function __destruct()
     {
         $this->close();
-    }
-
-    /**
-     * 对象实例
-     * @param array $conf 数据库配置，格式 config/dev/database.php
-     * @return PDO|AppPDO
-     */
-    public static function instance(array $conf)
-    {
-        $instance = new static();
-        $instance->conf = $conf;
-
-        return $instance;
     }
 
     /**
@@ -101,32 +65,8 @@ final class AppPDO
     public function close()
     {
         $this->reset();
-        $this->masterConn = null;
-        $this->slaveConn = null;
-        $this->sectionConn = [];
-
+        $this->pdoEngine->close();
         return $this;
-    }
-
-    /**
-     * 创建连接
-     * @param array $host
-     * @param string $user
-     * @param string $passwd
-     * @param string $dbname
-     * @param string $charset
-     * @return PDO
-     */
-    protected function initConnection(array $host, string $user, string $passwd, string $dbname = '', string $charset = '')
-    {
-        $dbnameDsn = $dbname ? "dbname={$dbname};" : '';
-        $charsetDsn = $charset ? "charset={$charset}" : '';
-
-        $pdo = new PDO("mysql:{$dbnameDsn}host={$host['host']};port={$host['port']};{$charsetDsn}", $user, $passwd,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
-        return $pdo;
     }
 
     /**
@@ -208,9 +148,9 @@ final class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return false|string
-     * @see AppPDO::parseWhere() 参考 $where 参数
-     * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectColumn($column, $where)
     {
@@ -238,8 +178,8 @@ final class AppPDO
      * 查询是否存在记录
      * @param string|array|null $where 条件，格式看下面
      * @return bool
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function exists($where)
     {
@@ -250,8 +190,8 @@ final class AppPDO
      * 查询1行
      * @param string|array|null $where 条件，格式看下面
      * @return false|array
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectOne($where)
     {
@@ -282,9 +222,9 @@ final class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组
-     * @see AppPDO::parseWhere() 参考 $where 参数
-     * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectAll($columns, $where)
     {
@@ -318,9 +258,9 @@ final class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组 ['count' => 数量, 'data' => 数据集']
-     * @see AppPDO::parseWhere() 参考 $where 参数
-     * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectCalc($columns, $where)
     {
@@ -436,12 +376,12 @@ final class AppPDO
 
     /**
      * 插入记录，重复时忽略(跳过)<br>
-     * @see AppPDO::insert()
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @return int 返回成功插入后的ID<br>
      * 批量时返回第一条成功插入记录的ID<br>
      * 忽略时返回0
+     * @see AppPDO::insert()
      */
     public function insertIgnore(array $data)
     {
@@ -450,11 +390,11 @@ final class AppPDO
 
     /**
      * 插入记录，重复时覆盖<br>
-     * @see AppPDO::insert()
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @return int 返回成功插入后的ID<br>
      * 批量时返回第一条记录的ID
+     * @see AppPDO::insert()
      */
     public function replace(array $data)
     {
@@ -464,7 +404,6 @@ final class AppPDO
     /**
      * 插入遇到主键或唯一索引记录时进行更新<br>
      * INSERT INTO ... ON DUPLICATE KEY UPDATE ...<br>
-     * @see AppPDO::insert()
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @param array $update 要更新的字段 ['column' => 1]<br>
@@ -472,6 +411,7 @@ final class AppPDO
      * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @return int 返回成功插入或更新后记录的ID<br>
      * 批量时返回最后一条记录的ID
+     * @see AppPDO::insert()
      */
     public function insertUpdate(array $data, array $update)
     {
@@ -484,9 +424,9 @@ final class AppPDO
      * 字段表达式: ['num' => ['raw' => 'num + 1']]<br>
      * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @param string|array|null $where 条件，格式看下面
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function update(array $data, $where)
     {
@@ -538,9 +478,9 @@ final class AppPDO
     /**
      * 删除记录
      * @param string|array|null $where 条件，格式看下面
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function delete($where)
     {
@@ -578,8 +518,8 @@ final class AppPDO
      * 查询总数
      * @param string|array|null $where 条件，格式看下面
      * @return int
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function count($where)
     {
@@ -715,8 +655,8 @@ final class AppPDO
      * @param string $logic AND, OR
      * @param string $statement
      * @param array $parameters
-     * @see AppPDO::where()
      * @return $this
+     * @see AppPDO::where()
      */
     protected function logicWhere(string $logic, string $statement, $parameters)
     {
@@ -743,8 +683,8 @@ final class AppPDO
      * <p>用法与 parseWhere 相同</p>
      * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
      * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
-     * @see AppPDO::parseWhere()
      * @return AppPDO
+     * @see AppPDO::parseWhere()
      */
     public function where(string $statement, ...$parameters)
     {
@@ -758,8 +698,8 @@ final class AppPDO
      * <p>用法与 parseWhere 相同</p>
      * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
      * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
-     * @see AppPDO::parseWhere()
      * @return AppPDO
+     * @see AppPDO::parseWhere()
      */
     public function orWhere(string $statement, ...$parameters)
     {
