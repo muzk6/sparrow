@@ -5,12 +5,8 @@
  * php test.php
  */
 
-use Core\AppException;
-
 require_once dirname(__DIR__) . '/init.php';
 
-try {
+invoke(function () {
     //todo...
-} catch (AppException $exception) {
-    var_dump(format2api($exception));
-}
+});

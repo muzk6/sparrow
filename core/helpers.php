@@ -16,6 +16,27 @@ function app(string $name)
 }
 
 /**
+ * 支持依赖自动注入的函数调用
+ * @param callable $fn
+ * @return mixed
+ */
+function invoke(callable $fn)
+{
+    try {
+        $ref = new ReflectionFunction($fn);
+    } catch (ReflectionException $e) {
+        trigger_error($e->getMessage());
+    }
+
+    $actionParams = [];
+    foreach ($ref->getParameters() as $param) {
+        $actionParams[] = AppContainer::get($param->getClass()->getName());
+    }
+
+    return $ref->invokeArgs($actionParams);
+}
+
+/**
  * 配置文件<br>
  * 优先从当前环境目录搜索配置文件
  * @param string $filename 无后缀的文件名

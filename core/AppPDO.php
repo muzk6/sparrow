@@ -702,13 +702,24 @@ class AppPDO
     }
 
     /**
-     * 连接资源的分区名
-     * @param string $name
+     * 设置连接资源的分区名
+     * @param string $section
      * @return AppPDO|PDO
      */
-    public function setSection(string $name)
+    public function setSection(string $section)
     {
-        $this->engine->setSection($name);
+        $this->section = $section;
+        return $this;
+    }
+
+    /**
+     * 设置数据库名
+     * @param string $database
+     * @return $this
+     */
+    public function setDatabase(string $database)
+    {
+        $this->database = $database;
         return $this;
     }
 

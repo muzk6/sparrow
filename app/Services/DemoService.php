@@ -14,10 +14,9 @@ class DemoService extends BaseService
         $this->model = $demoModel;
     }
 
-
     public function foo()
     {
-        return 'bar';
+        return 'foo';
     }
 
 }
