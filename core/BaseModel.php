@@ -2,16 +2,14 @@
 
 namespace Core;
 
-use PDO;
-
 /**
  * 模型基类
  * @package Core
  */
-abstract class BaseModel
+abstract class BaseModel extends AppPDO
 {
     /**
-     * @var string 分区名
+     * @var string 连接资源的分区名
      */
     protected $section = '';
 
@@ -26,70 +24,15 @@ abstract class BaseModel
     protected $table = '';
 
     /**
-     * 分区分表逻辑<br>
-     * 具体逻辑在子类中覆盖实现<br>
-     * 修改 $this->section, $this->database, $this->table
+     * 分区分表逻辑
+     * <p>具体逻辑在子类中覆盖实现</p>
+     * <p>修改 $this->section, $this->database, $this->table</p>
      * @param int|string $index 分区分表索引值
-     * @return static
+     * @return static|PDO
      */
-    protected function sharding($index)
+    public function sharding($index)
     {
         return $this;
-    }
-
-    /**
-     * 反引号修饰处理
-     * @param string $name
-     * @return string
-     */
-    protected function quote(string $name)
-    {
-        $name = trim($name);
-        if (strpos($name, '`') === false) {
-            $name = "`{$name}`";
-        }
-
-        return $name;
-    }
-
-    /**
-     * 返回带反引号的表名(支持指定数据库)<br>
-     * <p>table -> `table`</p>
-     * <p>database.table -> `database`.`table`</p>
-     * @param int|string $index 分区分表索引值
-     * @return string
-     */
-    public function getTable($index = '')
-    {
-        $index && $this->sharding($index);
-
-        if ($this->database) {
-            $table = $this->quote($this->database) . '.' . $this->quote($this->table);
-        } else {
-            $table = $this->quote($this->table);
-        }
-
-        return $table;
-    }
-
-    /**
-     * 模型数据库对象<br>
-     * @return AppPDO|PDO
-     */
-    public function db()
-    {
-        return app('app.db')->section($this->section)->table($this->getTable());
-    }
-
-    /**
-     * 模型分区分表数据库对象 ShardingDB
-     * @param int|string $index 分区分表索引值
-     * @return AppPDO|PDO
-     */
-    public function sdb($index)
-    {
-        $this->sharding($index);
-        return $this->app('app.db');
     }
 
 }

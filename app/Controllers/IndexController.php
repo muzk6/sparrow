@@ -4,6 +4,7 @@
 namespace App\Controllers;
 
 
+use Core\AppException;
 use Core\BaseController;
 
 /**
@@ -22,7 +23,7 @@ class IndexController extends BaseController
     /**
      * @api
      * @post
-     * @throws \Core\AppException
+     * @throws AppException
      */
     public function api()
     {

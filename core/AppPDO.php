@@ -9,43 +9,17 @@ use PDO;
  * 支持主从切换
  * @package Core
  */
-final class AppPDO
+class AppPDO
 {
     /**
-     * @var PDO 主库连接对象
-     */
-    protected $masterConn;
-
-    /**
-     * @var PDO 从库连接对象
-     */
-    protected $slaveConn;
-
-    /**
-     * @var string 分区<br>
-     * 空为默认分区
+     * @var string 连接资源的分区名
      */
     protected $section = '';
 
     /**
-     * @var array 分区的连接对象集合
+     * @var string 数据库名
      */
-    protected $sectionConn = [];
-
-    /**
-     * @var array 数据库配置
-     */
-    protected $conf;
-
-    /**
-     * @var bool 是否强制使用主库
-     */
-    protected $isForceMaster = false;
-
-    /**
-     * @var bool 是否使用 SQL_CALC_FOUND_ROWS
-     */
-    protected $foundRows = false;
+    protected $database = '';
 
     /**
      * @var string 表名
@@ -53,45 +27,50 @@ final class AppPDO
     protected $table = '';
 
     /**
+     * 用于存放原始元数据，即 sharding 前的 section, database, table
+     * @var array
+     */
+    private $originalMeta = [];
+
+    /**
+     * 连接资源引擎
+     * @var AppPdoEngine|PDO
+     */
+    private $engine;
+
+    /**
+     * @var bool 是否使用 SQL_CALC_FOUND_ROWS
+     */
+    private $withFoundRows = false;
+
+    /**
      * @var array LIMIT语句
      */
-    protected $limit = '';
+    private $limit = '';
 
     /**
      * @var string 追加的 SQL语句
      */
-    protected $append = '';
+    private $append = '';
 
     /**
      * @var array|null WHERE条件组
      */
-    protected $where = null;
+    private $where = null;
 
     /**
      * @var string ORDER语句
      */
-    protected $order = '';
+    private $order = '';
 
-    private function __construct()
+    public function __construct(AppPdoEngine $pdoEngine)
     {
-    }
-
-    public function __destruct()
-    {
-        $this->close();
-    }
-
-    /**
-     * 对象实例
-     * @param array $conf 数据库配置，格式 config/dev/database.php
-     * @return PDO|AppPDO
-     */
-    public static function instance(array $conf)
-    {
-        $instance = new static();
-        $instance->conf = $conf;
-
-        return $instance;
+        $this->engine = $pdoEngine;
+        $this->originalMeta = [
+            'section' => $this->section,
+            'database' => $this->database,
+            'table' => $this->table,
+        ];
     }
 
     /**
@@ -100,103 +79,37 @@ final class AppPDO
      */
     public function close()
     {
-        $this->reset();
-        $this->masterConn = null;
-        $this->slaveConn = null;
-        $this->sectionConn = [];
-
+        $this->engine->close();
         return $this;
     }
 
     /**
-     * 创建连接
-     * @param array $host
-     * @param string $user
-     * @param string $passwd
-     * @param string $dbname
-     * @param string $charset
-     * @return PDO
-     */
-    protected function initConnection(array $host, string $user, string $passwd, string $dbname = '', string $charset = '')
-    {
-        $dbnameDsn = $dbname ? "dbname={$dbname};" : '';
-        $charsetDsn = $charset ? "charset={$charset}" : '';
-
-        $pdo = new PDO("mysql:{$dbnameDsn}host={$host['host']};port={$host['port']};{$charsetDsn}", $user, $passwd,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
-        return $pdo;
-    }
-
-    /**
-     * 魔术方法自动切换主从
+     * 所有PDO的底层查询都经过这里
      * @param string $name
      * @param array $arguments
      * @return mixed
      */
     public function __call($name, $arguments)
     {
-        $isSqlStatement = in_array($name, ['query', 'prepare', 'exec']);
-        if ($isSqlStatement) {
-            $arguments[0] = preg_replace('/\s+/m', ' ', trim($arguments[0]));
-            empty($this->conf['log']) || logfile('statement', ['name' => $name, 'arguments' => $arguments], '__sql');
+        $this->engine->setSection($this->section);
+        $result = $this->engine->call($name, $arguments);
+
+        // 还原回构造对象时的元数据
+        foreach ($this->originalMeta as $k => $v) {
+            $this->$k = $v;
         }
 
-        $isSlave = !$this->isForceMaster
-            && $isSqlStatement
-            && strpos(strtolower($arguments[0]), 'select') === 0;
-
-        if (!$this->section) { // 默认区
-            if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
-                if (!$this->slaveConn) {
-                    $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
-                    $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
-                }
-                $pdo = $this->slaveConn;
-
-            } else { // 其它查询使用主库
-                if (!$this->masterConn) {
-                    $master = $this->conf['hosts']['master'];
-                    $this->masterConn = $this->initConnection($master, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
-                }
-                $pdo = $this->masterConn;
-            }
-
-        } else { // 扩展区
-            $sectionConf = &$this->conf['sections'][$this->section];
-
-            if ($isSlave && !empty($sectionConf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
-                $sectionConn = &$this->sectionConn[$this->section]['slave'];
-                if (empty($sectionConn)) {
-                    $slave = $sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)];
-                    $sectionConn = $this->initConnection($slave, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
-                }
-
-                $pdo = $sectionConn;
-            } else { // 其它查询使用主库
-                $sectionConn = &$this->sectionConn[$this->section]['master'];
-                if (empty($sectionConn)) {
-                    $master = $sectionConf['hosts']['master'];
-                    $sectionConn = $this->initConnection($master, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
-                }
-
-                $pdo = $sectionConn;
-            }
-        }
-
-        in_array($name, ['prepare']) || $this->reset();
-        return call_user_func_array([$pdo, $name], $arguments);
+        return $result;
     }
 
     /**
      * 下一次强制使用主库<br>
      * 操作完成后自动重置为非强制
-     * @return AppPDO|PDO
+     * @return static|PDO
      */
     public function forceMaster()
     {
-        $this->isForceMaster = true;
+        $this->engine->forceMaster();
         return $this;
     }
 
@@ -208,9 +121,9 @@ final class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return false|string
-     * @see AppPDO::parseWhere() 参考 $where 参数
-     * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectColumn($column, $where)
     {
@@ -238,8 +151,8 @@ final class AppPDO
      * 查询是否存在记录
      * @param string|array|null $where 条件，格式看下面
      * @return bool
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function exists($where)
     {
@@ -250,8 +163,8 @@ final class AppPDO
      * 查询1行
      * @param string|array|null $where 条件，格式看下面
      * @return false|array
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectOne($where)
     {
@@ -282,16 +195,16 @@ final class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组
-     * @see AppPDO::parseWhere() 参考 $where 参数
-     * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectAll($columns, $where)
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
         $columns = $this->quoteColumn($columns);
-        $foundRows = $this->foundRows ? 'SQL_CALC_FOUND_ROWS' : '';
+        $foundRows = $this->withFoundRows ? 'SQL_CALC_FOUND_ROWS' : '';
 
         $sql = "SELECT {$foundRows} {$columns} FROM {$table} {$where[0]}"
             . $this->getOrder()
@@ -318,14 +231,14 @@ final class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组 ['count' => 数量, 'data' => 数据集']
-     * @see AppPDO::parseWhere() 参考 $where 参数
-     * @see AppPDO::quoteColumn() 参考字段参数
      * @throws AppException
+     * @see AppPDO::quoteColumn() 参考字段参数
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectCalc($columns, $where)
     {
-        $this->foundRows = true;
-        $isForceMaster = $this->isForceMaster;
+        $this->withFoundRows = true;
+        $isForceMaster = $this->engine->getIsForceMaster();
         $data = $this->selectAll($columns, $where);
 
         $isForceMaster && $this->forceMaster();
@@ -408,13 +321,13 @@ final class AppPDO
         );
 
         // 记住当前 section, 查询上次插入的 ID 用
-        $section = $this->section;
+        $section = $this->engine->getSection();
 
         /* @var PDO $this */
         $statement = $this->prepare($sql);
         $statement->execute($values);
 
-        return intval($this->section($section)->lastInsertId());
+        return intval($this->setSection($section)->lastInsertId());
     }
 
     /**
@@ -436,12 +349,12 @@ final class AppPDO
 
     /**
      * 插入记录，重复时忽略(跳过)<br>
-     * @see AppPDO::insert()
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @return int 返回成功插入后的ID<br>
      * 批量时返回第一条成功插入记录的ID<br>
      * 忽略时返回0
+     * @see AppPDO::insert()
      */
     public function insertIgnore(array $data)
     {
@@ -450,11 +363,11 @@ final class AppPDO
 
     /**
      * 插入记录，重复时覆盖<br>
-     * @see AppPDO::insert()
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @return int 返回成功插入后的ID<br>
      * 批量时返回第一条记录的ID
+     * @see AppPDO::insert()
      */
     public function replace(array $data)
     {
@@ -464,7 +377,6 @@ final class AppPDO
     /**
      * 插入遇到主键或唯一索引记录时进行更新<br>
      * INSERT INTO ... ON DUPLICATE KEY UPDATE ...<br>
-     * @see AppPDO::insert()
      * @param array $data 要插入的数据<br>
      * 详情参考 AppPDO::insert()
      * @param array $update 要更新的字段 ['column' => 1]<br>
@@ -472,6 +384,7 @@ final class AppPDO
      * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @return int 返回成功插入或更新后记录的ID<br>
      * 批量时返回最后一条记录的ID
+     * @see AppPDO::insert()
      */
     public function insertUpdate(array $data, array $update)
     {
@@ -484,9 +397,9 @@ final class AppPDO
      * 字段表达式: ['num' => ['raw' => 'num + 1']]<br>
      * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @param string|array|null $where 条件，格式看下面
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function update(array $data, $where)
     {
@@ -538,9 +451,9 @@ final class AppPDO
     /**
      * 删除记录
      * @param string|array|null $where 条件，格式看下面
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @return int 影响行数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function delete($where)
     {
@@ -578,8 +491,8 @@ final class AppPDO
      * 查询总数
      * @param string|array|null $where 条件，格式看下面
      * @return int
-     * @see AppPDO::parseWhere() 参考 $where 参数
      * @throws AppException
+     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function count($where)
     {
@@ -715,10 +628,10 @@ final class AppPDO
      * @param string $logic AND, OR
      * @param string $statement
      * @param array $parameters
-     * @see AppPDO::where()
      * @return $this
+     * @see AppPDO::where()
      */
-    protected function logicWhere(string $logic, string $statement, $parameters)
+    private function logicWhere(string $logic, string $statement, $parameters)
     {
         $this->where || $this->where = ['', []];
         $this->where[0] .= ($this->where[0] ? " {$logic} {$statement}" : $statement);
@@ -743,8 +656,8 @@ final class AppPDO
      * <p>用法与 parseWhere 相同</p>
      * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
      * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
-     * @see AppPDO::parseWhere()
      * @return AppPDO
+     * @see AppPDO::parseWhere()
      */
     public function where(string $statement, ...$parameters)
     {
@@ -758,8 +671,8 @@ final class AppPDO
      * <p>用法与 parseWhere 相同</p>
      * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
      * @param array $parameters 需要绑定参数值 即parseWhere() 的 $where[1]
-     * @see AppPDO::parseWhere()
      * @return AppPDO
+     * @see AppPDO::parseWhere()
      */
     public function orWhere(string $statement, ...$parameters)
     {
@@ -782,55 +695,60 @@ final class AppPDO
      * $this->append
      * @return string
      */
-    protected function getAppend()
+    private function getAppend()
     {
         $append = ' ' . $this->append;
         return $append;
     }
 
     /**
-     * 一次性切换分区<br>
-     * 查询完成后自动切换回默认分区
-     * @param string $name
+     * 设置连接资源的分区名
+     * @param string $section
      * @return AppPDO|PDO
      */
-    public function section(string $name)
+    public function setSection(string $section)
     {
-        $this->section = $name;
+        $this->section = $section;
         return $this;
     }
 
     /**
-     * 一次性切换表(切换库可以显式指定数据库)<br>
-     * 查询完成后自动重置为空
-     * @param string $table 完整表名
+     * 设置数据库名
+     * @param string $database
+     * @return $this
+     */
+    public function setDatabase(string $database)
+    {
+        $this->database = $database;
+        return $this;
+    }
+
+    /**
+     * 设置表名
+     * @param string $table 表名
      * @return AppPDO
      */
-    public function table(string $table)
+    public function setTable(string $table)
     {
         $this->table = $table;
         return $this;
     }
 
     /**
-     * 返回带反引号的表名(支持指定数据库)<br>
-     * <p>table -> `table`</p>
-     * <p>database.table -> `database`.`table`</p>
+     * 返回带反引号的表名(有设置 $this->database 时返回的表名会带上库名)
      * @return string
      * @throws null
      */
-    protected function getTable()
+    public function getTable()
     {
         if (empty($this->table)) {
-            throw new AppException('请先通过 $this->table(...) 指定表名');
+            throw new AppException('请先通过 $this->setTable(...) 指定表名');
         }
 
-        $table = $this->table;
-        if (strpos($table, '.') === false) { // 没有显式指定库名
-            $table = $this->quote($table);
+        if ($this->database) {
+            $table = $this->quote($this->database) . '.' . $this->quote($this->table);
         } else {
-            $dbTable = explode('.', $table);
-            $table = $this->quote($dbTable[0]) . '.' . $this->quote($dbTable[1]);
+            $table = $this->quote($this->table);
         }
 
         return $table;
@@ -841,7 +759,7 @@ final class AppPDO
      * @param string $name
      * @return string
      */
-    protected function quote(string $name)
+    private function quote(string $name)
     {
         $name = trim($name);
         if (strpos($name, '`') === false) {
@@ -861,7 +779,7 @@ final class AppPDO
      * @param string|array $column
      * @return string
      */
-    protected function quoteColumn($column)
+    private function quoteColumn($column)
     {
         $arrColumn = is_string($column)
             ? explode(',', $column)
@@ -876,12 +794,11 @@ final class AppPDO
     /**
      * 参数重置
      */
-    protected function reset()
+    public function reset()
     {
-        $this->section = ''; // 重置为默认分区
-        $this->isForceMaster = false; // 使用完后自动切换为非强制
-        $this->foundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
-        $this->table = ''; // 重置表名
+        $this->engine->reset();
+
+        $this->withFoundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
         $this->limit = ''; // 重置LIMIT
         $this->append = ''; // 重置附加语句
         $this->order = ''; // 重置ORDER

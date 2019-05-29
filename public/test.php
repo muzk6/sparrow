@@ -5,8 +5,6 @@
  * http://{HOST}/test.php
  */
 
-use Core\AppException;
-
 require_once dirname(__DIR__) . '/init.php';
 
 if (!app('app.whitelist')->isSafeIp()) {
@@ -14,8 +12,6 @@ if (!app('app.whitelist')->isSafeIp()) {
     exit;
 }
 
-try {
+invoke(function () {
     //todo...
-} catch (AppException $exception) {
-    var_dump(format2api($exception));
-}
+});

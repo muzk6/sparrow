@@ -4,7 +4,6 @@
 namespace App\Providers;
 
 
-use App\Models\DemoModel;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 
@@ -16,9 +15,7 @@ class ModelProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple['.DemoModel'] = function () {
-            return new DemoModel();
-        };
+
     }
 
 }

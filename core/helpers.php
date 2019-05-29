@@ -12,8 +12,28 @@ use Core\AppMessage;
  */
 function app(string $name)
 {
-    $container = AppContainer::init();
-    return $container[$name];
+    return AppContainer::get($name);
+}
+
+/**
+ * 支持依赖自动注入的函数调用
+ * @param callable $fn
+ * @return mixed
+ */
+function invoke(callable $fn)
+{
+    try {
+        $ref = new ReflectionFunction($fn);
+    } catch (ReflectionException $e) {
+        trigger_error($e->getMessage());
+    }
+
+    $actionParams = [];
+    foreach ($ref->getParameters() as $param) {
+        $actionParams[] = AppContainer::get($param->getClass()->getName());
+    }
+
+    return $ref->invokeArgs($actionParams);
 }
 
 /**
