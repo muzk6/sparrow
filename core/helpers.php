@@ -182,10 +182,11 @@ function ip()
 
 /**
  * 构造接口响应格式
- * @param array|stdClass|Exception|AppMessage $data
+ * @param bool|Exception $state
+ * @param array $data
  * @return array
  */
-function format2api($data)
+function api_format($state, $data)
 {
     $response = [
         's' => false,
@@ -202,7 +203,7 @@ function format2api($data)
             $response['d'] = (object)$data->getData();
         }
     } else {
-        $response['s'] = true;
+        $response['s'] = boolval($state);
 
         if ($data instanceof AppMessage) {
             $response['c'] = intval($data->getCode());
@@ -218,13 +219,14 @@ function format2api($data)
 
 /**
  * JSON类型的API格式数据
- * @param array|stdClass|Exception|AppMessage $data
+ * @param bool|Exception $state
+ * @param array $data
  * @return string
  */
-function json2api($data)
+function json_api($state, array $data = [])
 {
     headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
-    return json_encode(format2api($data));
+    return json_encode(api_format($state, $data));
 }
 
 /**
