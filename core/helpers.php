@@ -20,12 +20,13 @@ function app(string $name)
  * @param callable $fn
  * @return mixed
  */
-function invoke(callable $fn)
+function inject(callable $fn)
 {
     try {
         $ref = new ReflectionFunction($fn);
     } catch (ReflectionException $e) {
         trigger_error($e->getMessage());
+        return null;
     }
 
     $actionParams = [];
@@ -187,32 +188,43 @@ function ip()
 function format2api($data)
 {
     $response = [
-        'state' => false,
-        'code' => 0,
-        'msg' => '',
-        'data' => new stdClass(),
+        's' => false,
+        'c' => 0,
+        'm' => '',
+        'd' => new stdClass(),
     ];
 
     if ($data instanceof Exception) {
-        $response['code'] = intval($data->getCode());
-        $response['msg'] = strval($data->getMessage());
+        $response['c'] = intval($data->getCode());
+        $response['m'] = strval($data->getMessage());
 
         if ($data instanceof AppException) {
-            $response['data'] = (object)$data->getData();
+            $response['d'] = (object)$data->getData();
         }
     } else {
-        $response['state'] = true;
+        $response['s'] = true;
 
         if ($data instanceof AppMessage) {
-            $response['code'] = intval($data->getCode());
-            $response['msg'] = strval($data->getMessage());
-            $response['data'] = (object)$data->getData();
+            $response['c'] = intval($data->getCode());
+            $response['m'] = strval($data->getMessage());
+            $response['d'] = (object)$data->getData();
         } else {
-            $response['data'] = is_array($data) ? (object)$data : $data;
+            $response['d'] = is_array($data) ? (object)$data : $data;
         }
     }
 
     return $response;
+}
+
+/**
+ * JSON类型的API格式数据
+ * @param array|stdClass|Exception|AppMessage $data
+ * @return string
+ */
+function json2api($data)
+{
+    headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
+    return json_encode(format2api($data));
 }
 
 /**
@@ -231,7 +243,6 @@ function format2api($data)
  * 可抛出异常: AppException, Exception <br>
  * </p>
  * @return AppInput
- * @throws AppException
  */
 function input(string $field, $rules = null, $default = null, callable $callback = null)
 {

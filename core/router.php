@@ -33,18 +33,7 @@ if ($found) {
         strpos($actionDoc, '@api') !== false && $responseTypeApi = true;
 
         $response2client = function ($responseContent) use ($responseTypeApi) {
-            if ($responseTypeApi) { // 接口响应格式
-                headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
-                echo json_encode(format2api($responseContent));
-            } else { // 网页响应格式
-                if ($responseContent instanceof Exception) {
-                    throw $responseContent;
-                }
-
-                echo (is_array($responseContent) || is_object($responseContent))
-                    ? json_encode($responseContent)
-                    : $responseContent;
-            }
+            echo $responseContent;
         };
 
         // 执行控制方法

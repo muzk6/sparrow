@@ -12,6 +12,6 @@ if (!app('app.whitelist')->isSafeIp()) {
     exit;
 }
 
-invoke(function () {
+inject(function () {
     //todo...
 });
