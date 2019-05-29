@@ -17,7 +17,6 @@ class DemoService extends BaseService
 
     public function foo()
     {
-        return $this->model->db()->selectAll('id', null);
         return 'bar';
     }
 

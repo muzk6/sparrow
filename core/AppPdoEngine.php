@@ -6,6 +6,10 @@ namespace Core;
 
 use PDO;
 
+/**
+ * PDO引擎，管理连接资源、执行查询
+ * @package Core
+ */
 class AppPdoEngine
 {
     /**
@@ -19,8 +23,7 @@ class AppPdoEngine
     protected $slaveConn;
 
     /**
-     * @var string 分区<br>
-     * 空为默认分区
+     * @var string 连接资源的分区名，空为默认分区
      */
     protected $section = '';
 
@@ -164,8 +167,7 @@ class AppPdoEngine
     }
 
     /**
-     * 一次性切换分区<br>
-     * 查询完成后自动切换回默认分区
+     * 一次性切换分区，查询完成后自动切换回默认分区
      * @param string $name
      * @return AppPdoEngine
      */
@@ -176,7 +178,7 @@ class AppPdoEngine
     }
 
     /**
-     * 分区名
+     * 连接资源的分区名
      * @return string
      */
     public function getSection()

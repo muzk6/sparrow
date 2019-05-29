@@ -12,10 +12,9 @@ use PDO;
 class AppPDO
 {
     /**
-     * 连接资源引擎
-     * @var AppPdoEngine
+     * @var string 连接资源的分区名
      */
-    protected $engine;
+    protected $section = '';
 
     /**
      * @var string 数据库名
@@ -28,33 +27,50 @@ class AppPDO
     protected $table = '';
 
     /**
+     * 用于存放原始元数据，即 sharding 前的 section, database, table
+     * @var array
+     */
+    private $originalMeta = [];
+
+    /**
+     * 连接资源引擎
+     * @var AppPdoEngine|PDO
+     */
+    private $engine;
+
+    /**
      * @var bool 是否使用 SQL_CALC_FOUND_ROWS
      */
-    protected $withFoundRows = false;
+    private $withFoundRows = false;
 
     /**
      * @var array LIMIT语句
      */
-    protected $limit = '';
+    private $limit = '';
 
     /**
      * @var string 追加的 SQL语句
      */
-    protected $append = '';
+    private $append = '';
 
     /**
      * @var array|null WHERE条件组
      */
-    protected $where = null;
+    private $where = null;
 
     /**
      * @var string ORDER语句
      */
-    protected $order = '';
+    private $order = '';
 
     public function __construct(AppPdoEngine $pdoEngine)
     {
         $this->engine = $pdoEngine;
+        $this->originalMeta = [
+            'section' => $this->section,
+            'database' => $this->database,
+            'table' => $this->table,
+        ];
     }
 
     /**
@@ -63,21 +79,27 @@ class AppPDO
      */
     public function close()
     {
-        $this->reset();
         $this->engine->close();
-
         return $this;
     }
 
     /**
-     * 魔术方法自动切换主从
+     * 所有PDO的底层查询都经过这里
      * @param string $name
      * @param array $arguments
      * @return mixed
      */
     public function __call($name, $arguments)
     {
-        return $this->engine->call($name, $arguments);
+        $this->engine->setSection($this->section);
+        $result = $this->engine->call($name, $arguments);
+
+        // 还原回构造对象时的元数据
+        foreach ($this->originalMeta as $k => $v) {
+            $this->$k = $v;
+        }
+
+        return $result;
     }
 
     /**
@@ -680,8 +702,7 @@ class AppPDO
     }
 
     /**
-     * 一次性切换分区<br>
-     * 查询完成后自动切换回默认分区
+     * 连接资源的分区名
      * @param string $name
      * @return AppPDO|PDO
      */
@@ -692,9 +713,8 @@ class AppPDO
     }
 
     /**
-     * 一次性切换表(切换库可以显式指定数据库)<br>
-     * 查询完成后自动重置为空
-     * @param string $table 完整表名
+     * 设置表名
+     * @param string $table 表名
      * @return AppPDO
      */
     public function setTable(string $table)
@@ -768,7 +788,6 @@ class AppPDO
         $this->engine->reset();
 
         $this->withFoundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
-        $this->table = ''; // 重置表名
         $this->limit = ''; // 重置LIMIT
         $this->append = ''; // 重置附加语句
         $this->order = ''; // 重置ORDER

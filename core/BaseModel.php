@@ -9,7 +9,7 @@ namespace Core;
 abstract class BaseModel extends AppPDO
 {
     /**
-     * @var string 分区名
+     * @var string 连接资源的分区名
      */
     protected $section = '';
 
@@ -28,11 +28,10 @@ abstract class BaseModel extends AppPDO
      * <p>具体逻辑在子类中覆盖实现</p>
      * <p>修改 $this->section, $this->database, $this->table</p>
      * @param int|string $index 分区分表索引值
-     * @return static
+     * @return static|PDO
      */
     public function sharding($index)
     {
-        $this->setSection($this->section)->setTable($this->getTable());
         return $this;
     }
 
