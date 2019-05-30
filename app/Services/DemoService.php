@@ -7,16 +7,17 @@ use Core\BaseService;
 
 class DemoService extends BaseService
 {
-    protected $model;
+    protected $demoModel;
 
     public function __construct(DemoModel $demoModel)
     {
-        $this->model = $demoModel;
+        $this->demoModel = $demoModel;
     }
 
     public function foo()
     {
-        return 'foo';
+        $ds = $this->demoModel->selectOne(null);
+        return $ds;
     }
 
 }

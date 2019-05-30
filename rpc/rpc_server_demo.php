@@ -10,7 +10,7 @@ class Foo
 {
     public function bar($parameter, $option = 'foo')
     {
-        return api_format([$parameter, $option]);
+        return api_format([$parameter, $option], []);
     }
 }
 
