@@ -107,7 +107,7 @@ class AppYar
         try {
             $service = new \Yar_Server($instance);
 
-            app('app.xdebug')->auto();
+            app(AppXdebug::class)->auto();
             $service->handle();
         } catch (Excezption $exception) {
             logfile('server_handle', $exception->getMessage(), '__rpc');

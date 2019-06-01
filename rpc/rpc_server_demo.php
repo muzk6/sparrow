@@ -14,4 +14,4 @@ class Foo
     }
 }
 
-app('app.yar')->server(new Foo());
+app(\Core\AppYar::class)->server(new Foo());

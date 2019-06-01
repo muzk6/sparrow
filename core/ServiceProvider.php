@@ -12,7 +12,7 @@ use Redis;
  * 框架类容器提供器
  * @package App\Providers
  */
-class CoreProvider implements ServiceProviderInterface
+class ServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
@@ -20,24 +20,20 @@ class CoreProvider implements ServiceProviderInterface
             return new AppPdoEngine(config('database'));
         };
 
-        $pimple[AppPDO::class] = $pimple['app.db'] = $pimple->factory(function ($container) {
+        $pimple[AppPDO::class] = $pimple->factory(function ($container) {
             return new AppPDO($container[AppPdoEngine::class]);
         });
 
-        $pimple['app.aes'] = function () {
+        $pimple[AppAes::class] = function () {
             $conf = config('app');
             return new AppAes($conf['secret_key']);
         };
 
-        $pimple['app.auth'] = function () {
+        $pimple[AppAuth::class] = function () {
             return new AppAuth(['prefix' => 'AUTH:']);
         };
-
-        $pimple['app.admin'] = function () {
-            return new AppAuth(['prefix' => 'ADMIN:']);
-        };
-
-        $pimple['app.redis'] = function () {
+        
+        $pimple[Redis::class] = function () {
             if (!extension_loaded('redis')) {
                 throw new AppException('(pecl install redis) at first');
             }
@@ -52,7 +48,7 @@ class CoreProvider implements ServiceProviderInterface
             return $redis;
         };
 
-        $pimple['app.queue'] = function () {
+        $pimple[AppQueue::class] = function () {
             if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
                 throw new AppException('(composer require php-amqplib/php-amqplib) at first');
             }
@@ -60,7 +56,7 @@ class CoreProvider implements ServiceProviderInterface
             return new AppQueue(config('rabbitmq'));
         };
 
-        $pimple['app.yar'] = function () {
+        $pimple[AppYar::class] = function () {
             if (!class_exists('\Yar_Client')) {
                 throw new AppException('(pecl install msgpack && pecl install yar) at first');
             }
@@ -68,11 +64,11 @@ class CoreProvider implements ServiceProviderInterface
             return new AppYar(config('yar'));
         };
 
-        $pimple['app.whitelist'] = function () {
+        $pimple[AppWhitelist::class] = function () {
             return new AppWhitelist(config('whitelist'));
         };
 
-        $pimple['app.mail'] = function () {
+        $pimple[AppMail::class] = function () {
             if (!class_exists('\Swift_SmtpTransport')) {
                 throw new AppException('(composer require swiftmailer/swiftmailer) at first');
             }
@@ -83,7 +79,7 @@ class CoreProvider implements ServiceProviderInterface
         /**
          * 文档 https://github.com/elastic/elasticsearch-php
          */
-        $pimple['app.es'] = function () {
+        $pimple[\Elasticsearch\Client::class] = function () {
             if (!class_exists('\Elasticsearch\ClientBuilder')) {
                 throw new AppException('(composer require elasticsearch/elasticsearch) at first');
             }
@@ -99,15 +95,7 @@ class CoreProvider implements ServiceProviderInterface
             return $es;
         };
 
-        $pimple['app.flash'] = function () {
-            return new AppFlash();
-        };
-
-        $pimple['app.xdebug'] = function () {
-            return new AppXdebug();
-        };
-
-        $pimple['app.csrf'] = function () {
+        $pimple[AppCSRF::class] = function () {
             $conf = config('app');
             $csrf = new AppCSRF([
                 'secret_key' => $conf['secret_key'],
@@ -117,12 +105,8 @@ class CoreProvider implements ServiceProviderInterface
             return $csrf;
         };
 
-        $pimple['app.response.code'] = function () {
+        $pimple[AppResponseCode::class] = function () {
             return new AppResponseCode();
-        };
-
-        $pimple['app.middleware'] = function () {
-            return new \App\Core\AppMiddleware();
         };
 
     }

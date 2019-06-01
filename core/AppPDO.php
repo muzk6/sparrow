@@ -496,7 +496,7 @@ class AppPDO
      */
     public function count($where)
     {
-        return intval(app('app.db')->selectColumn(['raw' => 'COUNT(1)'], $where));
+        return intval($this->selectColumn(['raw' => 'COUNT(1)'], $where));
     }
 
     /**

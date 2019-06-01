@@ -25,7 +25,7 @@ class AppContainer
         $container = &self::$container;
         if (!$container) {
             $container = new Container();
-            $container->register(new CoreProvider());
+            $container->register(new ServiceProvider());
 
             $appProviders = glob(PATH_APP . '/Providers/*.php');
             foreach ($appProviders as $appProvider) {

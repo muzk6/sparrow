@@ -123,7 +123,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app('app.auth')->userId(),
+        '__userid' => app(\Core\AppAuth::class)->userId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
@@ -264,22 +264,22 @@ function input(string $field, $rules = null, $default = null, callable $callback
 function throttle(string $key, int $limit, int $ttl)
 {
     $now = time();
-    if (app('app.redis')->lLen($key) < $limit) {
-        $len = app('app.redis')->lPush($key, $now);
+    if (app(Redis::class)->lLen($key) < $limit) {
+        $len = app(Redis::class)->lPush($key, $now);
     } else {
-        $earliest = intval(app('app.redis')->lIndex($key, -1));
+        $earliest = intval(app(Redis::class)->lIndex($key, -1));
         if ($now - $earliest < $ttl) {
-            app('app.redis')->expire($key, $ttl);
+            app(Redis::class)->expire($key, $ttl);
             panic('', [
                 'reset' => $earliest + $ttl,
             ]);
         } else {
-            app('app.redis')->lTrim($key, 1, 0);
-            $len = app('app.redis')->lPush($key, $now);
+            app(Redis::class)->lTrim($key, 1, 0);
+            $len = app(Redis::class)->lPush($key, $now);
         }
     }
 
-    app('app.redis')->expire($key, $ttl);
+    app(Redis::class)->expire($key, $ttl);
     return $limit - $len;
 }
 

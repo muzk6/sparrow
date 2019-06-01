@@ -6,4 +6,6 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-app('app.queue')->publish('app_task', [date('Y-m-d H:i:s')]);
+inject(function (\Core\AppQueue $appQueue) {
+    $appQueue->publish('app_task', [date('Y-m-d H:i:s')]);
+});
