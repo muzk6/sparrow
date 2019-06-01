@@ -2,7 +2,6 @@
 
 namespace Core;
 
-use ErrorException;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -57,7 +56,6 @@ class AppQueue
      * 消息队列消费
      * @param string $queue 队列名
      * @param callable $callback
-     * @throws ErrorException
      */
     public function consume(string $queue, callable $callback)
     {

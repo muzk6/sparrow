@@ -214,8 +214,7 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
  */
 function input(string $field, $rules = null, $default = null, callable $callback = null)
 {
-    $input = AppInput::instance();
-    return $input->input($field, $rules, $default, $callback);
+    return app(AppInput::class)->input($field, $rules, $default, $callback);
 }
 
 /**

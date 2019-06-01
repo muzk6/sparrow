@@ -8,5 +8,9 @@
 require_once dirname(__DIR__) . '/init.php';
 
 inject(function () {
-    //todo...
+    try {
+        //todo...
+    } catch (\Core\AppException $appException) {
+        var_dump(api_format($appException));
+    }
 });

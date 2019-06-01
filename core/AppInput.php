@@ -11,11 +11,6 @@ use Exception;
 class AppInput
 {
     /**
-     * @var null|AppInput
-     */
-    protected static $instance = null;
-
-    /**
      * php://input
      * @var null|array
      */
@@ -57,19 +52,6 @@ class AppInput
         'lte' => 10001122,
         'eq' => 10001123,
     ];
-
-    /**
-     * 单例对象
-     * @return AppInput
-     */
-    public static function instance()
-    {
-        if (!self::$instance) {
-            self::$instance = new static();
-        }
-
-        return self::$instance;
-    }
 
     /**
      * 从 $_GET, $POST 里所有参数

@@ -13,5 +13,9 @@ inject(function (\Core\AppWhitelist $appWhitelist) {
         exit;
     }
 
-    //todo...
+    try {
+        //todo...
+    } catch (\Core\AppException $appException) {
+        var_dump(api_format($appException));
+    }
 });
