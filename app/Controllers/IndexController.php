@@ -22,9 +22,9 @@ class IndexController extends BaseController
                 panic(10001000, $err);
             }
 
-            return json_api(true);
+            return api_json(true);
         } catch (AppException $exception) {
-            return json_api($exception);
+            return api_json($exception);
         }
     }
 }

@@ -25,7 +25,7 @@ class AppWhitelist
      */
     public function isSafeIp()
     {
-        $clientIpStr = ip();
+        $clientIpStr = app(Request::class)->getIp();
         $clientIp = ip2long($clientIpStr);
 
         foreach ($this->conf['ip'] as $v) {

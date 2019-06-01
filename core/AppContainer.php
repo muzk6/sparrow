@@ -59,22 +59,22 @@ class AppContainer
 
         try {
             $ref = new ReflectionClass($name);
+
+            $constructor = $ref->getConstructor();
+            if (!$constructor) {
+                return $container[$name] = $ref->newInstance();
+            }
+
+            $params = $constructor->getParameters();
+            $instanceArgs = [];
+            foreach ($params as $param) {
+                $instanceArgs[] = self::get($param->getClass()->getName());
+            }
+
+            return $container[$name] = $ref->newInstanceArgs($instanceArgs);
         } catch (\ReflectionException $e) {
             trigger_error($e->getMessage());
         }
-
-        $constructor = $ref->getConstructor();
-        if (!$constructor) {
-            return $container[$name] = $ref->newInstance();
-        }
-
-        $params = $constructor->getParameters();
-        $instanceArgs = [];
-        foreach ($params as $param) {
-            $instanceArgs[] = self::get($param->getClass()->getName());
-        }
-
-        return $container[$name] = $ref->newInstanceArgs($instanceArgs);
     }
 
 }

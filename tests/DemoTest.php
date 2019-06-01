@@ -9,6 +9,8 @@ class DemoTest extends \PHPUnit\Framework\TestCase
         $mocker = $this->getMockBuilder(\App\Events\DemoEvent::class)
             ->setMethodsExcept(['listen'])
             ->getMock();
+
+        $this->assertNull($mocker->listen());
     }
 }
 

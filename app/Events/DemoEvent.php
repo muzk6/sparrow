@@ -10,6 +10,5 @@ class DemoEvent extends BaseEvent
 {
     public function listen()
     {
-
     }
 }

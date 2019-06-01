@@ -3,7 +3,6 @@
 use Core\AppContainer;
 use Core\AppException;
 use Core\AppInput;
-use Core\AppMessage;
 
 /**
  * 取容器元素
@@ -84,23 +83,14 @@ function trans(int $code, array $params = [])
 }
 
 /**
- * 视图模板
- * @return \duncan3dc\Laravel\BladeInstance
- * @throws null
+ * 渲染视图模板
+ * @param string $view 模板名
+ * @param array $params 模板里的参数
+ * @return string
  */
-function view()
+function view(string $view, array $params = [])
 {
-    static $blade = null;
-
-    if (!$blade) {
-        if (!class_exists('\duncan3dc\Laravel\BladeInstance')) {
-            throw new AppException('composer require duncan3dc/blade');
-        }
-
-        $blade = new \duncan3dc\Laravel\BladeInstance(PATH_VIEW, PATH_DATA . '/view_cache');
-    }
-
-    return $blade;
+    return app(\duncan3dc\Laravel\BladeInstance::class)->render($view, $params);
 }
 
 /**
@@ -151,82 +141,58 @@ function redirect(string $url)
 }
 
 /**
- * 客户端IP
- * @return false|string
- */
-function ip()
-{
-    $ip = '';
-    if (isset($_SERVER['HTTP_CDN_SRC_IP'])) {
-        $ip = $_SERVER['HTTP_CDN_SRC_IP'];
-    } elseif (isset($_SERVER['HTTP_CLIENT_IP'])
-        && preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', trim($_SERVER['HTTP_CLIENT_IP']))) {
-        $ip = $_SERVER['HTTP_CLIENT_IP'];
-    } elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])
-        && preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', trim($_SERVER['HTTP_X_FORWARDED_FOR']), $matches)) {
-        foreach ($matches[0] AS $xip) {
-            $xip = trim($xip);
-            if (filter_var($xip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE)) {
-                $ip = $xip;
-                break;
-            }
-        }
-    } elseif (isset($_SERVER['HTTP_X_REAL_IP'])) {
-        $ip = $_SERVER['HTTP_X_REAL_IP'];
-    } elseif (isset($_SERVER['REMOTE_ADDR'])) {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-
-    return filter_var(trim($ip), FILTER_VALIDATE_IP);
-}
-
-/**
- * 构造接口响应格式
- * @param bool|Exception $state
- * @param array $data
+ * API格式化
+ * @param bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
+ * @param array $data 对象体
+ * @param string $message 消息体
+ * @param int $code 消息码
  * @return array
  */
-function api_format($state, $data)
+function api_format($state, array $data = [], string $message = '', int $code = 0)
 {
-    $response = [
+    $body = [
         's' => false,
-        'c' => 0,
-        'm' => '',
-        'd' => new stdClass(),
+        'c' => $code,
+        'm' => $message,
+        'd' => $data,
     ];
 
-    if ($data instanceof Exception) {
-        $response['c'] = intval($data->getCode());
-        $response['m'] = strval($data->getMessage());
+    if ($state instanceof Exception) {
+        $exception = $state;
 
-        if ($data instanceof AppException) {
-            $response['d'] = (object)$data->getData();
+        empty($code) && $body['c'] = $exception->getCode();
+        empty($message) && $body['m'] = $exception->getMessage();
+
+        if (empty($body['d']) && ($exception instanceof AppException)) {
+            $body['d'] = $exception->getData();
         }
     } else {
-        $response['s'] = boolval($state);
-
-        if ($data instanceof AppMessage) {
-            $response['c'] = intval($data->getCode());
-            $response['m'] = strval($data->getMessage());
-            $response['d'] = (object)$data->getData();
-        } else {
-            $response['d'] = is_array($data) ? (object)$data : $data;
-        }
+        $body['s'] = boolval($state);
     }
 
-    return $response;
+    $body['s'] = boolval($body['s']);
+    $body['c'] = intval($body['c']);
+    $body['m'] = strval($body['m']);
+
+    return $body;
 }
 
 /**
- * JSON类型的API格式数据
- * @param bool|Exception $state
- * @param array $data
+ * JSON类型的API格式
+ * @param bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
+ * @param array $data 对象体
+ * @param string $message 消息体
+ * @param int $code 消息码
  * @return string
  */
-function json_api($state, array $data = [])
+function api_json($state, array $data = [], string $message = '', int $code = 0)
 {
     headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
-    return json_encode(api_format($state, $data));
+
+    $body = api_format($state, $data, $message, $code);
+    $body['d'] = (object)$body['d'];
+
+    return json_encode($body);
 }
 
 /**
@@ -284,30 +250,31 @@ function throttle(string $key, int $limit, int $ttl)
 }
 
 /**
- * 直接抛出业务异常对象
- * @param string|int|array $messageOrCode 错误码或错误消息<br>
- * 带有参数的状态码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]
+ * 抛出业务异常对象
+ * @param string|int|array $messageOrCode 错误码或错误消息
+ * <p>带有参数的错误码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]</p>
  * @param array $data 附加数组
  * @throws AppException
  */
 function panic($messageOrCode = '', array $data = [])
 {
-    $exception = new AppException($messageOrCode);
-    if ($data) {
-        $exception->setData($data);
+    if (is_array($messageOrCode)) {
+        $code = $messageOrCode[0];
+        $langParams = (isset($messageOrCode[1]) && is_array($messageOrCode[1]))
+            ? $messageOrCode[1]
+            : array_slice($messageOrCode, 1);
+        $message = trans($code, $langParams);
+
+        $exception = new AppException($message, $code);
+    } elseif (is_int($messageOrCode)) {
+        $code = $messageOrCode;
+        $message = trans($code);
+        $exception = new AppException($message, $code);
+    } else {
+        $message = $messageOrCode;
+        $exception = new AppException($message);
     }
 
+    $data && $exception->setData($data);
     throw $exception;
-}
-
-/**
- * 成功消息结构
- * @param string|int|array $messageOrCode 状态码或文本消息<br>
- * 带有参数的状态码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]
- * @param array $data 附带数组
- * @return AppMessage
- */
-function message($messageOrCode = '', array $data = [])
-{
-    return new AppMessage($messageOrCode, $data);
 }

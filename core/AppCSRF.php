@@ -89,19 +89,19 @@ class AppCSRF
         }
 
         if (!$token) {
-            throw new AppException(10001001);
+            panic(10001001);
         }
 
         if (empty($_SESSION['csrf_token'])) {
-            throw new AppException(10001002);
+            panic(10001002);
         }
 
         if ($_SESSION['csrf_token']['expire'] && (TIME > $_SESSION['csrf_token']['expire'])) {
-            throw new AppException(10001002);
+            panic(10001002);
         }
 
         if ($token != $_SESSION['csrf_token']['token']) {
-            throw new AppException(10001001);
+            panic(10001001);
         }
 
         return true;

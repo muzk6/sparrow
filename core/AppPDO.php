@@ -742,7 +742,7 @@ class AppPDO
     public function getTable()
     {
         if (empty($this->table)) {
-            throw new AppException('请先通过 $this->setTable(...) 指定表名');
+            panic('请先通过 $this->setTable(...) 指定表名');
         }
 
         if ($this->database) {

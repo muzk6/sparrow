@@ -33,21 +33,6 @@ class ServiceProvider implements ServiceProviderInterface
             return new AppAuth(['prefix' => 'AUTH:']);
         };
 
-        $pimple[Redis::class] = function () {
-            if (!extension_loaded('redis')) {
-                throw new AppException('(pecl install redis) at first');
-            }
-
-            $conf = config('redis');
-
-            $redis = new Redis();
-            $redis->pconnect($conf['host'], $conf['port'], $conf['timeout']);
-            $redis->setOption(Redis::OPT_PREFIX, $conf['prefix']);
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
-
-            return $redis;
-        };
-
         $pimple[AppQueue::class] = function () {
             return new AppQueue(config('rabbitmq'));
         };
@@ -64,12 +49,37 @@ class ServiceProvider implements ServiceProviderInterface
             return new AppMail(config('email'));
         };
 
+        $pimple[AppCSRF::class] = function () {
+            $conf = config('app');
+            $csrf = new AppCSRF([
+                'secret_key' => $conf['secret_key'],
+                'expire' => $conf['csrf_token_expire'],
+            ]);
+
+            return $csrf;
+        };
+
+        $pimple[Redis::class] = function () {
+            if (!extension_loaded('redis')) {
+                panic('(pecl install redis) at first');
+            }
+
+            $conf = config('redis');
+
+            $redis = new Redis();
+            $redis->pconnect($conf['host'], $conf['port'], $conf['timeout']);
+            $redis->setOption(Redis::OPT_PREFIX, $conf['prefix']);
+            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+
+            return $redis;
+        };
+
         /**
          * 文档 https://github.com/elastic/elasticsearch-php
          */
         $pimple[\Elasticsearch\Client::class] = function () {
             if (!class_exists('\Elasticsearch\ClientBuilder')) {
-                throw new AppException('(composer require elasticsearch/elasticsearch) at first');
+                panic('"composer require elasticsearch/elasticsearch" at first');
             }
 
             $conf = config('elasticsearch');
@@ -83,14 +93,12 @@ class ServiceProvider implements ServiceProviderInterface
             return $es;
         };
 
-        $pimple[AppCSRF::class] = function () {
-            $conf = config('app');
-            $csrf = new AppCSRF([
-                'secret_key' => $conf['secret_key'],
-                'expire' => $conf['csrf_token_expire'],
-            ]);
+        $pimple[\duncan3dc\Laravel\BladeInstance::class] = function () {
+            if (!class_exists('\duncan3dc\Laravel\BladeInstance')) {
+                trigger_error('"composer require duncan3dc/blade" at first');
+            }
 
-            return $csrf;
+            return new \duncan3dc\Laravel\BladeInstance(PATH_VIEW, PATH_DATA . '/view_cache');
         };
 
     }
