@@ -210,7 +210,6 @@ class AppInput
      * @param string $ruleValue1
      * @param string $ruleValue2
      * @return bool
-     * @throws AppException
      */
     protected function check($fieldValue, string $ruleName, array $ruleRange, string $ruleValue1, string $ruleValue2)
     {
@@ -291,7 +290,7 @@ class AppInput
                 $ret = preg_match($ruleValue1, $fieldValue);
                 break;
             default:
-                panic('验证规则不存在');
+                trigger_error('验证规则不存在');
                 break;
         }
 

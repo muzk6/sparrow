@@ -29,6 +29,7 @@ class AppCSRF
 
     /**
      * 刷新令牌的过期时间
+     * @return int|false 0表示不过期
      */
     public function refresh()
     {
@@ -36,7 +37,11 @@ class AppCSRF
             return false;
         }
 
-        return $_SESSION['csrf_token']['expire'] = $this->expire ? TIME + $this->expire : 0;
+        if (!$this->expire) {
+            return 0;
+        }
+
+        return $_SESSION['csrf_token']['expire'] = TIME + $this->expire;
     }
 
     /**
@@ -84,8 +89,10 @@ class AppCSRF
             $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
         } elseif (IS_POST) {
             $token = $_POST['_token'] ?? '';
-        } else {
+        } elseif (IS_GET) {
             $token = $_GET['_token'] ?? '';
+        } else {
+            $token = $_REQUEST['_token'] ?? '';
         }
 
         if (!$token) {

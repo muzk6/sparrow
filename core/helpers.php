@@ -277,3 +277,22 @@ function panic($messageOrCode = '', array $data = [])
     $data && $exception->setData($data);
     throw $exception;
 }
+
+/**
+ * 带有 token 的表单域 html 元素
+ * @return string
+ */
+function csrf_field()
+{
+    return app(\Core\AppCSRF::class)->field();
+}
+
+/**
+ * 令牌
+ * <p>会话初始化时才更新 token</p>
+ * @return string
+ */
+function csrf_token()
+{
+    return app(\Core\AppCSRF::class)->token();
+}
