@@ -29,9 +29,7 @@ if ($found) {
         }
 
         $controllerInstance = AppContainer::get($controllerNs);
-        inject(function (\Core\AppXdebug $appXdebug) {
-            $appXdebug->auto();
-        });
+        app(\Core\AppXdebug::class)->auto();
 
         // 执行控制方法
         echo call_user_func([$controllerInstance, $action], ...$actionParams);

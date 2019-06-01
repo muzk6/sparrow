@@ -32,7 +32,7 @@ class ServiceProvider implements ServiceProviderInterface
         $pimple[AppAuth::class] = function () {
             return new AppAuth(['prefix' => 'AUTH:']);
         };
-        
+
         $pimple[Redis::class] = function () {
             if (!extension_loaded('redis')) {
                 throw new AppException('(pecl install redis) at first');
@@ -49,18 +49,10 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         $pimple[AppQueue::class] = function () {
-            if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
-                throw new AppException('(composer require php-amqplib/php-amqplib) at first');
-            }
-
             return new AppQueue(config('rabbitmq'));
         };
 
         $pimple[AppYar::class] = function () {
-            if (!class_exists('\Yar_Client')) {
-                throw new AppException('(pecl install msgpack && pecl install yar) at first');
-            }
-
             return new AppYar(config('yar'));
         };
 
@@ -69,10 +61,6 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         $pimple[AppMail::class] = function () {
-            if (!class_exists('\Swift_SmtpTransport')) {
-                throw new AppException('(composer require swiftmailer/swiftmailer) at first');
-            }
-
             return new AppMail(config('email'));
         };
 
@@ -103,10 +91,6 @@ class ServiceProvider implements ServiceProviderInterface
             ]);
 
             return $csrf;
-        };
-
-        $pimple[AppResponseCode::class] = function () {
-            return new AppResponseCode();
         };
 
     }

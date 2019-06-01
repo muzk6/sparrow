@@ -20,6 +20,10 @@ class AppQueue
 
     public function __construct(array $conf)
     {
+        if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
+            trigger_error('"composer require php-amqplib/php-amqplib" at first');
+        }
+
         $this->conf = $conf;
     }
 

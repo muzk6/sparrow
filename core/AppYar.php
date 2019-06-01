@@ -23,6 +23,10 @@ class AppYar
      */
     public function __construct(array $conf)
     {
+        if (!class_exists('\Yar_Client')) {
+            trigger_error('"pecl install msgpack && pecl install yar" at first');
+        }
+
         $this->hosts = $conf['hosts'];
         $this->servers = $conf['servers'];
     }

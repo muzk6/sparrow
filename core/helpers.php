@@ -38,8 +38,8 @@ function inject(callable $fn)
 }
 
 /**
- * 配置文件<br>
- * 优先从当前环境目录搜索配置文件
+ * 配置文件
+ * <p>优先从当前环境目录搜索配置文件</p>
  * @param string $filename 无后缀的文件名
  * @return array|null 返回配置文件内容
  */
@@ -123,7 +123,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app(\Core\AppAuth::class)->userId(),
+        '__userid' => app(\Core\AppAuth::class)->getUserId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 

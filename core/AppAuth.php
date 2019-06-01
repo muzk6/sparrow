@@ -44,7 +44,7 @@ class AppAuth
      * 用户ID
      * @return int
      */
-    public function userId()
+    public function getUserId()
     {
         return $_SESSION[$this->prefix . 'user_id'] ?? 0;
     }

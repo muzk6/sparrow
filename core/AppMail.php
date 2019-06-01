@@ -24,6 +24,10 @@ class AppMail extends Swift_Mailer
      */
     public function __construct(array $conf)
     {
+        if (!class_exists('\Swift_SmtpTransport')) {
+            trigger_error('"composer require swiftmailer/swiftmailer" at first');
+        }
+
         $this->conf = $conf;
 
         $transport = (new Swift_SmtpTransport($this->conf['host'], $this->conf['port'], $this->conf['encryption']))

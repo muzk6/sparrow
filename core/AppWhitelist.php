@@ -63,7 +63,7 @@ class AppWhitelist
             return false;
         }
 
-        return in_array(app(AppAuth::class)->userId(), $this->conf['user_id']);
+        return in_array(app(AppAuth::class)->getUserId(), $this->conf['user_id']);
     }
 
 }
