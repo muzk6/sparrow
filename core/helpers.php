@@ -2,7 +2,6 @@
 
 use Core\AppContainer;
 use Core\AppException;
-use Core\AppInput;
 
 /**
  * 取容器元素
@@ -196,25 +195,39 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
 }
 
 /**
- * 获取、过滤、验证、类型强转 请求参数 $_GET,$_POST 支持payload
+ * 从 $_GET, $_POST 获取请求参数，支持payload
  * <p>
- * 简单用例：input('age') 取字段 age, 没指定 get,post，自动根据请求方法来决定使用 $_GET,$_POST <br>
- * 高级用例：input('get.age:i/年龄', 'number|gte:18', 18, function ($val) { return $val+1; }) <br>
- * 即 $_GET['age']不存在时默认为18，必须为数字且大于或等于18，验证通过后返回 intval($_GET['age'])+1
- * @param string $field get.field0:i/字段名0 即 intval($_GET['field0']) 标题为 字段名0
- * @param string|array|null $rules 验证规则，参考 \Core\AppInput::$errorMsg
- * @param mixed|null $default 默认值
- * @param callable|null $callback 自定义回调函数<br>
- * 回调函数格式为 function ($value, $title, $name) {}<br>
- * 有return: 以返回值为准 <br>
- * 无return: 字段值为用户输入值 <br>
- * 可抛出异常: AppException, Exception <br>
+ * 简单用例：input('age') 即 $_POST['age'] <br>
+ * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
+ * 即 $_POST['age']不存在时默认为18，最终返回 intval($_GET['age'])+1
+ * @param string $field [(post|get|request).]<field_name>[.(i|b|a|f|d|s)]<br>
+ * 参数池默认为 $_POST<br>
+ * field_name 为字段名<br>
+ * 类型强转：i=int, b=bool, a=array, f=float, d=double, s=string(默认)
+ * @param mixed $default 默认值
+ * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
+ * 回调函数格式为 function ($v, $k) {}<br>
  * </p>
- * @return AppInput
+ * @return mixed|\Core\Validator
  */
-function input(string $field, $rules = null, $default = null, callable $callback = null)
+function input(string $field, $default = '', callable $after = null)
 {
-    return app(AppInput::class)->input($field, $rules, $default, $callback);
+    return app(\Core\Request::class)->input($field, $default, $after);
+}
+
+/**
+ * 对回调函数里的所有 \Core\Request::input 进行批量验证并返回参数值
+ * <p>
+ * 用例 validate(function () { input()->required(); input()->max(10); });<br>
+ * 注：回调函数里的 Validator 对象不再需要调用 \Core\Validator::validate<br>
+ * </p>
+ * @param callable $fn 支持依赖自动注入
+ * @return array
+ * @throws AppException
+ */
+function validate(callable $fn)
+{
+    return app(\Core\Request::class)->validate($fn);
 }
 
 /**

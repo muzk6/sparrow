@@ -4,6 +4,8 @@
 namespace Core;
 
 
+use Exception;
+
 /**
  * 验证器
  * @package Core
@@ -31,12 +33,25 @@ class Validator
     }
 
     /**
-     * 开始验证
+     * 执行验证
+     * @param bool $throwable 验证失败时是否需要抛出异常
+     * @return bool
+     * @throws Exception
      */
-    public function validate()
+    public function validate(bool $throwable = true)
     {
-        foreach ($this->rules as $k => $v) {
-            $v();
+        try {
+            foreach ($this->rules as $k => $v) {
+                $v();
+            }
+
+            return true;
+        } catch (Exception $exception) {
+            if ($throwable) {
+                throw $exception;
+            }
+
+            return false;
         }
     }
 
@@ -123,7 +138,7 @@ class Validator
      * @param string $message
      * @return Validator
      */
-    public function number(string $message = '')
+    public function numeric(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
             is_numeric($this->getValue())

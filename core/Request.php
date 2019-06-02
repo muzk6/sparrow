@@ -4,12 +4,29 @@
 namespace Core;
 
 
+use Exception;
+
 /**
- * 客户端的请求
+ * HTTP请求体
  * @package Core
  */
 class Request
 {
+    /**
+     * @var null|array php://input
+     */
+    protected $payload = null;
+
+    /**
+     * @var bool 是否在验证模式中
+     */
+    protected $validationMode = false;
+
+    /**
+     * @var array 验证模式的参数及验证对象集合
+     */
+    protected $validationSets = [];
+
     /**
      * 客户端IP
      * @return string
@@ -38,6 +55,182 @@ class Request
         }
 
         return filter_var(trim($ip), FILTER_VALIDATE_IP) ?: '';
+    }
+
+    /**
+     * 选择请求参数池 $_GET, $POST, $_REQUEST
+     * @param null|string $method
+     * @return array
+     */
+    protected function pool($method = null)
+    {
+        switch ($method) {
+            case 'get':
+                $bucket = &$_GET;
+                break;
+            case 'request':
+                $bucket = &$_REQUEST;
+                break;
+            default:
+                if (isset($_SERVER['HTTP_CONTENT_TYPE'])
+                    && strpos(strtolower($_SERVER['HTTP_CONTENT_TYPE']), 'application/json') !== false) {
+                    if (is_null($this->payload)) {
+                        $this->payload = (array)json_decode(file_get_contents('php://input'), true);
+                    }
+                    $bucket = &$this->payload;
+                } else {
+                    $bucket = &$_POST;
+                }
+                break;
+        }
+
+        return $bucket;
+    }
+
+    /**
+     * 解析键值
+     * @param string $key field, post.field, field:i, post.field:i
+     * @return array [参数集, 当前参数名, 类型]
+     */
+    protected function parse(string $key)
+    {
+        $key = trim($key);
+        if (strpos($key, '.') !== false) {
+            $keyDot = explode('.', $key);
+            $bucket = $this->pool($keyDot[0]);
+            $name = $keyDot[1];
+        } else {
+            $bucket = $this->pool();
+            $name = $key;
+        }
+
+        $type = '';
+        if (strpos($name, ':') !== false) {
+            $nameDot = explode(':', $name);
+            $name = $nameDot[0];
+            $type = $nameDot[1];
+        }
+
+        return [$bucket, $name, $type];
+    }
+
+    /**
+     * 类型转换
+     * @param $value
+     * @param string $type
+     * @return array|bool|float|double|int|string
+     */
+    protected function convert($value, string $type)
+    {
+        switch ($type) {
+            case 'i':
+                $value = intval($value);
+                break;
+            case 'b':
+                $value = boolval($value);
+                break;
+            case 'a':
+                $value = (array)$value;
+                break;
+            case 'f':
+                $value = floatval($value);
+                break;
+            case 'd':
+                $value = doubleval($value);
+                break;
+            case 's':
+            default:
+                $value = strval($value);
+                break;
+        }
+
+        return $value;
+    }
+
+    /**
+     * 从 $_GET, $_POST 获取请求参数，支持payload
+     * <p>
+     * 简单用例：input('age') 即 $_POST['age'] <br>
+     * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
+     * 即 $_POST['age']不存在时默认为18，最终返回 intval($_GET['age'])+1
+     * @param string $field [(post|get|request).]<field_name>[.(i|b|a|f|d|s)]<br>
+     * 参数池默认为 $_POST<br>
+     * field_name 为字段名<br>
+     * 类型强转：i=int, b=bool, a=array, f=float, d=double, s=string(默认)
+     * @param mixed $default 默认值
+     * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
+     * 回调函数格式为 function ($v, $k) {}<br>
+     * </p>
+     * @return mixed|Validator
+     */
+    public function input(string $field, $default = '', callable $after = null)
+    {
+        list($bucket, $fieldName, $fieldType) = $this->parse($field);
+
+        // 是否为空，取默认值
+        if (isset($bucket[$fieldName]) && strlen(strval($bucket[$fieldName]))) {
+            // 类型转换
+            $fieldValue = $this->convert(trim(strval($bucket[$fieldName])), $fieldType);
+        } else {
+            $fieldValue = $default;
+        }
+
+        // 自定义后置回调
+        if ($after) {
+            $fieldValue = $after($fieldValue, $fieldName);
+        }
+
+        if ($this->validationMode) {
+            $validator = new Validator($fieldValue);
+            $this->validationSets[$fieldName] = [
+                'value' => $fieldValue,
+                'validator' => $validator,
+            ];
+
+            return $validator;
+        } else {
+            return $fieldValue;
+        }
+    }
+
+    /**
+     * 对回调函数里的所有 \Core\Request::input 进行批量验证并返回参数值
+     * <p>
+     * 用例 validate(function () { input()->required(); input()->max(10); });<br>
+     * 注：回调函数里的 Validator 对象不再需要调用 \Core\Validator::validate<br>
+     * </p>
+     * @param callable $fn 支持依赖自动注入
+     * @return array
+     * @throws AppException
+     */
+    public function validate(callable $fn)
+    {
+        $this->validationMode = true;
+
+        inject($fn);
+
+        $data = [];
+        $errors = [];
+        foreach ($this->validationSets as $k => $v) {
+            /** @var Validator $validator */
+            $validator = $v['validator'];
+            try {
+                $validator->validate(true);
+                $data[$k] = $v['value'];
+            } catch (Exception $exception) {
+                $errors[$k] = $exception->getMessage();
+            }
+        }
+
+        $this->validationMode = false;
+        $this->validationSets = [];
+
+        array_filter($errors) || $errors = null;
+        if ($errors) {
+            throw panic(10001000, $errors);
+        }
+
+        return $data;
     }
 
 }
