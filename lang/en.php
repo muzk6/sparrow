@@ -14,8 +14,6 @@ return [
     10001100 => '{name} cannot be empty',
     10001101 => '{name} must be a number',
     10001102 => '{name} must be an array',
-    10001103 => '{name} must be a float',
-    10001104 => '{name} must be a boolean',
     10001105 => '{name} must be the correct email address',
     10001106 => '{name} must be in the correct URL format',
     10001107 => '{name} must be the correct IP address',
