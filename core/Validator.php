@@ -384,7 +384,7 @@ class Validator
     public function confirm(string $fieldName, string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($fieldName, $message) {
-            $this->getValue() == input("request.{$fieldName}")
+            $this->getValue() == (isset($_REQUEST[$fieldName]) ? trim($_REQUEST[$fieldName]) : '')
             || panic($message
                 ? $this->trans($message)
                 : [10001118, 'name' => $this->getTitle()]
