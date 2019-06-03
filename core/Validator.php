@@ -72,7 +72,7 @@ class Validator
      */
     protected function getTitle()
     {
-        return $this->title ? "\"{$this->title}\"" : '';
+        return $this->title;
     }
 
     /**

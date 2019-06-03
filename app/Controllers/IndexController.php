@@ -15,14 +15,16 @@ class IndexController extends BaseController
 {
     public function index(DemoEvent $demoEvent)
     {
-        list($req, $err) = input('type:i', 'require')->collect();
-
         try {
-            if ($err) {
-                panic(10001000, $err);
-            }
+            $req = validate(function () {
+                input('get.foo:i')->required();
+                input('get.bar:i')->required();
+                input('get.name')->required()->setTitle('名字');
+            });
 
-            return api_json(true);
+            $row = $demoEvent->send($req['name']);
+
+            return api_json(true, ['req' => $req, 'row' => $row]);
         } catch (AppException $exception) {
             return api_json($exception);
         }
