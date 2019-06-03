@@ -7,7 +7,7 @@ namespace Core;
  * Xdebug Trace
  * @package Core
  */
-class AppXdebug
+class Xdebug
 {
     protected $maxDepth;
     protected $maxData;

@@ -111,7 +111,7 @@ class Yar
         try {
             $service = new \Yar_Server($instance);
 
-            app(AppXdebug::class)->auto();
+            app(Xdebug::class)->auto();
             $service->handle();
         } catch (Excezption $exception) {
             logfile('server_handle', $exception->getMessage(), '__rpc');

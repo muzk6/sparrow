@@ -68,7 +68,7 @@ class ServiceProvider implements ServiceProviderInterface
 
         $pimple[Redis::class] = function () {
             if (!extension_loaded('redis')) {
-                panic('(pecl install redis) at first');
+                trigger_error('"pecl install redis" at first');
             }
 
             $conf = config('redis');
@@ -86,7 +86,7 @@ class ServiceProvider implements ServiceProviderInterface
          */
         $pimple[\Elasticsearch\Client::class] = function () {
             if (!class_exists('\Elasticsearch\ClientBuilder')) {
-                panic('"composer require elasticsearch/elasticsearch" at first');
+                trigger_error('"composer require elasticsearch/elasticsearch" at first');
             }
 
             $conf = config('elasticsearch');

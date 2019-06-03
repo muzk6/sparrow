@@ -18,7 +18,7 @@ if ($uri === '/') {
 if ($found) {
     $controllerNs = CONTROLLER_NAMESPACE . $controller;
     if (!is_callable([$controllerNs, $action])) {
-        return app(\Core\ResponseCode::class)->status404();
+        return app(\Core\Response::class)->status404();
     }
 
     try {
@@ -29,14 +29,14 @@ if ($found) {
         }
 
         $controllerInstance = AppContainer::get($controllerNs);
-        app(\Core\AppXdebug::class)->auto();
+        app(\Core\Xdebug::class)->auto();
 
         // 执行控制方法
         echo call_user_func([$controllerInstance, $action], ...$actionParams);
 
     } catch (ReflectionException $e) {
-        return app(\Core\ResponseCode::class)->status404();
+        return app(\Core\Response::class)->status404();
     }
 } else {
-    return app(\Core\ResponseCode::class)->status404();
+    return app(\Core\Response::class)->status404();
 }

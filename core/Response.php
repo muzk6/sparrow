@@ -4,10 +4,10 @@
 namespace Core;
 
 /**
- * 非200响应状态的处理
+ * HTTP响应
  * @package Core
  */
-class ResponseCode
+class Response
 {
     /**
      * URI规则不匹配或控制器方法不存在时 404
