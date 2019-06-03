@@ -59,6 +59,13 @@ class ServiceProvider implements ServiceProviderInterface
             return $csrf;
         };
 
+        $pimple[Crypto::class] = function () {
+            $conf = config('app');
+            $csrf = new Crypto($conf['secret_key']);
+
+            return $csrf;
+        };
+
         $pimple[Redis::class] = function () {
             if (!extension_loaded('redis')) {
                 panic('(pecl install redis) at first');
