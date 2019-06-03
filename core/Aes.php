@@ -6,7 +6,7 @@ namespace Core;
  * aes 加密解密
  * @package Core
  */
-class AppAes
+class Aes
 {
     /**
      * 默认密钥

@@ -9,7 +9,7 @@ use PhpAmqpLib\Message\AMQPMessage;
  * 消息队列
  * @package Core
  */
-class AppQueue
+class Queue
 {
     /**
      * 配置

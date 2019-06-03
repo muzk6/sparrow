@@ -6,7 +6,7 @@ namespace Core;
  * CSRF
  * @package Core
  */
-class AppCSRF
+class CSRF
 {
     /**
      * @var string 密钥

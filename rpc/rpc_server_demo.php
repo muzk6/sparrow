@@ -14,4 +14,4 @@ class Foo
     }
 }
 
-app(\Core\AppYar::class)->server(new Foo());
+app(\Core\Yar::class)->server(new Foo());

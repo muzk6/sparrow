@@ -10,7 +10,7 @@ use Exception;
  * RPC Yar
  * @package Core
  */
-class AppYar
+class Yar
 {
     protected $hosts = [];
 

@@ -7,7 +7,7 @@ namespace Core;
  * 闪存
  * @package Core
  */
-class AppFlash
+class Flash
 {
     protected $prefix = 'FLASH:';
 

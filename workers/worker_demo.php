@@ -6,6 +6,6 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-app(\Core\AppQueue::class)->consume('app_task', function ($data) {
+app(\Core\Queue::class)->consume('app_task', function ($data) {
     var_dump($data);
 });

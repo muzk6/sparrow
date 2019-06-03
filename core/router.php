@@ -18,7 +18,7 @@ if ($uri === '/') {
 if ($found) {
     $controllerNs = CONTROLLER_NAMESPACE . $controller;
     if (!is_callable([$controllerNs, $action])) {
-        return app(\Core\AppResponseCode::class)->status404();
+        return app(\Core\ResponseCode::class)->status404();
     }
 
     try {
@@ -35,8 +35,8 @@ if ($found) {
         echo call_user_func([$controllerInstance, $action], ...$actionParams);
 
     } catch (ReflectionException $e) {
-        return app(\Core\AppResponseCode::class)->status404();
+        return app(\Core\ResponseCode::class)->status404();
     }
 } else {
-    return app(\Core\AppResponseCode::class)->status404();
+    return app(\Core\ResponseCode::class)->status404();
 }

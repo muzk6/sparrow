@@ -7,7 +7,7 @@ namespace Core;
  * 登录信息
  * @package Core
  */
-class AppAuth
+class Auth
 {
     /**
      * @var string 缓存键前缀

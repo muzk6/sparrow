@@ -10,7 +10,7 @@
 
 <h1>My Webpage</h1>
 <form method="post" action="/index/index">
-    {!! app(\Core\AppCSRF::class)->field() !!}
+    {!! app(\Core\CSRF::class)->field() !!}
     <button type="submit">submit</button>
 </form>
 </body>

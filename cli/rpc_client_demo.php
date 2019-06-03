@@ -6,7 +6,7 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-inject(function (\Core\AppYar $appYar) {
+inject(function (\Core\Yar $appYar) {
     // 串行调用；
     // 开启 Xdebug Trace 跟踪: $appYar->trace('demo_bar')->bar('boo', 'bar')
     var_dump($appYar->client('demo')->bar('boo', 'bar'));

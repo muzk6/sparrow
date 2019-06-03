@@ -16,42 +16,42 @@ class ServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple[AppPdoEngine::class] = function () {
-            return new AppPdoEngine(config('database'));
+        $pimple[PdoEngine::class] = function () {
+            return new PdoEngine(config('database'));
         };
 
         $pimple[AppPDO::class] = $pimple->factory(function ($container) {
-            return new AppPDO($container[AppPdoEngine::class]);
+            return new AppPDO($container[PdoEngine::class]);
         });
 
-        $pimple[AppAes::class] = function () {
+        $pimple[Aes::class] = function () {
             $conf = config('app');
-            return new AppAes($conf['secret_key']);
+            return new Aes($conf['secret_key']);
         };
 
-        $pimple[AppAuth::class] = function () {
-            return new AppAuth(['prefix' => 'AUTH:']);
+        $pimple[Auth::class] = function () {
+            return new Auth(['prefix' => 'AUTH:']);
         };
 
-        $pimple[AppQueue::class] = function () {
-            return new AppQueue(config('rabbitmq'));
+        $pimple[Queue::class] = function () {
+            return new Queue(config('rabbitmq'));
         };
 
-        $pimple[AppYar::class] = function () {
-            return new AppYar(config('yar'));
+        $pimple[Yar::class] = function () {
+            return new Yar(config('yar'));
         };
 
-        $pimple[AppWhitelist::class] = function () {
-            return new AppWhitelist(config('whitelist'));
+        $pimple[Whitelist::class] = function () {
+            return new Whitelist(config('whitelist'));
         };
 
-        $pimple[AppMail::class] = function () {
-            return new AppMail(config('email'));
+        $pimple[Mail::class] = function () {
+            return new Mail(config('email'));
         };
 
-        $pimple[AppCSRF::class] = function () {
+        $pimple[CSRF::class] = function () {
             $conf = config('app');
-            $csrf = new AppCSRF([
+            $csrf = new CSRF([
                 'secret_key' => $conf['secret_key'],
                 'expire' => $conf['csrf_token_expire'],
             ]);

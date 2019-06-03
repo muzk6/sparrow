@@ -112,7 +112,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app(\Core\AppAuth::class)->getUserId(),
+        '__userid' => app(\Core\Auth::class)->getUserId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
@@ -297,7 +297,7 @@ function panic($messageOrCode = '', array $data = [])
  */
 function csrf_field()
 {
-    return app(\Core\AppCSRF::class)->field();
+    return app(\Core\CSRF::class)->field();
 }
 
 /**
@@ -307,5 +307,5 @@ function csrf_field()
  */
 function csrf_token()
 {
-    return app(\Core\AppCSRF::class)->token();
+    return app(\Core\CSRF::class)->token();
 }

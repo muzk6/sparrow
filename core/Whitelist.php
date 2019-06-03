@@ -7,7 +7,7 @@ namespace Core;
  * 白名单
  * @package Core
  */
-class AppWhitelist
+class Whitelist
 {
     /**
      * @var array 配置文件，格式 core/AppWhitelist.php
@@ -59,11 +59,11 @@ class AppWhitelist
      */
     public function isSafeUserId()
     {
-        if (!app(AppAuth::class)->isLogin()) {
+        if (!app(Auth::class)->isLogin()) {
             return false;
         }
 
-        return in_array(app(AppAuth::class)->getUserId(), $this->conf['user_id']);
+        return in_array(app(Auth::class)->getUserId(), $this->conf['user_id']);
     }
 
 }

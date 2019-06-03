@@ -10,7 +10,7 @@ use PDO;
  * PDO引擎，管理连接资源、执行查询
  * @package Core
  */
-class AppPdoEngine
+class PdoEngine
 {
     /**
      * @var PDO 主库连接对象
@@ -169,7 +169,7 @@ class AppPdoEngine
     /**
      * 一次性切换分区，查询完成后自动切换回默认分区
      * @param string $name
-     * @return AppPdoEngine
+     * @return PdoEngine
      */
     public function setSection(string $name)
     {
