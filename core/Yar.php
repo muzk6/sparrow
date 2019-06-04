@@ -109,11 +109,11 @@ class Yar
     public function server($instance)
     {
         try {
-            $service = new \Yar_Server($instance);
+            $server = new \Yar_Server($instance);
 
             app(Xdebug::class)->auto();
-            $service->handle();
-        } catch (Excezption $exception) {
+            $server->handle();
+        } catch (Exception $exception) {
             logfile('server_handle', $exception->getMessage(), '__rpc');
         }
     }
