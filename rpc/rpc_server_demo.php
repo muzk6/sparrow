@@ -6,12 +6,13 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-class Foo
+class Foo extends \Core\BaseYar
 {
-    public function bar($parameter, $option = 'foo')
+    protected function bar($params, \App\Events\DemoEvent $demoEvent)
     {
-        return api_format([$parameter, $option], []);
+        $ds = $demoEvent->send($params['name']);
+        return api_format(true, $ds);
     }
 }
 
-app(\Core\Yar::class)->server(new Foo());
+app(\Core\Yar::class)->server(Foo::class);

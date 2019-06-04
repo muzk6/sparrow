@@ -35,15 +35,14 @@ class Yar
      * 返回 RPC地址
      * @param string $index
      * @return string
-     * @throws AppException
      */
     protected function parseUrl(string $index): string
     {
         $rpc = &$this->servers[$index];
-        isset($rpc) || panic('请在 yar.php 配置 servers');
+        isset($rpc) || trigger_error('请在 yar.php 配置 servers');
 
         $host = &$this->hosts[$rpc['host']];
-        isset($host) || panic('请在 yar.php 配置 hosts');
+        isset($host) || trigger_error('请在 yar.php 配置 hosts');
 
         $url = $host . $rpc['uri'];
         if ($this->traceName) {
@@ -55,20 +54,37 @@ class Yar
     }
 
     /**
-     * 串行调用的客户端
-     * @param string $serverName 服务端接口名，yar.php 里的 servers项
-     * @param int $timeout 超过时间(秒)
+     * 串行调用
+     * @param string $server 服务端接口名，yar.php 里的 servers项
+     * @param string $action 接口的动作名
+     * @param array $params 请求参数
+     * @param int $timeout 超时(ms)
+     * @param int $retry 重试次数
      * @return AppYarClient
-     * @throws AppException
      * @see 例子参考 cli/rpc_client_demo.php
      */
-    public function client(string $serverName, $timeout = 3000)
+    public function request(string $server, string $action, array $params, $timeout = 3000, $retry = 3)
     {
-        $url = $this->parseUrl($serverName);
+        $url = $this->parseUrl($server);
         $client = new \Yar_Client($url);
         $client->SetOpt(YAR_OPT_CONNECT_TIMEOUT, $timeout);
 
-        return new AppYarClient($client);
+        for ($i = 1; $i <= $retry; $i++) {
+            try {
+                return call_user_func_array([$client, $action], [$params]);
+            } catch (Exception $exception) {
+                logfile('client_call', [
+                    'message' => $exception->getMessage(),
+                    'server' => $server,
+                    'action' => $action,
+                    'params' => $params,
+                    'timeout' => $timeout,
+                    'retry' => "{$i}/{$retry}",
+                ], '__rpc');
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -77,7 +93,6 @@ class Yar
      * @param string|callable $callback 回调函数
      * @param int $timeout 超过时间(秒)
      * @return AppYarConcurrentClient
-     * @throws AppException
      * @see 例子参考 cli/rpc_client_demo.php
      */
     public function concurrentClient(string $serverName, $callback, $timeout = 3000)
@@ -103,13 +118,13 @@ class Yar
 
     /**
      * RPC 服务端
-     * @param Object $instance 接口的类实例
+     * @param string $class 接口的类名
      * @see 例子参考 rpc/rpc_server_demo.php
      */
-    public function server($instance)
+    public function server(string $class)
     {
         try {
-            $server = new \Yar_Server($instance);
+            $server = new \Yar_Server(app($class));
 
             app(Xdebug::class)->auto();
             $server->handle();
