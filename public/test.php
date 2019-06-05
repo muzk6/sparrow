@@ -7,12 +7,12 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-inject(function (\Core\Whitelist $appWhitelist) {
-    if (!$appWhitelist->isSafeIp()) {
-        http_response_code(404);
-        exit;
-    }
+if (!app(\Core\Whitelist::class)->isSafeIp()) {
+    http_response_code(404);
+    exit;
+}
 
+inject(function () {
     try {
         //todo...
     } catch (\Core\AppException $appException) {
