@@ -4,7 +4,6 @@
 namespace App\Events;
 
 
-use App\Models\DemoModel;
 use Core\BaseEvent;
 
 /**
@@ -13,8 +12,7 @@ use Core\BaseEvent;
  */
 class DemoEvent extends BaseEvent
 {
-    public function listen(string $name, DemoModel $demoModel)
+    public function listen()
     {
-        return $demoModel->selectOne(['name like ?', "{$name}%"]);
     }
 }

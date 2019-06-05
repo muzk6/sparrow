@@ -8,10 +8,9 @@ require_once dirname(__DIR__) . '/init.php';
 
 class Foo extends \Core\BaseYar
 {
-    protected function bar($params, \App\Events\DemoEvent $demoEvent)
+    protected function bar($params)
     {
-        $ds = $demoEvent->send($params['name']);
-        return api_format(true, $ds);
+        return api_format(true, $params);
     }
 }
 

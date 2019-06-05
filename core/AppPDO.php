@@ -34,7 +34,7 @@ class AppPDO
 
     /**
      * 连接资源引擎
-     * @var AppPdoEngine|PDO
+     * @var PdoEngine|PDO
      */
     private $engine;
 
@@ -63,7 +63,7 @@ class AppPDO
      */
     private $order = '';
 
-    public function __construct(AppPdoEngine $pdoEngine)
+    public function __construct(PdoEngine $pdoEngine)
     {
         $this->engine = $pdoEngine;
         $this->originalMeta = [

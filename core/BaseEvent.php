@@ -21,14 +21,13 @@ abstract class BaseEvent
             foreach ($ref->getMethod('listen')->getParameters() as $handleParam) {
                 $dependClassName = $handleParam->getClass();
                 if ($dependClassName) {
-                    $listenerParams[] = AppContainer::get($handleParam->getClass()->getName());
+                    $listenerParams[] = AppContainer::get($dependClassName->getName());
                 } else {
                     $listenerParams[] = array_shift($params);
                 }
             }
 
             return call_user_func([$this, 'listen'], ...$listenerParams);
-
         } catch (\ReflectionException $e) {
             trigger_error($e->getMessage());
         }

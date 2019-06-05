@@ -36,7 +36,7 @@ class Yar
      * @param string $index
      * @return string
      */
-    protected function parseUrl(string $index): string
+    protected function getUrl(string $index): string
     {
         $rpc = &$this->servers[$index];
         isset($rpc) || trigger_error('请在 yar.php 配置 servers');
@@ -60,20 +60,23 @@ class Yar
      * @param array $params 请求参数
      * @param int $timeout 超时(ms)
      * @param int $retry 重试次数
-     * @return AppYarClient
+     * @return mixed
      * @see 例子参考 cli/rpc_client_demo.php
      */
-    public function request(string $server, string $action, array $params, $timeout = 3000, $retry = 3)
+    public function request(string $server, string $action, array $params, int $timeout = 3000, int $retry = 3)
     {
-        $url = $this->parseUrl($server);
+        $url = $this->getUrl($server);
         $client = new \Yar_Client($url);
         $client->SetOpt(YAR_OPT_CONNECT_TIMEOUT, $timeout);
 
         for ($i = 1; $i <= $retry; $i++) {
             try {
-                return call_user_func_array([$client, $action], [$params]);
+                $result = call_user_func_array([$client, $action], [$params]);
+                if ($result !== null) {
+                    return $result;
+                }
             } catch (Exception $exception) {
-                logfile('client_call', [
+                logfile('Yar_Client::call', [
                     'message' => $exception->getMessage(),
                     'server' => $server,
                     'action' => $action,
@@ -88,31 +91,43 @@ class Yar
     }
 
     /**
-     * 并行调用客户端
-     * @param string $serverName 服务端接口名，yar.php 里的 servers项
-     * @param string|callable $callback 回调函数
-     * @param int $timeout 超过时间(秒)
-     * @return AppYarConcurrentClient
+     * 并行调用
+     * @param string $server 服务端接口名，yar.php 里的 servers项
+     * @param string $action
+     * @param array $params
+     * @param callable $callback 回调函数
+     * @param int $timeout 超时(ms)
      * @see 例子参考 cli/rpc_client_demo.php
      */
-    public function concurrentClient(string $serverName, $callback, $timeout = 3000)
+    public function requestConcurrently(string $server, string $action, array $params, callable $callback, int $timeout = 3000)
     {
-        $url = $this->parseUrl($serverName);
-        return new AppYarConcurrentClient($url, $callback, $timeout);
+        $url = $this->getUrl($server);
+        try {
+            \Yar_Concurrent_Client::call($url, $action, [$params], $callback, null,
+                [YAR_OPT_TIMEOUT => $timeout]
+            );
+        } catch (Exception $exception) {
+            logfile('Yar_Concurrent_Client::call', [
+                'message' => $exception->getMessage(),
+                'server' => $server,
+                'action' => $action,
+                'params' => $params,
+                'timeout' => $timeout,
+            ], '__rpc');
+        }
     }
 
     /**
      * RPC 并行调用 等待请求
-     * @param bool $reset 调用完后清除所有回调，其作用参考下面的链接
      * @see https://github.com/laruence/yar/issues/26
      */
-    public function concurrentLoop($reset = true)
+    public function loop()
     {
         try {
             \Yar_Concurrent_Client::loop();
-            $reset && \Yar_Concurrent_Client::reset();
+            \Yar_Concurrent_Client::reset();
         } catch (Exception $exception) {
-            logfile('concurrent_loop', $exception->getMessage(), '__rpc');
+            logfile('\ar_Concurrent_Client::loop', $exception->getMessage(), '__rpc');
         }
     }
 
@@ -145,57 +160,4 @@ class Yar
         return $this;
     }
 
-}
-
-/**
- * Yar 串行调用的客户端
- * @package Core
- */
-class AppYarClient
-{
-    protected $client;
-
-    public function __construct(\Yar_Client $client)
-    {
-        $this->client = $client;
-    }
-
-    public function __call($name, $arguments)
-    {
-        try {
-            return call_user_func_array([$this->client, $name], $arguments);
-        } catch (Exception $exception) {
-            logfile('client_call', $exception->getMessage(), '__rpc');
-            return null;
-        }
-    }
-}
-
-/**
- * Yar 并行调用的客户端
- * @package Core
- */
-class AppYarConcurrentClient
-{
-    protected $url;
-    protected $callback;
-    protected $timeout;
-
-    public function __construct(string $url, $callback, $timeout)
-    {
-        $this->url = $url;
-        $this->callback = $callback;
-        $this->timeout = $timeout;
-    }
-
-    public function __call($name, $arguments)
-    {
-        try {
-            \Yar_Concurrent_Client::call($this->url, $name, $arguments, $this->callback, null,
-                [YAR_OPT_TIMEOUT => $this->timeout]
-            );
-        } catch (Exception $exception) {
-            logfile('concurrent_call', $exception->getMessage(), '__rpc');
-        }
-    }
 }
