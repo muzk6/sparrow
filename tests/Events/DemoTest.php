@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../init.php';
+namespace Tests\Events;
 
-class DemoTest extends \PHPUnit\Framework\TestCase
+class DemoTest extends \TestCase
 {
     public function testDemoEvent()
     {

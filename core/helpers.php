@@ -97,10 +97,14 @@ function view(string $view, array $params = [])
  * @param string $index 日志索引，用于正查和反查，建议传入 uniqid()
  * @param array|string $data 日志内容
  * @param string $type 日志类型，用于区分日志文件，不要带下划线前缀(用于区分框架日志)
- * @return false|int
+ * @return int|null
  */
 function logfile(string $index, $data, string $type = 'app')
 {
+    if (defined('TEST_ENV')) {
+        return null;
+    }
+
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
