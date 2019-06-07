@@ -56,6 +56,7 @@ class Queue
      * 消息队列消费
      * @param string $queue 队列名
      * @param callable $callback
+     * @throws \ErrorException
      */
     public function consume(string $queue, callable $callback)
     {
@@ -71,8 +72,28 @@ class Queue
         $channel->basic_qos(null, 1, null);
 
         $channel->basic_consume($queue, '', false, false, false, false,
-            function ($msg) use ($callback) {
-                $callback(json_decode($msg->body, true));
+            function ($msg) use ($queue, $callback) {
+                $params = json_decode($msg->body, true);
+                $startTime = microtime(true);
+
+                echo PHP_EOL . PHP_EOL;
+                echo $queue . PHP_EOL;
+                echo str_repeat('-', 30) . PHP_EOL;
+                echo 'Params: ' . PHP_EOL;
+                print_r($params);
+
+                $result = $callback($params);
+
+                echo PHP_EOL;
+                echo 'Result: ' . PHP_EOL;
+                print_r($result);
+
+                $endTime = microtime(true);
+                echo PHP_EOL;
+                echo 'StartTime: ' . date('Y-m-d H:i:s', $startTime) . PHP_EOL;
+                echo 'EndTime: ' . date('Y-m-d H:i:s', $endTime) . PHP_EOL;
+                echo 'Elapse(s): ' . ($endTime - $startTime) . PHP_EOL;
+
                 $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
             });
 
