@@ -2,7 +2,8 @@
     "require": {
         "ext-json": "*",
         "pimple/pimple": "^3.2",
-        "duncan3dc/blade": "^4.5"
+        "duncan3dc/blade": "^4.5",
+        "php-amqplib/php-amqplib": "^2.9"
     },
     "autoload": {
         "psr-4": {
