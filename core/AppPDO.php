@@ -74,16 +74,6 @@ class AppPDO
     }
 
     /**
-     * 关闭所有连接资源
-     * @return $this
-     */
-    public function close()
-    {
-        $this->engine->close();
-        return $this;
-    }
-
-    /**
      * 所有PDO的底层查询都经过这里
      * @param string $name
      * @param array $arguments
@@ -91,15 +81,62 @@ class AppPDO
      */
     public function __call($name, $arguments)
     {
-        $this->engine->setSection($this->section);
-        $result = $this->engine->call($name, $arguments);
-
-        // 还原回构造对象时的元数据
+        // 还原回构造对象时的元数据，重置 Model 的 Sharding()
         foreach ($this->originalMeta as $k => $v) {
             $this->$k = $v;
         }
 
-        return $result;
+        return call_user_func_array([$this->getEngine(), $name], $arguments);
+    }
+
+    /**
+     * 返回 PDO 引擎
+     * @return PdoEngine|PDO
+     */
+    public function getEngine()
+    {
+        $this->engine->setSection($this->section);
+        return $this->engine;
+    }
+
+    /**
+     * 开启手动事务
+     * @return $this
+     */
+    public function beginTransaction()
+    {
+        $this->getEngine()->beginTransaction();
+        return $this;
+    }
+
+    /**
+     * 提交事务
+     * @return $this
+     */
+    public function commit()
+    {
+        $this->getEngine()->commit();
+        return $this;
+    }
+
+    /**
+     * 回滚事务
+     * @return $this
+     */
+    public function rollBack()
+    {
+        $this->getEngine()->rollBack();
+        return $this;
+    }
+
+    /**
+     * 关闭所有连接资源
+     * @return $this
+     */
+    public function close()
+    {
+        $this->getEngine()->close();
+        return $this;
     }
 
     /**
@@ -109,7 +146,7 @@ class AppPDO
      */
     public function forceMaster()
     {
-        $this->engine->forceMaster();
+        $this->getEngine()->forceMaster();
         return $this;
     }
 
@@ -238,7 +275,7 @@ class AppPDO
     public function selectCalc($columns, $where)
     {
         $this->withFoundRows = true;
-        $isForceMaster = $this->engine->getIsForceMaster();
+        $isForceMaster = $this->getEngine()->getIsForceMaster();
         $data = $this->selectAll($columns, $where);
 
         $isForceMaster && $this->forceMaster();
@@ -321,7 +358,7 @@ class AppPDO
         );
 
         // 记住当前 section, 查询上次插入的 ID 用
-        $section = $this->engine->getSection();
+        $section = $this->getEngine()->getSection();
 
         /* @var PDO $this */
         $statement = $this->prepare($sql);
@@ -796,7 +833,7 @@ class AppPDO
      */
     public function reset()
     {
-        $this->engine->reset();
+        $this->getEngine()->reset();
 
         $this->withFoundRows = false; // 重置为不使用 SQL_CALC_FOUND_ROWS
         $this->limit = ''; // 重置LIMIT

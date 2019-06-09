@@ -71,7 +71,13 @@ class PdoEngine
         return $pdo;
     }
 
-    public function call(string $name, array $arguments)
+    /**
+     * 所有PDO的底层查询都经过这里
+     * @param string $name
+     * @param array $arguments
+     * @return mixed
+     */
+    public function __call(string $name, array $arguments)
     {
         $isSqlStatement = in_array($name, ['query', 'prepare', 'exec']);
         if ($isSqlStatement) {
