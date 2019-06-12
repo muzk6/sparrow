@@ -28,6 +28,12 @@ class Request
     protected $validationSets = [];
 
     /**
+     * 上次请求的参数
+     * @var array
+     */
+    protected $oldRequest = [];
+
+    /**
      * 客户端IP
      * @return string
      */
@@ -231,6 +237,38 @@ class Request
         }
 
         return $data;
+    }
+
+    /**
+     * 把本次请求的参数缓存起来
+     * @return bool
+     */
+    public function flash()
+    {
+        /** @var Flash $flash */
+        $flash = app(Flash::class);
+        return $flash->set('__oldRequest', array_merge($_GET, $_POST)) ? true : false;
+    }
+
+    /**
+     * 上次请求的字段值
+     * @param string|null $name
+     * @param string $default
+     * @return mixed|null
+     */
+    public function old(string $name = null, string $default = '')
+    {
+        if (!$this->oldRequest) {
+            /** @var Flash $flash */
+            $flash = app(Flash::class);
+            $this->oldRequest = $flash->get('__oldRequest');
+        }
+
+        if ($name) {
+            return $this->oldRequest[$name] ?? $default;
+        } else {
+            return $this->oldRequest;
+        }
     }
 
 }
