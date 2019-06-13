@@ -2,6 +2,7 @@
 
 use Core\AppContainer;
 use Core\AppException;
+use Core\Request;
 
 /**
  * 取容器元素
@@ -216,7 +217,9 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
  */
 function input(string $field, $default = '', callable $after = null)
 {
-    return app(\Core\Request::class)->input($field, $default, $after);
+    /** @var Request $request */
+    $request = app(Request::class);
+    return $request->input($field, $default, $after);
 }
 
 /**
@@ -231,7 +234,33 @@ function input(string $field, $default = '', callable $after = null)
  */
 function validate(callable $fn)
 {
-    return app(\Core\Request::class)->validate($fn);
+    /** @var Request $request */
+    $request = app(Request::class);
+    return $request->validate($fn);
+}
+
+/**
+ * 把本次请求的参数缓存起来
+ * @return bool
+ */
+function request_flash()
+{
+    /** @var Request $request */
+    $request = app(Request::class);
+    return $request->flash();
+}
+
+/**
+ * 上次请求的字段值
+ * @param string|null $name
+ * @param string $default
+ * @return mixed|null
+ */
+function old(string $name = null, string $default = '')
+{
+    /** @var Request $request */
+    $request = app(Request::class);
+    return $request->old($name, $default);
 }
 
 /**
