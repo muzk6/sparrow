@@ -2,7 +2,12 @@
 
 use Core\AppContainer;
 use Core\AppException;
+use Core\Auth;
+use Core\Config;
+use Core\CSRF;
 use Core\Request;
+use Core\Validator;
+use duncan3dc\Laravel\BladeInstance;
 
 /**
  * 取容器元素
@@ -37,20 +42,28 @@ function inject(callable $fn)
 }
 
 /**
- * 配置文件
- * <p>优先从当前环境目录搜索配置文件</p>
- * @param string $filename 无后缀的文件名
- * @return array|null 返回配置文件内容
+ * 读取、设置 配置
+ * <p>
+ * 读取 config/dev/app.php 里的 lang 配置：config('app.lang')<br>
+ * 设置：config(['app.lang' => 'en'])
+ * </p>
+ * @param string|array $keys string时读取，array时设置
+ * @return bool|mixed
  */
-function config(string $filename)
+function config($keys)
 {
-    if (is_file($path = PATH_CONFIG_ENV . "/{$filename}.php")) {
-        return include($path);
-    } else if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
-        return include($path);
-    }
+    /** @var Config $config */
+    $config = app(Config::class);
+    if (is_array($keys)) {
+        $ret = false;
+        foreach ($keys as $k => $v) {
+            $ret = $config->set($k, $v);
+        }
 
-    return null;
+        return $ret;
+    } else {
+        return $config->get($keys);
+    }
 }
 
 /**
@@ -66,9 +79,9 @@ function trans(int $code, array $params = [])
     if (isset($lang[$code])) {
         $text = $lang[$code];
     } else { // 不存在就取默认语言的文本
-        $conf = config('app');
-        if ($conf['lang'] != APP_LANG) {
-            $lang = include(sprintf('%s/%s.php', PATH_LANG, $conf['lang']));
+        $langConf = config('app.lang');
+        if ($langConf != APP_LANG) {
+            $lang = include(sprintf('%s/%s.php', PATH_LANG, $langConf));
             $text = $lang[$code] ?? '?';
         }
     }
@@ -90,7 +103,7 @@ function trans(int $code, array $params = [])
  */
 function view(string $view, array $params = [])
 {
-    return app(\duncan3dc\Laravel\BladeInstance::class)->render($view, $params);
+    return app(BladeInstance::class)->render($view, $params);
 }
 
 /**
@@ -117,7 +130,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app(\Core\Auth::class)->getUserId(),
+        '__userid' => app(Auth::class)->getUserId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
@@ -213,7 +226,7 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
  * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
  * 回调函数格式为 function ($v, $k) {}<br>
  * </p>
- * @return mixed|\Core\Validator
+ * @return mixed|Validator
  */
 function input(string $field, $default = '', callable $after = null)
 {
@@ -299,8 +312,8 @@ function panic($messageOrCode = '', array $data = [])
  */
 function csrf_field()
 {
-    /** @var \Core\CSRF $csrf */
-    $csrf = app(\Core\CSRF::class);
+    /** @var CSRF $csrf */
+    $csrf = app(CSRF::class);
     return $csrf->field();
 }
 
@@ -311,8 +324,8 @@ function csrf_field()
  */
 function csrf_token()
 {
-    /** @var \Core\CSRF $csrf */
-    $csrf = app(\Core\CSRF::class);
+    /** @var CSRF $csrf */
+    $csrf = app(CSRF::class);
     return $csrf->token();
 }
 
@@ -323,7 +336,7 @@ function csrf_token()
  */
 function csrf_check()
 {
-    /** @var \Core\CSRF $csrf */
-    $csrf = app(\Core\CSRF::class);
+    /** @var CSRF $csrf */
+    $csrf = app(CSRF::class);
     return $csrf->check();
 }
