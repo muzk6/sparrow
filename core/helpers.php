@@ -299,7 +299,9 @@ function panic($messageOrCode = '', array $data = [])
  */
 function csrf_field()
 {
-    return app(\Core\CSRF::class)->field();
+    /** @var \Core\CSRF $csrf */
+    $csrf = app(\Core\CSRF::class);
+    return $csrf->field();
 }
 
 /**
@@ -309,5 +311,19 @@ function csrf_field()
  */
 function csrf_token()
 {
-    return app(\Core\CSRF::class)->token();
+    /** @var \Core\CSRF $csrf */
+    $csrf = app(\Core\CSRF::class);
+    return $csrf->token();
+}
+
+/**
+ * token 校验
+ * @return true
+ * @throws AppException
+ */
+function csrf_check()
+{
+    /** @var \Core\CSRF $csrf */
+    $csrf = app(\Core\CSRF::class);
+    return $csrf->check();
 }

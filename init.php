@@ -44,6 +44,9 @@ if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
 
+// 优先加载自己的 helpers
+require_once PATH_ROOT . '/core/helpers.php';
+
 // composer
 require_once PATH_ROOT . '/vendor/autoload.php';
 
