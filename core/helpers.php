@@ -238,6 +238,29 @@ function validate(callable $fn)
 }
 
 /**
+ * 带协议和域名的完整URL
+ * @param string $path URL路径
+ * @param array $params Query String
+ * @param bool $secure 是否为安全协议
+ * @return string
+ */
+function url(string $path, array $params = [], bool $secure = false)
+{
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if ($host) {
+        $protocol = $secure ? 'https://' : 'http://';
+        $host = $protocol . $host;
+    }
+
+    if ($params) {
+        $path .= strpos($path, '?') !== false ? '&' : '?';
+        $path .= http_build_query($params);
+    }
+
+    return $host . $path;
+}
+
+/**
  * 把本次请求的参数缓存起来
  * @return bool
  */
