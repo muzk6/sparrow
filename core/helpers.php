@@ -6,6 +6,7 @@ use Core\Auth;
 use Core\Config;
 use Core\CSRF;
 use Core\Request;
+use Core\Translator;
 use Core\Validator;
 use duncan3dc\Laravel\BladeInstance;
 
@@ -67,32 +68,16 @@ function config($keys)
 }
 
 /**
- * 多语言文本
+ * 转换成当前语言的文本
  * @param int $code
  * @param array $params
  * @return string
  */
 function trans(int $code, array $params = [])
 {
-    $text = '?';
-    $lang = include(sprintf('%s/%s.php', PATH_LANG, APP_LANG));
-    if (isset($lang[$code])) {
-        $text = $lang[$code];
-    } else { // 不存在就取默认语言的文本
-        $langConf = config('app.lang');
-        if ($langConf != APP_LANG) {
-            $lang = include(sprintf('%s/%s.php', PATH_LANG, $langConf));
-            $text = $lang[$code] ?? '?';
-        }
-    }
-
-    if ($params) {
-        foreach ($params as $k => $v) {
-            $text = str_replace("{{$k}}", $v, $text);
-        }
-    }
-
-    return $text;
+    /** @var Translator $translator */
+    $translator = app(Translator::class);
+    return $translator->trans($code, $params);
 }
 
 /**
