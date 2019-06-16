@@ -239,14 +239,29 @@ function validate(callable $fn)
 
 /**
  * 带协议和域名的完整URL
- * @param string $path URL路径
+ * <p>
+ * 当前域名URL：url('path/to')<br>
+ * 其它域名URL：url(['test', '/path/to'])
+ * </p>
+ * @param string|array $path URL路径
  * @param array $params Query String
  * @param bool $secure 是否为安全协议
  * @return string
  */
-function url(string $path, array $params = [], bool $secure = false)
+function url($path, array $params = [], bool $secure = false)
 {
-    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if (is_array($path)) {
+        if (count($path) !== 2) {
+            trigger_error("正确用法：url(['test', '/path/to'])");
+            return '';
+        }
+
+        list($alias, $path) = $path;
+        $host = config("domain.{$alias}");
+    } else {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+    }
+
     if ($host) {
         $protocol = $secure ? 'https://' : 'http://';
         $host = $protocol . $host;
