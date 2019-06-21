@@ -8,4 +8,22 @@ namespace Core;
  */
 abstract class BaseController
 {
+    /**
+     * 用户ID
+     * @var int
+     */
+    protected $userId;
+
+    /**
+     * 是否已经登录
+     * @var bool
+     */
+    protected $isLogin;
+
+    public function __construct(Auth $auth)
+    {
+        $this->userId = $auth->getUserId();
+        $this->isLogin = $auth->isLogin();
+    }
+
 }

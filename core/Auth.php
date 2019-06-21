@@ -46,7 +46,7 @@ class Auth
      */
     public function getUserId()
     {
-        return $_SESSION[$this->prefix . 'user_id'] ?? 0;
+        return intval($_SESSION[$this->prefix . 'user_id'] ?? 0);
     }
 
     /**
