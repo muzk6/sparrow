@@ -37,20 +37,20 @@ abstract class BaseEvent
     }
 
     /**
-     * 异步版 send()
+     * 异步 send()
+     * <p>
+     * worker 位于 cli/worker.php<br>
+     * PS. 异步worker 所有 include 的文件有变化时，会自动 exit. 因此 worker 必须使用 supervisor 管理
+     * </p>
      * @param mixed ...$params
      * @return null
      */
     public function sendAsync(...$params)
     {
-        try {
-            /** @var Queue $queue */
-            $queue = app(Queue::class);
-            $queue->publish(static::class, $params);
-            return null;
-        } catch (\ReflectionException $e) {
-            trigger_error($e->getMessage());
-        }
+        /** @var Queue $queue */
+        $queue = app(Queue::class);
+        $queue->publish(static::class, $params);
+        return null;
     }
 
 }

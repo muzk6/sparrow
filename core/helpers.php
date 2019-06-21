@@ -21,7 +21,7 @@ function app(string $name)
 }
 
 /**
- * 支持依赖自动注入的函数调用
+ * 支持自动依赖注入的函数调用
  * @param callable $fn
  * @return mixed
  */
@@ -230,7 +230,7 @@ function input(string $field, $default = '', callable $after = null)
  * 用例 validate(function () { input()->required(); input()->max(10); });<br>
  * 注：回调函数里的 Validator 对象不再需要调用 \Core\Validator::validate<br>
  * </p>
- * @param callable $fn 支持依赖自动注入
+ * @param callable $fn 支持自动依赖注入
  * @return array
  * @throws AppException
  */
