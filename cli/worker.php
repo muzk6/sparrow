@@ -5,6 +5,8 @@
  * php worker.php -e "App\Events\DemoEvent"
  */
 
+use Core\Queue;
+
 require_once dirname(__DIR__) . '/init.php';
 
 $opt = getopt('e:');
@@ -16,7 +18,9 @@ if (!$event) {
     exit;
 }
 
-app(\Core\Queue::class)->consume($event, function ($params) use ($event) {
+/** @var Queue $queue */
+$queue = app(Queue::class);
+$queue->consume($event, function ($params) use ($event) {
     $ref = new ReflectionClass($event);
     $listenerParams = [];
 

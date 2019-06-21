@@ -72,8 +72,11 @@ class Xdebug
         $traceStart = false;
         $name = '';
 
+        /** @var Whitelist $whitelist */
+        $whitelist = app(Whitelist::class);
+
         // 从 cgi 开启
-        if (app(Whitelist::class)->isSafeIp()) {
+        if ($whitelist->isSafeIp()) {
             if (isset($_REQUEST['_xt'])) {
                 $name = $_REQUEST['_xt'];
             } elseif (isset($_COOKIE['_xt'])) {
@@ -94,9 +97,12 @@ class Xdebug
         if (!$traceStart && file_exists($traceConfFile)) {
             $traceConf = include($traceConfFile);
 
+            /** @var Auth $auth */
+            $auth = app(Auth::class);
+
             if ($traceConf['expire'] > time() // 检查过期
                 && strpos(strval($_SERVER['REQUEST_URI']), $traceConf['uri']) !== false // 检查 uri path 是否匹配
-                && (!$traceConf['user_id'] || (app(Auth::class)->isLogin() && $traceConf['user_id'] == app(Auth::class)->getUserId())) // 有指定用户时，检查特定用户
+                && (!$traceConf['user_id'] || ($auth->isLogin() && $traceConf['user_id'] == $auth->getUserId())) // 有指定用户时，检查特定用户
             ) {
                 $traceStart = true;
 
@@ -136,11 +142,14 @@ class Xdebug
         ini_set('xdebug.show_mem_delta', 1);
         ini_set('xdebug.collect_includes', 1);
 
+        /** @var Auth $auth */
+        $auth = app(Auth::class);
+
         $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.uri:%s',
             uniqid(), // 目的是排序用，和保证文件名唯一
             date('ymd_His'),
             $traceName,
-            app(Auth::class)->getUserId(),
+            $auth->getUserId(),
             isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : ''
         );
 

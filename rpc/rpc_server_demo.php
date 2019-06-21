@@ -4,6 +4,8 @@
  * yar 服务端
  */
 
+use Core\Yar;
+
 require_once dirname(__DIR__) . '/init.php';
 
 class Foo extends \Core\BaseYar
@@ -14,4 +16,6 @@ class Foo extends \Core\BaseYar
     }
 }
 
-app(\Core\Yar::class)->server(Foo::class);
+/** @var Yar $yar */
+$yar = app(Yar::class);
+$yar->server(Foo::class);

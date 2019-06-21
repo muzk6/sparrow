@@ -25,7 +25,10 @@ class Whitelist
      */
     public function isSafeIp()
     {
-        $clientIpStr = app(Request::class)->getIp();
+        /** @var Request $request */
+        $request = app(Request::class);
+
+        $clientIpStr = $request->getIp();
         $clientIp = ip2long($clientIpStr);
 
         foreach ($this->conf['ip'] as $v) {
@@ -59,11 +62,14 @@ class Whitelist
      */
     public function isSafeUserId()
     {
-        if (!app(Auth::class)->isLogin()) {
+        /** @var Auth $auth */
+        $auth = app(Auth::class);
+
+        if (!$auth->isLogin()) {
             return false;
         }
 
-        return in_array(app(Auth::class)->getUserId(), $this->conf['user_id']);
+        return in_array($auth->getUserId(), $this->conf['user_id']);
     }
 
 }

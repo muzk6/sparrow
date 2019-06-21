@@ -11,9 +11,9 @@ define('PATH_CONFIG', PATH_ROOT . '/config');
 define('PATH_LANG', PATH_ROOT . '/lang');
 define('TIME', $_SERVER['REQUEST_TIME']); // 注意：不能在 worker 里使用，否则不会变化
 
-// 环境与配置文件
-if (file_exists(PATH_APP . '/Core/env.php')) {
-    require PATH_APP . '/Core/env.php';
+// 环境与通用配置文件
+if (file_exists(PATH_CONFIG . '/env.php')) {
+    require PATH_CONFIG . '/env.php';
 } else {
     if (is_file('/www/PUB')) { // publish
         define('APP_ENV', 'pub');
@@ -26,6 +26,7 @@ if (file_exists(PATH_APP . '/Core/env.php')) {
     }
 }
 
+// 指定环境的配置文件
 define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 if (!file_exists(PATH_CONFIG_ENV)) {
     echo '缺少配置: ' . PATH_CONFIG_ENV;

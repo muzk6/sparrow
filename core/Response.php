@@ -15,6 +15,7 @@ class Response
     public function status404()
     {
         http_response_code(404);
+        return null;
     }
 
 }

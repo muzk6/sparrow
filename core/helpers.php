@@ -88,7 +88,9 @@ function trans(int $code, array $params = [])
  */
 function view(string $view, array $params = [])
 {
-    return app(BladeInstance::class)->render($view, $params);
+    /** @var BladeInstance $blade */
+    $blade = app(BladeInstance::class);
+    return $blade->render($view, $params);
 }
 
 /**
@@ -107,6 +109,8 @@ function logfile(string $index, $data, string $type = 'app')
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
+    /** @var Auth $auth */
+    $auth = app(Auth::class);
     $log = json_encode([
         '__time' => date('Y-m-d H:i:s'),
         '__index' => $index,
@@ -115,7 +119,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app(Auth::class)->getUserId(),
+        '__userid' => $auth->getUserId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 

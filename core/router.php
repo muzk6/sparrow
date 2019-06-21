@@ -1,6 +1,8 @@
 <?php
 
 use Core\AppContainer;
+use Core\Response;
+use Core\Xdebug;
 
 $uri = parse_url(rawurldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
@@ -15,10 +17,13 @@ if ($uri === '/') {
     $action = $matches['act'] ?? 'index';
 }
 
+/** @var Response $response */
+$response = app(Response::class);
+
 if ($found) {
     $controllerNs = CONTROLLER_NAMESPACE . $controller;
     if (!is_callable([$controllerNs, $action])) {
-        return app(\Core\Response::class)->status404();
+        return $response->status404();
     }
 
     try {
@@ -29,14 +34,17 @@ if ($found) {
         }
 
         $controllerInstance = AppContainer::get($controllerNs);
-        app(\Core\Xdebug::class)->auto();
+
+        /** @var Xdebug $xdebug */
+        $xdebug = app(Xdebug::class);
+        $xdebug->auto();
 
         // 执行控制方法
         echo call_user_func([$controllerInstance, $action], ...$actionParams);
 
     } catch (ReflectionException $e) {
-        return app(\Core\Response::class)->status404();
+        return $response->status404();
     }
 } else {
-    return app(\Core\Response::class)->status404();
+    return $response->status404();
 }

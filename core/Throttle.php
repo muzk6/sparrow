@@ -22,23 +22,25 @@ class Throttle
      */
     public function pass(string $key, int $limit, int $ttl)
     {
+        /** @var Redis $redis */
+        $redis = app(Redis::class);
         $now = time();
-        if (app(Redis::class)->lLen($key) < $limit) {
-            $len = app(Redis::class)->lPush($key, $now);
+        if ($redis->lLen($key) < $limit) {
+            $len = $redis->lPush($key, $now);
         } else {
-            $earliest = intval(app(Redis::class)->lIndex($key, -1));
+            $earliest = intval($redis->lIndex($key, -1));
             if ($now - $earliest < $ttl) {
-                app(Redis::class)->expire($key, $ttl);
+                $redis->expire($key, $ttl);
                 panic(10001001, [
                     'reset' => $earliest + $ttl,
                 ]);
             } else {
-                app(Redis::class)->lTrim($key, 1, 0);
-                $len = app(Redis::class)->lPush($key, $now);
+                $redis->lTrim($key, 1, 0);
+                $len = $redis->lPush($key, $now);
             }
         }
 
-        app(Redis::class)->expire($key, $ttl);
+        $redis->expire($key, $ttl);
         return $limit - $len;
     }
     

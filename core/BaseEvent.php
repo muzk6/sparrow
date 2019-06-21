@@ -44,7 +44,9 @@ abstract class BaseEvent
     public function sendAsync(...$params)
     {
         try {
-            app(Queue::class)->publish(static::class, $params);
+            /** @var Queue $queue */
+            $queue = app(Queue::class);
+            $queue->publish(static::class, $params);
             return null;
         } catch (\ReflectionException $e) {
             trigger_error($e->getMessage());
