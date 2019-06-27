@@ -22,15 +22,15 @@ if (!$event) {
 $queue = app(Queue::class);
 $queue->consume($event, function ($params) use ($event) {
     $ref = new ReflectionClass($event);
-    $listenerParams = [];
+    $handleParams = [];
 
-    foreach ($ref->getMethod('listen')->getParameters() as $handleParam) {
+    foreach ($ref->getMethod('handle')->getParameters() as $handleParam) {
         $dependClassName = $handleParam->getClass();
         if ($dependClassName) {
-            $listenerParams[] = app($dependClassName->getName());
+            $handleParams[] = app($dependClassName->getName());
         } else {
-            $listenerParams[] = array_shift($params);
+            $handleParams[] = $params;
         }
     }
-    return call_user_func([app($event), 'listen'], ...$listenerParams);
+    return call_user_func_array([app($event), 'handle'], $handleParams);
 });

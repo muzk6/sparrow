@@ -100,24 +100,26 @@ if (is_file('/www/PUB')) { // publish
 #### 定义监听
 
 - 参考`app/Events/DemoEvent.php`定义事件类
-- `\App\Events\DemoEvent::listen`支持自动依赖注入
+- `\App\Events\DemoEvent::handle`支持自动依赖注入
+- `$params` 为 `event()` 传入的参数，`$params = ['p1' => 1, 'p2' => 2]`
 
 ```php
-public function listen($userName, DemoModel $demoModel)
+public function handle(DemoModel $demoModel, array $params)
 {
-    return $demoModel->selectOne(['name like ?', "{$userName}%"]);
+    return $demoModel->selectOne(['name like ?', "{$params['name']}%"]);
 }
 ```
 
 #### 发送事件
 
 ```php
-$demoEvent->send($req['name']); // 返回 `\App\Events\DemoEvent::listen` 的结果
+event(\App\Events\DemoEvent::class, ['p1' => 'test']); // 返回 `\App\Events\DemoEvent::handle` 的结果
 
-$demoEvent->sendAsync($req['name']); // 返回 null, 参数将进入队列，对应 worker 参考 cli/worker.php
+event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参数将进入异步队列，对应 worker 参考 cli/worker.php
 ```
 
-*PS. 异步worker 所有 include 的文件有变化时，会自动 exit. 因此 worker 必须使用 supervisor 管理*
+- 异步worker 所有 include 的文件有变化时，会自动 exit. 因此 worker 必须使用 supervisor 管理
+- 所有事件参数必须放到数组里面去
 
 ## CSRF(XSRF)
 
