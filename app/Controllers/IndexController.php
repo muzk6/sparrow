@@ -13,7 +13,7 @@ use Core\BaseController;
  */
 class IndexController extends BaseController
 {
-    public function index(DemoEvent $demoEvent)
+    public function index()
     {
         try {
             $req = validate(function () {
@@ -22,8 +22,7 @@ class IndexController extends BaseController
                 input('get.name')->required()->setTitle('名字');
             });
 
-            $row = $demoEvent->send($req['name']);
-
+            $row = event(DemoEvent::class, ['name' => $req['name']]);
             return api_json(true, ['req' => $req, 'row' => $row]);
         } catch (AppException $exception) {
             return api_json($exception);
