@@ -8,7 +8,7 @@ require_once dirname(__DIR__) . '/init.php';
 
 inject(function (\Core\Yar $yar) {
     // 串行调用；
-    // 开启 Xdebug Trace 跟踪: $yar->trace('demo_bar');
+    // 开启 Xdebug Trace 跟踪: $yar->start('demo_bar');
     var_dump($yar->request('demo', 'bar', ['name' => 'tom']));
 
     echo str_repeat('-', 50) . PHP_EOL;

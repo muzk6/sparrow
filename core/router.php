@@ -3,6 +3,7 @@
 use Core\AppContainer;
 use Core\Response;
 use Core\Xdebug;
+use Core\XHProf;
 
 $uri = parse_url(rawurldecode($_SERVER['REQUEST_URI']), PHP_URL_PATH);
 
@@ -34,6 +35,10 @@ if ($found) {
         }
 
         $controllerInstance = AppContainer::get($controllerNs);
+
+        /** @var XHProf $xhprof */
+        $xhprof = app(XHProf::class);
+        $xhprof->auto();
 
         /** @var Xdebug $xdebug */
         $xdebug = app(Xdebug::class);

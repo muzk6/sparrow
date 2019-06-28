@@ -115,7 +115,7 @@ class Xdebug
         }
 
         if ($traceStart) {
-            $this->trace($name);
+            $this->start($name);
         }
     }
 
@@ -124,7 +124,7 @@ class Xdebug
      * @param string $traceName 日志名，即日志文件名的 xt: 的值
      * <p>建议把 uniqid() 作为 $name</p>
      */
-    public function trace($traceName)
+    public function start($traceName)
     {
         if (!file_exists(PATH_TRACE)) {
             mkdir(PATH_TRACE, 0777, true);

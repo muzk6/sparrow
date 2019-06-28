@@ -66,6 +66,10 @@ class ServiceProvider implements ServiceProviderInterface
             return $csrf;
         };
 
+        $pimple[XHProf::class] = function () {
+            return new XHProf(config('xhprof'));
+        };
+
         $pimple[Redis::class] = function () {
             if (!extension_loaded('redis')) {
                 trigger_error('"pecl install redis" at first');
