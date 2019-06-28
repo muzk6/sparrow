@@ -145,12 +145,19 @@ class Xdebug
         /** @var Auth $auth */
         $auth = app(Auth::class);
 
+        if (PHP_SAPI == 'cli') {
+            $cmd = basename($_SERVER['argv'][0]);
+            $uri = $cmd . '_' . implode('_', array_slice($_SERVER['argv'], 1));
+        } else {
+            $uri = isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : '';
+        }
+
         $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.uri:%s',
             uniqid(), // 目的是排序用，和保证文件名唯一
             date('ymd_His'),
             $traceName,
             $auth->getUserId(),
-            isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : ''
+            $uri
         );
 
         register_shutdown_function(function () {

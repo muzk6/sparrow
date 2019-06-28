@@ -25,11 +25,17 @@ URI | Controller | Action
 
 以下任意方式可开启跟踪，日志位于`data/trace/`
 
-- CLI `php cli/trace.php --help`，`--help` 查看帮助
-- URI `/?_xt=name0`，`name0`是当前日志的标识名
-- Cookie `_xt=name0;`
+### 跟踪fpm
+
+- 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
+- 当前URI 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
+- Cookie 主动开启: `_xt=name0;`
 
 *注意：`URI`, `Cookie`方式的的前提必须先设置`config/dev/whitelist.php`白名单`IP`*
+
+### 跟踪cli
+
+`php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
 
 ## 维护模式
 > 开启维护模式，关闭网站访问入口

@@ -1,5 +1,7 @@
 <?php
 
+use Core\Xdebug;
+
 define('PATH_ROOT', __DIR__);
 define('PATH_APP', PATH_ROOT . '/app');
 define('PATH_VIEW', PATH_ROOT . '/views');
@@ -62,8 +64,8 @@ define('APP_LANG', isset($_COOKIE['lang'])
     : $appConf['lang']
 );
 
-// session
 if (PHP_SAPI != 'cli') {
+    // session
     $sessionConf = config('session');
     if ($sessionConf['session.save_handler'] == 'files' && !file_exists($sessionConf['session.save_path'])) {
         mkdir($sessionConf['session.save_path'], 0777, true);
@@ -72,4 +74,10 @@ if (PHP_SAPI != 'cli') {
         ini_set($k, $v);
     }
     session_id() || session_start();
+} else {
+    if (isset($_SERVER['argv']) && in_array('--trace', $_SERVER['argv'])) {
+        /** @var Xdebug $xdebug */
+        $xdebug = app(Xdebug::class);
+        $xdebug->start('cli');
+    }
 }
