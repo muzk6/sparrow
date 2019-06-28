@@ -24,10 +24,6 @@ class XHProf
      */
     public function auto()
     {
-        if (defined('TEST_ENV')) {
-            return false;
-        }
-
         if (empty($this->config['enable'])) {
             return false;
         }
@@ -45,6 +41,10 @@ class XHProf
      */
     public function start()
     {
+        if (defined('TEST_ENV')) {
+            return false;
+        }
+
         if (!extension_loaded('tideways_xhprof')) {
             return false;
         }
