@@ -162,7 +162,7 @@ class AppPDO
      * @see AppPDO::quoteColumn() 参考字段参数
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectColumn($column, $where)
+    public function selectColumn($column, $where = null)
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
@@ -191,7 +191,7 @@ class AppPDO
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function exists($where)
+    public function exists($where = null)
     {
         return boolval($this->selectColumn(['raw' => 1], $where));
     }
@@ -203,7 +203,7 @@ class AppPDO
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectOne($where)
+    public function selectOne($where = null)
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
@@ -236,7 +236,7 @@ class AppPDO
      * @see AppPDO::quoteColumn() 参考字段参数
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectAll($columns, $where)
+    public function selectAll($columns, $where = null)
     {
         $table = $this->getTable();
         $where = $this->parseWhere($where);
@@ -272,7 +272,7 @@ class AppPDO
      * @see AppPDO::quoteColumn() 参考字段参数
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectCalc($columns, $where)
+    public function selectCalc($columns, $where = null)
     {
         $this->withFoundRows = true;
         $isForceMaster = $this->getEngine()->getIsForceMaster();
@@ -531,7 +531,7 @@ class AppPDO
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function count($where)
+    public function count($where = null)
     {
         return intval($this->selectColumn(['raw' => 'COUNT(1)'], $where));
     }
@@ -652,7 +652,7 @@ class AppPDO
 
     /**
      * 返回参数绑定格式的 WHERE
-     * @return array eg. ['name=?', ['foo']]; 没有条件时返回 ['']
+     * @return array eg. ['name=?', ['foo']]; ['', null]
      * @throws AppException
      */
     public function getWhere()

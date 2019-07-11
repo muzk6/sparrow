@@ -121,7 +121,7 @@ public function handle(DemoModel $demoModel, array $params)
 ```php
 event(\App\Events\DemoEvent::class, ['p1' => 'test']); // 返回 `\App\Events\DemoEvent::handle` 的结果
 
-event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参数将进入异步队列，对应 worker 参考 cli/worker.php
+event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参数将进入异步队列，对应 worker 通过 cli/worker.php 脚本启动
 ```
 
 - 异步worker 所有 include 的文件有变化时，会自动 exit. 因此 worker 必须使用 supervisor 管理
@@ -206,7 +206,7 @@ event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参�
 ```php
 $pdo = app(\Core\AppPDO::class);
 // select * from table0 limit 1
-$pdo->setTable('table0')->selectOne(null);
+$pdo->setTable('table0')->selectOne();
 
 // select * from table0 where id = 1 limit 1
 $pdo->setTable('table0')->selectOne('id=1'); // 有注入风险
@@ -216,16 +216,16 @@ $pdo->setTable('table0')->selectOne(['id=?', [1]]); // 防注入
 $pdo->setTable('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
 $pdo->setTable('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
 
-// 这里用到的 ->where(), 仅当 ->selectOne() 参数为 null 时生效，其它查询同理
-$pdo->setTable('table0')->where('id=1')->selectOne(null); // 有注入风险
-$pdo->setTable('table0')->where('id=?', 1)->selectOne(null); // 防注入
+// 这里用到的 ->where(), 仅当 ->selectOne() 参数为 null(默认) 时生效，其它查询同理
+$pdo->setTable('table0')->where('id=1')->selectOne(); // 有注入风险
+$pdo->setTable('table0')->where('id=?', 1)->selectOne(); // 防注入
 $pdo->setTable('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
 
 // select * from table0 where id = 1 and (status=1 or type=2) limit 1
-$pdo->setTable('table0')->where('id=?', 1)->where('(status=? or type=?)', 1, 2)->selectOne(null);
+$pdo->setTable('table0')->where('id=?', 1)->where('(status=? or type=?)', 1, 2)->selectOne();
 
 // select * from table0 where status=1 or type=2 limit 1 
-$pdo->setTable('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne(null);
+$pdo->setTable('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne();
 ```
 
 #### 查询1行1列 `->selectColumn()`
@@ -234,11 +234,11 @@ $pdo->setTable('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne(
 
 ```php
 // select col1 from table0 limit 1
-$pdo->setTable('table0')->selectColumn('col1', null);
-$pdo->setTable('table0')->selectColumn(['col1'], null);
+$pdo->setTable('table0')->selectColumn('col1');
+$pdo->setTable('table0')->selectColumn(['col1']);
 
 // select COUNT(1) from table0 limit 1
-$pdo->setTable('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
+$pdo->setTable('table0')->selectColumn(['raw' => 'COUNT(1)']);
 ```
 
 #### 查询多行 `->selectColumn()`
@@ -248,16 +248,16 @@ $pdo->setTable('table0')->selectColumn(['raw' => 'COUNT(1)'], null);
 ```php
 // select col1, col2 from table0 order by col1, col2 desc
 // ->orderBy('col1, col2') 等价于 ->append('order by col1, col2')
-$pdo->setTable('table0')->orderBy('col1, col2')->selectAll('col1, col2', null);
-$pdo->setTable('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2'], null);
+$pdo->setTable('table0')->orderBy('col1, col2')->selectAll('col1, col2');
+$pdo->setTable('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2']);
 
 // select col1, COUNT(1) from table0 order by 1 desc
-$pdo->setTable('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']], null);
+$pdo->setTable('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']]);
 
 // 查询多行(分页查询)的同时返回记录总行数
 // select sql_calc_found_rows col1 from table0 limit 2
 // select found_rows()
-$pdo->setTable('table0')->limit(2)->selectCalc('col1', null);
+$pdo->setTable('table0')->limit(2)->selectCalc('col1');
 ```
 
 #### 查询是否存在
@@ -277,7 +277,7 @@ $pdo->setTable('table0')->append('order by col0 desc')->limit(10)->selectAll('*'
 $pdo->setTable('table0')->append('group by col0')->page(1, 10)->selectAll('col0, col1', ['name like :name', ['name' => 'tom%']]);
 
 // select count(1) from table0
-$pdo->setTable('table0')->count(null);
+$pdo->setTable('table0')->count();
 ```
 
 #### `->getWhere()`, `->getLimit()` 方便拼接原生`sql`
@@ -288,12 +288,12 @@ $pdo->setTable('table0')->count(null);
 ```php
 $pdo->where('code=?', $code);
 $pdo->page(1, 5);
-$where = $pdo->getWhere(); // 没有条件时返回 ['']
+$where = $pdo->getWhere(); // 没有条件时返回 ['', null]
 $limit = $pdo->getLimit();
 
 $sql = "select SQL_CALC_FOUND_ROWS * from table0 {$where[0]} {$limit}"
 $st = $pdo->prepare($sql);
-$st->execute($where[1] ?? null);
+$st->execute($where[1]);
 var_dump($pdo->foundRows(), $st->fetchAll(2)); 
 ```
 
