@@ -71,6 +71,7 @@ app | 业务逻辑
 app/Controllers | 控制器层，负责输入(请求参数，中间件)、处理(Service)、输出
 app/Events | 事件层，用于写业务逻辑、单元测试
 app/Models | 模型层，1表1模型
+app/Providers | 容器服务提供层
 cli | 命令行脚本
 config | 配置文件，通用配置放在当前目录下
 config/dev | dev环境的配置
