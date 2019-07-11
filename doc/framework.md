@@ -193,7 +193,7 @@ event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参�
 
 #### RPC 远程过程调用
 
-- 客户端参考`config/dev/rabbitmq.php`
+- 客户端参考`cli/rpc_client_demo.php`
 - 服务端参考`rpc/rpc_server_demo.php`
 
 ## 数据库查询
