@@ -44,7 +44,7 @@ class Yar
         $host = &$this->hosts[$rpc['host']];
         isset($host) || trigger_error('请在 yar.php 配置 hosts');
 
-        $url = $host . $rpc['uri'];
+        $url = rtrim($host, '/') . $rpc['uri'];
         if ($this->traceName) {
             $url .= (strpos($url, '?') === false ? '?' : '&') . "_xt={$this->traceName}";
             $this->traceName = '';
@@ -71,7 +71,7 @@ class Yar
 
         for ($i = 1; $i <= $retry; $i++) {
             try {
-                $result = call_user_func_array([$client, $action], [$params]);
+                $result = call_user_func_array([$client, $action], $params);
                 if ($result !== null) {
                     return $result;
                 }

@@ -4,18 +4,17 @@
  * yar 服务端
  */
 
+use Core\BaseYar;
 use Core\Yar;
 
 require_once dirname(__DIR__) . '/init.php';
 
-class Foo extends \Core\BaseYar
+class Foo extends BaseYar
 {
-    protected function bar($params)
+    public function bar()
     {
-        return api_format(true, $params);
+        return api_format(true, ['data' => func_get_args()]);
     }
 }
 
-/** @var Yar $yar */
-$yar = app(Yar::class);
-$yar->server(Foo::class);
+app(Yar::class)->server(Foo::class);

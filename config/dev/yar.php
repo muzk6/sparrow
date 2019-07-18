@@ -6,12 +6,12 @@
 
 return [
     'hosts' => [
-        'sparrow' => 'http://localhost',
+        'sparrow' => 'http://rpc.sparrow.com',
     ],
     'servers' => [
         'demo' => [
             'host' => 'sparrow',
-            'uri' => '/sparrow/rpc/rpc_server_demo.php',
+            'uri' => '/rpc_server_demo.php',
         ],
     ]
 ];
