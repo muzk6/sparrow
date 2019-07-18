@@ -10,68 +10,15 @@
 
 *注意：每个入口必须使用独立域名*
 
-## 路由
-
-URI | Controller | Action
---- | --- | ---
-`/` | `IndexController` | `index()`
-`/foo` | `FooController` | `index()`
-`/foo/` | `FooController` | `index()`
-`/foo/bar` | `FooController` | `bar()`
-`/foo/bar/` | `FooController` | `bar()`
-
-## XDebug Trace
-> 跟踪调试日志
-
-以下任意方式可开启跟踪，日志位于`data/trace/`
-
-### 跟踪fpm
-
-- 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
-- 当前URI 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
-- Cookie 主动开启: `_xt=name0;`
-
-*注意：`URI`, `Cookie`方式的的前提必须先设置`config/dev/whitelist.php`白名单`IP`*
-
-### 跟踪cli
-
-`php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
-
-## 维护模式
-> 开启维护模式，关闭网站访问入口
-
-- `php cli/maintain.php`
-
-## 测试
-
-- `cli/test.php` 为 `php-cli` 测试脚本
-- `public/test.php` 为 `php-cgi` 测试入口
-
-## 常用常量
-
-Name | Desc
---- | ---
-TIME | `$_SERVER['REQUEST_TIME']`
-IS_POST | 是否为 POST 请求
-IS_GET | 是否为 GET 请求
-IS_DEV | 是否为开发环境
-APP_LANG | 当前语言 `eg. zh_CN`
-APP_ENV | 服务器环境 `eg. dev`
-TEST_ENV | 是否为单元测试的环境
-PATH_PUBLIC | 网站入口路径
-PATH_DATA | 数据目录，需要有写权限
-PATH_LOG | 日志目录
-TIME | 脚本启动时间，不能在 worker 里使用，否则不会变化
-
 ## 目录结构
 
 Dir | Desc
 --- | ---
 app | 业务逻辑
 app/Controllers | 控制器层，负责输入(请求参数，中间件)、处理(Service)、输出
-app/Events | 事件层，用于写业务逻辑、单元测试
 app/Models | 模型层，1表1模型
 app/Providers | 容器服务提供层
+app/Services | 业务服务层
 cli | 命令行脚本
 config | 配置文件，通用配置放在当前目录下
 config/dev | dev环境的配置
@@ -85,40 +32,59 @@ vendor | Composer库
 views | 视图文件
 workers | worker文件
 
-## 环境与配置文件
+## 常用常量
 
-以下为默认的环境配置，如果要自定义可以新建`config/env.php`，
-把下面代码复制进去并修改即可
+Name | Desc
+--- | ---
+TIME | `$_SERVER['REQUEST_TIME']`, 脚本启动时间，不能在 worker 里使用，否则不会变化
+IS_POST | 是否为 POST 请求
+IS_GET | 是否为 GET 请求
+IS_DEV | 是否为开发环境
+APP_LANG | 当前语言 `eg. zh_CN`
+APP_ENV | 服务器环境 `eg. dev`
+TEST_ENV | 是否为单元测试的环境
+PATH_PUBLIC | 网站入口路径
+PATH_DATA | 数据目录，需要有写权限
+PATH_LOG | 日志目录
+
+## 路由
+
+URI | Controller | Action
+--- | --- | ---
+`/` | `IndexController` | `index()`
+`/foo` | `FooController` | `index()`
+`/foo/` | `FooController` | `index()`
+`/foo/bar` | `FooController` | `bar()`
+`/foo/bar/` | `FooController` | `bar()`
+
+## 请求参数`Request params`
+> 获取、过滤、验证、类型强转 请求参数`$_GET,$_POST`支持`payload`
+
+#### 用例
 
 ```php
-if (is_file('/www/PUB')) { // publish
-    define('APP_ENV', 'pub');
-    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
-    ini_set('display_errors', 0);
-} else { // develop
-    define('APP_ENV', 'dev');
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-}
+// 不验证直接返回
+$foo = input('get.foo:i');
+
+// 验证并且以集合返回
+$req = validate(function () {
+    input('get.foo:i')->required();
+    input('get.bar:i')->required();
+    input('get.name')->required()->setTitle('名字');
+})
 ```
 
-## CSRF(XSRF)
+#### 参数说明
 
-#### 获取`Token`
+`'get.foo:i'` 中的类型转换`i`为整型，其它类型为：
 
-使用以下任意一种方法
-
-- `csrf_field()`直接生成`HTML`
-- `csrf_token()`生成`Token`
-- `csrf_check()`效验
-
-#### 请求时带上`Token`
-
-使用以下任意一种方法
-
-- `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
-- `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
-- 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取
+Name | Type
+--- | ---
+i | int
+s | string
+b | bool
+a | array
+f | float
 
 ## `helper` 辅助函数用例
 
@@ -145,11 +111,6 @@ if (is_file('/www/PUB')) { // publish
 - `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
 - 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
 
-#### AES加密解密对象
-
-- `$data = app(\Core\Aes::class)->encrypt('foo')` 加密返回密串和初始向量
-- `app(\Core\Aes::class)->decrypt($data['cipher'], $data['iv'])` 解密
-
 #### `back()` 网页跳转回上一步
 
 - `back()` 网页跳转回上一步
@@ -166,25 +127,29 @@ if (is_file('/www/PUB')) { // publish
 - `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
 - `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
 
-## RPC 远程过程调用
+#### `inject()` 支持自动依赖注入的函数调用
 
-- 客户端参考`cli/rpc_client_demo.php`
-- 服务端参考`rpc/rpc_server_demo.php`
+通过回调函数的形参里声明类型，就能会自动注入
 
-## 消息队列
+```php
+inject(function (\Core\Queue $queue) {
+    //todo...
+});
+```
 
-#### 发布消息
+## `Model`数据库查询
+> 在`$pdo`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
 
-`app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);`
+#### 配置说明 
 
-#### 消费的worker
+- 参考`app/Models/DemoModel.php`，配置类属性`$table`
+- 需要分表时，定义`sharding`规则，在子类覆盖`\Core\BaseModel::sharding`即可
 
-参考 `workers/SPARROW_QUEUE_DEMO.php`
+#### 用例
 
-建议规则：
-- 每个 worker 只消费一个队列；
-- 队列名与 worker 名一致，便于定位队列名对应的 worker 文件；
-- 队列名/worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
+用法与`AppPDO`一样，不同的是不需要再使用`->setTable()`来指定表
+
+`$model->selectOne(['id=?', 1])`
 
 ## 数据库查询
 > `AppPDO`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入<br>
@@ -366,47 +331,84 @@ $pdo->forceMaster()->setTable('table0')->selectOne(['id=?', 1]);
 $pdo->section('sec0');
 ```
 
----
+## RPC 远程过程调用
 
-### `Model`数据库查询
-> 在`$pdo`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
+- 客户端参考`cli/rpc_client_demo.php`
+- 服务端参考`rpc/rpc_server_demo.php`
 
-#### 配置说明 
+## 消息队列
 
-- 参考`app/Models/DemoModel.php`，配置类属性`$table`
-- 需要分表时，定义`sharding`规则，在子类覆盖`\Core\BaseModel::sharding`即可
+#### 发布消息
 
-#### 用例
+`app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);`
 
-用法与`AppPDO`一样，不同的是不需要再使用`->setTable()`来指定表
+#### 消费的worker
 
-`$model->selectOne(['id=?', 1])`
+参考 `workers/SPARROW_QUEUE_DEMO.php`
 
-## 请求参数`Request params`
-> 获取、过滤、验证、类型强转 请求参数`$_GET,$_POST`支持`payload`
+建议规则：
+- 每个 worker 只消费一个队列；
+- 队列名与 worker 名一致，便于定位队列名对应的 worker 文件；
+- 队列名/worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
 
-#### 用例
+## CSRF(XSRF)
+
+#### 获取`Token`
+
+使用以下任意一种方法
+
+- `csrf_field()`直接生成`HTML`
+- `csrf_token()`生成`Token`
+- `csrf_check()`效验
+
+#### 请求时带上`Token`
+
+使用以下任意一种方法
+
+- `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
+- `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
+- 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取
+
+## XDebug Trace
+> 跟踪调试日志
+
+以下任意方式可开启跟踪，日志位于`data/trace/`
+
+### 跟踪fpm
+
+- 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
+- 当前URI 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
+- Cookie 主动开启: `_xt=name0;`
+
+*注意：`URI`, `Cookie`方式的的前提必须先设置`config/dev/whitelist.php`白名单`IP`*
+
+### 跟踪cli
+
+`php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
+
+## 测试文件
+
+- `cli/test.php` 为 `php-cli` 测试脚本
+- `public/test.php` 为 `php-cgi` 测试入口
+
+## 维护模式
+> 开启维护模式，关闭网站访问入口
+
+- `php cli/maintain.php`
+
+## 环境与配置文件
+
+以下为默认的环境配置，如果要自定义可以新建`config/env.php`，
+把下面代码复制进去并修改即可
 
 ```php
-// 不验证直接返回
-$foo = input('get.foo:i');
-
-// 验证并且以集合返回
-$req = validate(function () {
-    input('get.foo:i')->required();
-    input('get.bar:i')->required();
-    input('get.name')->required()->setTitle('名字');
-})
+if (is_file('/www/PUB')) { // publish
+    define('APP_ENV', 'pub');
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
+    ini_set('display_errors', 0);
+} else { // develop
+    define('APP_ENV', 'dev');
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
 ```
-
-#### 参数说明
-
-`'get.foo:i'` 中的类型转换`i`为整型，其它类型为：
-
-Name | Type
---- | ---
-i | int
-s | string
-b | bool
-a | array
-f | float
