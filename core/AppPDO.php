@@ -156,16 +156,15 @@ class AppPDO
      * 字段: 'col1' 或 ['col1']<br>
      * 表达式: ['raw' => 'COUNT(1)']<br>
      * 更多用法参考 AppPDO::quoteColumn()
-     * @param string|array|null $where 条件，格式看下面
      * @return false|string
      * @throws AppException
      * @see AppPDO::quoteColumn() 参考字段参数
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectColumn($column, $where = null)
+    public function selectColumn($column = '*')
     {
         $table = $this->getTable();
-        $where = $this->parseWhere($where);
+        $where = $this->parseWhere();
         $order = $this->getOrder();
         $append = $this->getAppend();
         $column = $this->quoteColumn($column);
@@ -186,31 +185,34 @@ class AppPDO
 
     /**
      * 查询是否存在记录
-     * @param string|array|null $where 条件，格式看下面
      * @return bool
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function exists($where = null)
+    public function exists()
     {
-        return boolval($this->selectColumn(['raw' => 1], $where));
+        return boolval($this->selectColumn(['raw' => 1]));
     }
 
     /**
      * 查询1行
-     * @param string|array|null $where 条件，格式看下面
+     * @param string|array $columns 字段名<br>
+     * 字段: 'col1, col2' 或 ['col1', 'col2']<br>
+     * 表达式: ['col1', ['raw' => 'COUNT(1)']]<br>
+     * 更多用法参考 AppPDO::quoteColumn()
      * @return false|array
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectOne($where = null)
+    public function selectOne($columns = '*')
     {
         $table = $this->getTable();
-        $where = $this->parseWhere($where);
+        $where = $this->parseWhere();
+        $columns = $this->quoteColumn($columns);
         $order = $this->getOrder();
         $append = $this->getAppend();
 
-        $sql = "SELECT * FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
+        $sql = "SELECT {$columns} FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
         if (empty($where[1])) {
             /* @var PDO $this */
@@ -230,16 +232,15 @@ class AppPDO
      * 字段: 'col1, col2' 或 ['col1', 'col2']<br>
      * 表达式: ['col1', ['raw' => 'COUNT(1)']]<br>
      * 更多用法参考 AppPDO::quoteColumn()
-     * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组
      * @throws AppException
      * @see AppPDO::quoteColumn() 参考字段参数
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectAll($columns, $where = null)
+    public function selectAll($columns = '*')
     {
         $table = $this->getTable();
-        $where = $this->parseWhere($where);
+        $where = $this->parseWhere();
         $columns = $this->quoteColumn($columns);
         $foundRows = $this->withFoundRows ? 'SQL_CALC_FOUND_ROWS' : '';
 
@@ -266,17 +267,16 @@ class AppPDO
      * 字段: 'col1, col2' 或 ['col1', 'col2']<br>
      * 表达式: ['col1', ['raw' => 'COUNT(1)']]<br>
      * 更多用法参考 AppPDO::quoteColumn()
-     * @param string|array|null $where 条件，格式看下面
      * @return array 失败返回空数组 ['count' => 数量, 'data' => 数据集']
      * @throws AppException
      * @see AppPDO::quoteColumn() 参考字段参数
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function selectCalc($columns, $where = null)
+    public function selectCalc($columns = '*')
     {
         $this->withFoundRows = true;
         $isForceMaster = $this->getEngine()->getIsForceMaster();
-        $data = $this->selectAll($columns, $where);
+        $data = $this->selectAll($columns);
 
         $isForceMaster && $this->forceMaster();
         $count = $this->foundRows();
@@ -433,15 +433,17 @@ class AppPDO
      * @param array $data 要更新的字段 ['column' => 1]<br>
      * 字段表达式: ['num' => ['raw' => 'num + 1']]<br>
      * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
-     * @param string|array|null $where 条件，格式看下面
      * @return int 影响行数
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function update(array $data, $where)
+    public function update(array $data)
     {
         $table = $this->getTable();
-        $where = $this->parseWhere($where);
+        $where = $this->parseWhere();
+        if (empty($where[0])) {
+            panic('请先通过 $this->where(...) 指定条件');
+        }
 
         $bind = [];
         $placeholder = [];
@@ -487,14 +489,17 @@ class AppPDO
 
     /**
      * 删除记录
-     * @param string|array|null $where 条件，格式看下面
      * @return int 影响行数
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function delete($where)
+    public function delete()
     {
-        $where = $this->parseWhere($where);
+        $where = $this->parseWhere();
+        if (empty($where[0])) {
+            panic('请先通过 $this->where(...) 指定条件');
+        }
+
         $sql = sprintf('DELETE FROM %s %s %s',
             $this->getTable(),
             $where[0],
@@ -526,14 +531,13 @@ class AppPDO
 
     /**
      * 查询总数
-     * @param string|array|null $where 条件，格式看下面
      * @return int
      * @throws AppException
      * @see AppPDO::parseWhere() 参考 $where 参数
      */
-    public function count($where = null)
+    public function count()
     {
-        return intval($this->selectColumn(['raw' => 'COUNT(1)'], $where));
+        return intval($this->selectColumn(['raw' => 'COUNT(1)']));
     }
 
     /**
@@ -619,26 +623,22 @@ class AppPDO
 
     /**
      * 解析构造 WHERE 参数
-     * @param string|array|null $where 条件语句, 取消条件使用 null<br>
      * 无绑定参数: 'id=1' 或 ['id=1']<br>
      * 绑定匿名参数: ['name=?', 'super'] 或 ['name=?', ['super']]<br>
      * 绑定命名参数(不支持update): ['name=:name', [':name' => 'super']] 或去掉后面的冒号 ['name=:name', ['name' => 'super']]<br>
      * @return array eg. ['name=?', ['foo']]; ['', null]
      * @throws AppException
      */
-    protected function parseWhere($where)
+    protected function parseWhere()
     {
+        $where = $this->where;
         if (empty($where)) {
-            if ($this->where) {
-                return $this->parseWhere($this->where);
-            }
-
             $wherePam = ['', null];
         } elseif (is_string($where)) {
             $wherePam[0] = ' WHERE ' . $where;
         } else {
             if (!isset($where[0])) {
-                panic('"$where 参数格式不正确"');
+                panic('$where 参数格式不正确');
             }
 
             $wherePam[0] = ' WHERE ' . $where[0];
@@ -657,7 +657,7 @@ class AppPDO
      */
     public function getWhere()
     {
-        return $this->parseWhere(null);
+        return $this->parseWhere();
     }
 
     /**
@@ -688,7 +688,6 @@ class AppPDO
 
     /**
      * WHERE ...AND...
-     * <p>带有 $where 的查询中，$where=null 时才有效</p>
      * <p>支持多个 ->where()->where()</p>
      * <p>用法与 parseWhere 相同</p>
      * @param string $statement SQL语句 即 parseWhere() 的 $where[0]
@@ -703,7 +702,6 @@ class AppPDO
 
     /**
      * WHERE ...OR...
-     * <p>带有 $where 的查询中，$where=null 时才有效</p>
      * <p>支持多个 ->orWhere()->orWhere()</p>
      * <p>用法与 parseWhere 相同</p>
      * @param string $statement SQL语句 即 parseWhere() 的 $where[0]

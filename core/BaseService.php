@@ -3,11 +3,10 @@
 
 namespace Core;
 
-
 /**
- * 事件基类
+ * 业务服务基类
  * @package Core
  */
-abstract class BaseEvent
+abstract class BaseService
 {
 }
