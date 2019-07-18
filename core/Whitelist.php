@@ -57,6 +57,17 @@ class Whitelist
     }
 
     /**
+     * 检查安全IP否则404
+     */
+    public function checkSafeIpOrExit()
+    {
+        if (!$this->isSafeIp()) {
+            http_response_code(404);
+            exit;
+        }
+    }
+
+    /**
      * 当前用户是否在白名单内
      * @return bool
      */
@@ -70,6 +81,17 @@ class Whitelist
         }
 
         return in_array($auth->getUserId(), $this->conf['user_id']);
+    }
+
+    /**
+     * 检查安全用户否则404
+     */
+    public function checkSafeUserIdOrExit()
+    {
+        if (!$this->isSafeUserId()) {
+            http_response_code(404);
+            exit;
+        }
     }
 
 }
