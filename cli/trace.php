@@ -78,4 +78,4 @@ file_put_contents($traceConfFile,
     "<?php\nreturn " . var_export($conf, true) . ";\n");
 
 echo 'Xdebug Trace is ON.' . PHP_EOL;
-print_r($conf);
+var_export($conf);

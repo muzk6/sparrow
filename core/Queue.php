@@ -80,13 +80,13 @@ class Queue
                 echo $queue . PHP_EOL;
                 echo str_repeat('-', 30) . PHP_EOL;
                 echo 'Params: ' . PHP_EOL;
-                print_r($params);
+                var_export($params);
 
                 $result = $callback($params);
 
                 echo PHP_EOL;
                 echo 'Result: ' . PHP_EOL;
-                print_r($result);
+                var_export($result);
 
                 $endTime = microtime(true);
                 echo PHP_EOL;

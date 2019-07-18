@@ -4,7 +4,7 @@
 namespace App\Controllers;
 
 
-use App\Events\DemoEvent;
+use App\Services\DemoService;
 use Core\AppException;
 use Core\BaseController;
 
@@ -22,7 +22,7 @@ class IndexController extends BaseController
                 input('get.name')->required()->setTitle('名字');
             });
 
-            $row = event(DemoEvent::class, ['name' => $req['name']]);
+            $row = app(DemoService::class)->foo();
             return api_json(true, ['req' => $req, 'row' => $row]);
         } catch (AppException $exception) {
             return api_json($exception);

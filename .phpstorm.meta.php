@@ -10,7 +10,6 @@ namespace PHPSTORM_META {
     use Core\Config;
     use Core\Crypto;
     use Core\CSRF;
-    use Core\EventDispatcher;
     use Core\Flash;
     use Core\Mail;
     use Core\Queue;
@@ -31,7 +30,6 @@ namespace PHPSTORM_META {
             AppPDO::class => AppPDO::class,
             Queue::class => Queue::class,
             Config::class => Config::class,
-            EventDispatcher::class => EventDispatcher::class,
             Translator::class => Translator::class,
             BladeInstance::class => BladeInstance::class,
             Auth::class => Auth::class,

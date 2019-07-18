@@ -5,7 +5,6 @@ use Core\AppException;
 use Core\Auth;
 use Core\Config;
 use Core\CSRF;
-use Core\EventDispatcher;
 use Core\Request;
 use Core\Translator;
 use Core\Validator;
@@ -66,20 +65,6 @@ function config($keys)
     } else {
         return $config->get($keys);
     }
-}
-
-/**
- * 触发事件
- * @param string $event 事件类名
- * @param array $params 事件参数
- * @param bool $async 是否异步
- * @return mixed|null
- */
-function event(string $event, array $params = [], bool $async = false)
-{
-    /** @var EventDispatcher $eventDispatcher */
-    $eventDispatcher = app(EventDispatcher::class);
-    return $async ? $eventDispatcher->sendAsync($event, $params) : $eventDispatcher->send($event, $params);
 }
 
 /**
