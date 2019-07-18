@@ -83,6 +83,7 @@ public | Web入口目录
 rpc | RPC入口目录，禁止对外网开放
 vendor | Composer库
 views | 视图文件
+workers | worker文件
 
 ## 环境与配置文件
 
@@ -100,33 +101,6 @@ if (is_file('/www/PUB')) { // publish
     ini_set('display_errors', 1);
 }
 ```
-
-## 事件
-> 用于写业务逻辑，支持异步
-
-#### 定义监听
-
-- 参考`app/Events/DemoEvent.php`定义事件类
-- `\App\Events\DemoEvent::handle`支持自动依赖注入
-- `$params` 为 `event()` 传入的参数，`$params = ['p1' => 1, 'p2' => 2]`
-
-```php
-public function handle(DemoModel $demoModel, array $params)
-{
-    return $demoModel->selectOne(['name like ?', "{$params['name']}%"]);
-}
-```
-
-#### 发送事件
-
-```php
-event(\App\Events\DemoEvent::class, ['p1' => 'test']); // 返回 `\App\Events\DemoEvent::handle` 的结果
-
-event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参数将进入异步队列，对应 worker 通过 cli/worker.php 脚本启动
-```
-
-- 异步worker 所有 include 的文件有变化时，会自动 exit. 因此 worker 必须使用 supervisor 管理
-- 所有事件参数必须放到数组里面去
 
 ## CSRF(XSRF)
 
@@ -171,10 +145,10 @@ event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参�
 - `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
 - 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
 
-#### app('app.aes') AES加密解密对象
+#### AES加密解密对象
 
-- `$data = app('app.aes')->encrypt('foo')` 加密返回密串和初始向量
-- `app('app.aes')->decrypt($data['cipher'], $data['iv'])` 解密
+- `$data = app(\Core\Aes::class)->encrypt('foo')` 加密返回密串和初始向量
+- `app(\Core\Aes::class)->decrypt($data['cipher'], $data['iv'])` 解密
 
 #### `back()` 网页跳转回上一步
 
@@ -192,10 +166,25 @@ event(\App\Events\DemoEvent::class, ['p1' => 'test'], true) // 返回 null, 参�
 - `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
 - `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
 
-#### RPC 远程过程调用
+## RPC 远程过程调用
 
 - 客户端参考`cli/rpc_client_demo.php`
 - 服务端参考`rpc/rpc_server_demo.php`
+
+## 消息队列
+
+#### 发布消息
+
+`app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);`
+
+#### 消费的worker
+
+参考 `workers/SPARROW_QUEUE_DEMO.php`
+
+建议规则：
+- 每个 worker 只消费一个队列；
+- 队列名与 worker 名一致，便于定位队列名对应的 worker 文件；
+- 队列名/worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
 
 ## 数据库查询
 > `AppPDO`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入<br>
@@ -217,7 +206,7 @@ $pdo->setTable('table0')->selectOne(['id=?', [1]]); // 防注入
 $pdo->setTable('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
 $pdo->setTable('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
 
-// 这里用到的 ->where(), 仅当 ->selectOne() 参数为 null(默认) 时生效，其它查询同理
+// 用 ->where() 指定条件
 $pdo->setTable('table0')->where('id=1')->selectOne(); // 有注入风险
 $pdo->setTable('table0')->where('id=?', 1)->selectOne(); // 防注入
 $pdo->setTable('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
