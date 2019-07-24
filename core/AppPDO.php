@@ -159,7 +159,6 @@ class AppPDO
      * @return false|string
      * @throws AppException
      * @see AppPDO::quoteColumn() 参考字段参数
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectColumn($column = '*')
     {
@@ -187,7 +186,6 @@ class AppPDO
      * 查询是否存在记录
      * @return bool
      * @throws AppException
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function exists()
     {
@@ -202,7 +200,6 @@ class AppPDO
      * 更多用法参考 AppPDO::quoteColumn()
      * @return false|array
      * @throws AppException
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectOne($columns = '*')
     {
@@ -235,7 +232,6 @@ class AppPDO
      * @return array 失败返回空数组
      * @throws AppException
      * @see AppPDO::quoteColumn() 参考字段参数
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectAll($columns = '*')
     {
@@ -270,7 +266,6 @@ class AppPDO
      * @return array 失败返回空数组 ['count' => 数量, 'data' => 数据集']
      * @throws AppException
      * @see AppPDO::quoteColumn() 参考字段参数
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function selectCalc($columns = '*')
     {
@@ -435,7 +430,6 @@ class AppPDO
      * 函数表达式: ['utime' => ['raw' => 'UNIX_TIMESTAMP()']]
      * @return int 影响行数
      * @throws AppException
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function update(array $data)
     {
@@ -491,7 +485,6 @@ class AppPDO
      * 删除记录
      * @return int 影响行数
      * @throws AppException
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function delete()
     {
@@ -533,7 +526,6 @@ class AppPDO
      * 查询总数
      * @return int
      * @throws AppException
-     * @see AppPDO::parseWhere() 参考 $where 参数
      */
     public function count()
     {

@@ -58,7 +58,7 @@ URI | Controller | Action
 `/foo/bar/` | `FooController` | `bar()`
 
 ## 请求参数`Request params`
-> 获取、过滤、验证、类型强转 请求参数`$_GET,$_POST`支持`payload`
+> 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
 
 #### 用例
 
@@ -66,12 +66,16 @@ URI | Controller | Action
 // 不验证直接返回
 $foo = input('get.foo:i');
 
-// 验证并且以集合返回
-$req = validate(function () {
-    input('get.foo:i')->required();
-    input('get.bar:i')->required();
-    input('get.name')->required()->setTitle('名字');
-})
+// 验证并且以集合返回，非短路式验证所有 input() 指定的字段，错误提示在异常 AppException::getData 里获取
+try {
+    $inputs = validate(function () {
+        input('get.foo:i')->required();
+        input('get.bar:i')->required();
+        input('get.name')->required()->setTitle('名字');
+    })
+} catch (AppException $exception) {
+    var_dump($exception->getData());
+}
 ```
 
 #### 参数说明
@@ -121,6 +125,11 @@ f | float
 - `redirect('/foo/bar')` 跳转到当前域名的`/foo/bar`地址去
 - `redirect('https://google.com')` 跳转到谷歌
 
+#### `url()` 带协议和域名的完整URL
+
+- 当前域名URL：`url('path/to')`
+- 其它域名URL：`url(['test', '/path/to'])`
+
 #### `panic()` 直接抛出业务异常对象
 
 - `panic('foo')` 等于 `new AppException('foo')`
@@ -136,6 +145,29 @@ inject(function (\Core\Queue $queue) {
     //todo...
 });
 ```
+
+#### `request_flash()`, `old()` 记住并使用上次的请求参数
+
+- `request_flash()` 把本次请求的参数缓存起来
+- `old(string $name = null, string $default = '')` 上次请求的字段值
+
+```php
+request_flash();
+old('name', $data['name']);
+```
+
+#### `csrf_*()` XSRF
+
+- `csrf_field()`直接生成 HTML
+- `csrf_token()`生成 token
+- `csrf_check()`效验，token 来源于 `$_SERVER['HTTP_X_CSRF_TOKEN'], $_POST['_token'], $_GET['_token'], $_REQUEST['_token']`
+
+#### `flash_*()` 闪存，一性次缓存
+
+- `flash_set(string $key, $value)` 闪存设置
+- `flash_has(string $key)` 闪存是否存在
+- `flash_get(string $key)` 闪存获取并删除
+- `flash_del(string $key)` 闪存删除
 
 ## `Model`数据库查询
 > 在`$pdo`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
@@ -350,16 +382,6 @@ $pdo->section('sec0');
 - 每个 worker 只消费一个队列；
 - 队列名与 worker 名一致，便于定位队列名对应的 worker 文件；
 - 队列名/worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
-
-## CSRF(XSRF)
-
-#### 获取`Token`
-
-使用以下任意一种方法
-
-- `csrf_field()`直接生成`HTML`
-- `csrf_token()`生成`Token`
-- `csrf_check()`效验
 
 #### 请求时带上`Token`
 

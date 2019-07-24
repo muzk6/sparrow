@@ -16,14 +16,14 @@ class IndexController extends BaseController
     public function index()
     {
         try {
-            $req = validate(function () {
+            $inputs = validate(function () {
                 input('get.foo:i')->required();
                 input('get.bar:i')->required();
                 input('get.name')->required()->setTitle('名字');
             });
 
             $row = app(DemoService::class)->foo();
-            return api_json(true, ['req' => $req, 'row' => $row]);
+            return api_json(true, ['inputs' => $inputs, 'row' => $row]);
         } catch (AppException $exception) {
             return api_json($exception);
         }

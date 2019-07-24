@@ -4,7 +4,7 @@
 namespace Core;
 
 /**
- * 闪存
+ * 闪存，一次性缓存
  * @package Core
  */
 class Flash

@@ -5,6 +5,7 @@ use Core\AppException;
 use Core\Auth;
 use Core\Config;
 use Core\CSRF;
+use Core\Flash;
 use Core\Request;
 use Core\Translator;
 use Core\Validator;
@@ -301,6 +302,47 @@ function old(string $name = null, string $default = '')
     /** @var Request $request */
     $request = app(Request::class);
     return $request->old($name, $default);
+}
+
+/**
+ * 闪存设置
+ * @param string $key
+ * @param mixed $value
+ * @return mixed
+ */
+function flash_set(string $key, $value)
+{
+    return app(Flash::class)->set($key, $value);
+}
+
+/**
+ * 闪存是否存在
+ * @param string $key
+ * @return bool
+ */
+function flash_has(string $key)
+{
+    return app(Flash::class)->has($key);
+}
+
+/**
+ * 闪存获取并删除
+ * @param string $key
+ * @return null|mixed
+ */
+function flash_get(string $key)
+{
+    return app(Flash::class)->get($key);
+}
+
+/**
+ * 闪存删除
+ * @param string $key
+ * @return true
+ */
+function flash_del(string $key)
+{
+    return app(Flash::class)->del($key);
 }
 
 /**
