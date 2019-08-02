@@ -62,7 +62,7 @@ class Queue
 
         if (!isset($this->channels[$queue])) {
             $this->channels[$queue] = $this->connection->channel();
-            $this->channels[$queue]->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, false, false);
+            $this->channels[$queue]->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, true, false);
             $this->channels[$queue]->queue_declare($queue, false, true, false, false);
         }
 
