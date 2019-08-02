@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use Exception;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -101,6 +102,9 @@ class Queue
 
         $channel->basic_consume($queue, '', false, false, false, false,
             function ($msg) use ($queue, $callback) {
+                /** @var AMQPChannel $channel */
+                $channel = $msg->delivery_info['channel'];
+
                 $params = json_decode($msg->body, true);
                 $startTime = microtime(true);
 
@@ -109,24 +113,37 @@ class Queue
                 echo str_repeat('-', 30) . PHP_EOL;
                 echo 'Params: ' . PHP_EOL;
                 var_export($params);
-
-                $result = $callback($params);
-
                 echo PHP_EOL;
-                echo 'Result: ' . PHP_EOL;
-                var_export($result);
+
+                try {
+                    $result = $callback($params);
+                    $channel->basic_ack($msg->delivery_info['delivery_tag']);
+
+                    echo 'Result: ' . PHP_EOL;
+                    var_export($result);
+                } catch (Exception $exception) {
+                    $channel->basic_nack($msg->delivery_info['delivery_tag']);
+
+                    echo 'Exception: ' . PHP_EOL;
+                    var_export($exception->getMessage());
+                }
+                echo PHP_EOL;
 
                 $endTime = microtime(true);
-                echo PHP_EOL;
                 echo 'StartTime: ' . date('Y-m-d H:i:s', $startTime) . PHP_EOL;
                 echo 'EndTime: ' . date('Y-m-d H:i:s', $endTime) . PHP_EOL;
                 echo 'Elapse(s): ' . ($endTime - $startTime) . PHP_EOL;
-
-                $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
-            });
+            }
+        );
 
         $fileStats = [];
+        $startTime = time();
         while (count($channel->callbacks)) {
+            if (time() - $startTime >= 300) {
+                echo 'Exit: Timeout.' . PHP_EOL;
+                exit;
+            }
+
             $includedFiles = get_included_files();
             foreach ($includedFiles as $includedFile) {
                 clearstatcache(true, $includedFile);
@@ -138,6 +155,7 @@ class Queue
                     $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
                 } elseif ($fileStats[$includedFile]['mtime'] != $mtime
                     || $fileStats[$includedFile]['size'] != $size) {
+                    echo 'Exit: Files Update.' . PHP_EOL;
                     exit;
                 }
             }
