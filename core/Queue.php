@@ -100,8 +100,35 @@ class Queue
         $channel = $this->init($queue);
         $channel->basic_qos(null, 1, null);
 
+        $scriptTime = time();
+        $fileStats = [];
         $channel->basic_consume($queue, '', false, false, false, false,
-            function ($msg) use ($queue, $callback) {
+            function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
+                // worker 超时退出
+                if (time() - $scriptTime >= $this->conf['worker_timeout']) {
+                    echo PHP_EOL . PHP_EOL;
+                    echo sprintf('Exit at %s, Timeout %s(s).', date('Y-m-d H:i:s'), $this->conf['worker_timeout']) . PHP_EOL;
+                    exit;
+                }
+
+                // worker 文件更新时退出
+                $includedFiles = get_included_files();
+                foreach ($includedFiles as $includedFile) {
+                    clearstatcache(true, $includedFile);
+                    $mtime = filemtime($includedFile);
+                    $size = filesize($includedFile); // 同时比较文件大小，防止开发机与运行环境时间不一致
+
+                    // 记录、检查文件最后修改时间、大小，不同就直接结束进程(使用 supervisor 进行重启)
+                    if (!isset($fileStats[$includedFile])) {
+                        $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
+                    } elseif ($fileStats[$includedFile]['mtime'] != $mtime
+                        || $fileStats[$includedFile]['size'] != $size) {
+                        echo PHP_EOL . PHP_EOL;
+                        echo sprintf('Exit at %s, Files Updated.', date('Y-m-d H:i:s')) . PHP_EOL;
+                        exit;
+                    }
+                }
+
                 /** @var AMQPChannel $channel */
                 $channel = $msg->delivery_info['channel'];
 
@@ -136,30 +163,7 @@ class Queue
             }
         );
 
-        $fileStats = [];
-        $startTime = time();
         while (count($channel->callbacks)) {
-            if (time() - $startTime >= 300) {
-                echo 'Exit: Timeout.' . PHP_EOL;
-                exit;
-            }
-
-            $includedFiles = get_included_files();
-            foreach ($includedFiles as $includedFile) {
-                clearstatcache(true, $includedFile);
-                $mtime = filemtime($includedFile);
-                $size = filesize($includedFile); // 同时比较文件大小，防止开发机与运行环境时间不一致
-
-                // 记录、检查文件最后修改时间、大小，不同就直接结束进程(使用 supervisor 进行重启)
-                if (!isset($fileStats[$includedFile])) {
-                    $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
-                } elseif ($fileStats[$includedFile]['mtime'] != $mtime
-                    || $fileStats[$includedFile]['size'] != $size) {
-                    echo 'Exit: Files Update.' . PHP_EOL;
-                    exit;
-                }
-            }
-
             $channel->wait();
         }
     }
