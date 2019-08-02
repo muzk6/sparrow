@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -17,6 +18,16 @@ class Queue
      */
     protected $conf;
 
+    /**
+     * @var AMQPStreamConnection
+     */
+    protected $connection;
+
+    /**
+     * @var AMQPChannel[]
+     */
+    protected $channels = [];
+
     public function __construct(array $conf)
     {
         if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
@@ -26,6 +37,37 @@ class Queue
         $this->conf = $conf;
     }
 
+    public function __destruct()
+    {
+        if ($this->connection) {
+            $this->connection->close();
+        }
+
+        foreach ($this->channels as $channel) {
+            $channel->close();
+        }
+    }
+
+    /**
+     * 初始化连接
+     * @param $queue
+     * @return AMQPChannel
+     */
+    protected function init($queue)
+    {
+        if (!$this->connection) {
+            $this->connection = new AMQPStreamConnection($this->conf['host'], $this->conf['port'], $this->conf['user'], $this->conf['passwd']);
+        }
+
+        if (!isset($this->channels[$queue])) {
+            $this->channels[$queue] = $this->connection->channel();
+            $this->channels[$queue]->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, false, false);
+            $this->channels[$queue]->queue_declare($queue, false, true, false, false);
+        }
+
+        return $this->channels[$queue];
+    }
+
     /**
      * 消息队列发布
      * @param string $queue 队列名
@@ -33,17 +75,7 @@ class Queue
      */
     public function publish(string $queue, array $data)
     {
-        static $connection = null;
-        static $channel = null;
-
-        if (!$connection || !$channel) {
-            $connection = new AMQPStreamConnection($this->conf['host'], $this->conf['port'], $this->conf['user'], $this->conf['passwd']);
-
-            $channel = $connection->channel();
-            $channel->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, false, false);
-            $channel->queue_declare($queue, false, true, false, false);
-        }
-
+        $channel = $this->init($queue);
         $msg = new AMQPMessage(
             json_encode($data),
             ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]
@@ -64,11 +96,7 @@ class Queue
             return;
         }
 
-        $connection = new AMQPStreamConnection($this->conf['host'], $this->conf['port'], $this->conf['user'], $this->conf['passwd']);
-
-        $channel = $connection->channel();
-        $channel->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, false, false);
-        $channel->queue_declare($queue, false, true, false, false);
+        $channel = $this->init($queue);
         $channel->basic_qos(null, 1, null);
 
         $channel->basic_consume($queue, '', false, false, false, false,
@@ -97,7 +125,7 @@ class Queue
                 $msg->delivery_info['channel']->basic_ack($msg->delivery_info['delivery_tag']);
             });
 
-        static $fileStats = [];
+        $fileStats = [];
         while (count($channel->callbacks)) {
             $includedFiles = get_included_files();
             foreach ($includedFiles as $includedFile) {
@@ -110,16 +138,11 @@ class Queue
                     $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
                 } elseif ($fileStats[$includedFile]['mtime'] != $mtime
                     || $fileStats[$includedFile]['size'] != $size) {
-                    $channel->close();
-                    $connection->close();
                     exit;
                 }
             }
 
             $channel->wait();
         }
-
-        $channel->close();
-        $connection->close();
     }
 }
