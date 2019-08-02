@@ -492,4 +492,16 @@ class Validator
         });
     }
 
+    /**
+     * 自定义验证
+     * @param callable($value) $fn
+     * @return Validator
+     */
+    public function custom(callable $fn)
+    {
+        return $this->addRule(__FUNCTION__, function () use ($fn) {
+            $fn($this->getValue());
+        });
+    }
+
 }
