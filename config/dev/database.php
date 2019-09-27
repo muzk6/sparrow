@@ -8,12 +8,12 @@ return [
     'log' => true, // 日志位于 data/log/__sql_<ymd>.log
 
     // 默认区
-    'user' => 'root',
-    'passwd' => '123abc',
+    'user' => 'dev',
+    'passwd' => 'itH*@$xv@Y49PjDY',
     'dbname' => 'test',
     'charset' => 'utf8mb4',
     'hosts' => [
-        'master' => ['host' => 'direwolf', 'port' => 3306],
+        'master' => ['host' => 'localhost', 'port' => 3306],
         'slaves' => [
         ]
     ],
@@ -21,11 +21,11 @@ return [
     // 扩展分区 - 垂直水平分库
     'sections' => [
         'sec0' => [
-            'user' => 'root',
-            'passwd' => '123abc',
+            'user' => 'dev',
+            'passwd' => 'itH*@$xv@Y49PjDY',
             'dbname' => 'test',
             'hosts' => [
-                'master' => ['host' => 'direwolf', 'port' => 3306],
+                'master' => ['host' => 'localhost', 'port' => 3306],
                 'slaves' => [
                 ]
             ]
