@@ -96,6 +96,11 @@ f | float
 
 ## `helper` 辅助函数用例
 
+#### `app()` 容器
+
+- `app(DemoModel::class)` 取 DemoModel 对象(只有 Model, AppPDO 的对象才是默认多例，容器的其它对象都是默认单例)
+- `app_set(DemoModel::class, ...)` 设置(或重置)容器里的 DemoModel 对象，常用于单元测试 mock 对象
+
 #### `config()` 配置文件
 
 - `config('app.lang')`

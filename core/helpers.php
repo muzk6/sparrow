@@ -22,6 +22,17 @@ function app(string $name)
 }
 
 /**
+ * 设置容器里的元素
+ * @param string $name
+ * @param mixed $value 如果是回调函数，支持容器参数即 function (Container $pimple) {}
+ */
+function app_set(string $name, $value)
+{
+    $container = AppContainer::init();
+    $container[$name] = $value;
+}
+
+/**
  * 支持自动依赖注入的函数调用
  * @param callable $fn
  * @return mixed
