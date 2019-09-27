@@ -3,6 +3,10 @@
 
 ![](../public/app/img/logo.svg)
 
+## 安装
+
+- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>`
+
 ## 网站入口
 
 - `public/index.php` 前台入口
