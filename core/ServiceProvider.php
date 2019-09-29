@@ -4,6 +4,7 @@
 namespace Core;
 
 
+use PDO;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Redis;
@@ -16,7 +17,7 @@ class ServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple[PdoEngine::class] = function () {
+        $pimple[PdoEngine::class] = $pimple[PDO::class] = $pimple['pdo'] = function () {
             return new PdoEngine(config('database'));
         };
 
@@ -70,7 +71,7 @@ class ServiceProvider implements ServiceProviderInterface
             return new XHProf(config('xhprof'));
         };
 
-        $pimple[Redis::class] = function () {
+        $pimple[Redis::class] = $pimple['redis'] = function () {
             if (!extension_loaded('redis')) {
                 trigger_error('"pecl install redis" at first');
             }

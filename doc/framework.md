@@ -98,8 +98,8 @@ f | float
 
 #### `app()` 容器
 
-- `app(DemoModel::class)` 取 DemoModel 对象(只有 Model, AppPDO 的对象才是默认多例，容器的其它对象都是默认单例)
-- `app_set(DemoModel::class, ...)` 设置(或重置)容器里的 DemoModel 对象，常用于单元测试 mock 对象
+- `app(\App\Models\DemoModel::class)` 取 DemoModel 对象(只有 Model, AppPDO 的对象才是默认多例，容器的其它对象都是默认单例)
+- `app_set(\App\Models\DemoModel::class, ...)` 设置(或重置)容器里的 DemoModel 对象，常用于单元测试 mock 对象
 
 #### `config()` 配置文件
 
@@ -178,7 +178,15 @@ old('name', $data['name']);
 - `flash_get(string $key)` 闪存获取并删除
 - `flash_del(string $key)` 闪存删除
 
-## `Model`数据库查询
+## 数据库查询
+
+### `PdoEngine`, `AppPDO`, `Model` 区别
+
+- `app('pdo')` 或 `app(\PDO::class)` 或 `app(\Core\PdoEngine::class)` 返回 PdoEngine 对象，用法与原生 PDO 一致，同时支持分区，支持自动主从切换
+- `app(\Core\AppPDO::class)` 返回 AppPDO 对象，内部组合于 PdoEngine 对象, 在其基础上封装了增删改查的方法，可以使用 `->getEngine()` 返回 PdoEngine 对象
+- `app(\App\Models\DemoModel::class)` 返回 DemoModel 对象，继承于 AppPDO, 在其基础上定义了 分区、库名、表名，可以通过覆盖 `->sharding()` 方法实现 分区、分库、分表 效果
+
+### `Model`对象(推荐)
 > 在`$pdo`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
 
 #### 配置说明 
@@ -192,9 +200,8 @@ old('name', $data['name']);
 
 `$model->selectOne(['id=?', 1])`
 
-## 数据库查询
-> `AppPDO`支持`PDO`对象的所有方法、且自动切换主从(所有`select`连接从库)、能更方便地防注入<br>
-以下所有方法只支持单表操作，需要连表操作请使用原生SQL(原因是使用封装好的连表查询会大大增加复杂度和开发成本)
+### `PDO`对象
+> 以下例子都是为了更好还原对比 sql 才用 PDO 对象，实际操作中强烈推荐使用 Model 对象
 
 #### 查询1行所有列 `->selectOne()`
 > 成功时返回第1行记录的数组
