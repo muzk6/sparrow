@@ -237,7 +237,7 @@ $pdo->setTable('table0')->selectColumn(['col1']);
 $pdo->setTable('table0')->selectColumn(['raw' => 'COUNT(1)']);
 ```
 
-#### 查询多行 `->selectColumn()`
+#### 查询多行 `->selectAll()`
 > 成功时返回所有行的记录数组<br>
 第二个参数`where`与`->selectOne()`的`where`用法一样
 
@@ -259,7 +259,7 @@ $pdo->setTable('table0')->limit(2)->selectCalc('col1');
 #### 查询是否存在
 
 ```php
-select 1 from table0 limit 1
+// select 1 from table0 limit 1
 $pdo->setTable('table0')->exists('id=128'); // return true, false
 ```
 
@@ -267,14 +267,17 @@ $pdo->setTable('table0')->exists('id=128'); // return true, false
 
 ```php
 // select * from table0 where id > 100 order by col0 desc limit 0, 10 
-$pdo->setTable('table0')->append('order by col0 desc')->limit(10)->selectAll('*', ['id>?', 100]);
+$pdo->setTable('table0')->orderBy('col0 desc')->where('id>?', 100)->limit(10)->selectAll('*');
 
 // select col0, col1 from table0 where name like 'tom%' group by col0 limit 0, 10 
-$pdo->setTable('table0')->append('group by col0')->page(1, 10)->selectAll('col0, col1', ['name like :name', ['name' => 'tom%']]);
+$pdo->setTable('table0')->append('group by col0')->where('name like :name', ['name' => 'tom%'])->page(1, 10)->selectAll('col0, col1');
 
 // select count(1) from table0
 $pdo->setTable('table0')->count();
 ```
+
+- `append('group by col0')`把自己的`sql`(支持`order by`, `group by`, `having`等等)拼接到`where`语句后面
+- `limit(10)`等价于`limit([10]), limit(0, 10), limit([0, 10]), page(1, 10)`
 
 #### `->getWhere()`, `->getLimit()` 方便拼接原生`sql`
 
@@ -292,9 +295,6 @@ $st = $pdo->prepare($sql);
 $st->execute($where[1]);
 var_dump($pdo->foundRows(), $st->fetchAll(2)); 
 ```
-
-- `append('order by col0 desc')`把自己的`sql`(还支持`group by, having`等等)拼接到`where`语句后面
-- `limit(10)`等价于`limit([10]), limit(0, 10), limit([0, 10]), page(1, 10)`
 
 #### 插入 `->insert()`
 
@@ -325,25 +325,25 @@ $pdo->setTable('table0')->insertUpdate(['col0' => 1], ['utime' => ['raw' => 'UNI
 ```
 
 #### 更新 `->update()`
-> 第二个参数`where`与`selectOne()`的`where`用法一样
+> 默认必须要有 where
 
 ```php
 // update table0 set col0 = 1 where id = 10
-$pdo->setTable('table0')->update(['col0' => 1], ['id=?', 10]);
+$pdo->setTable('table0')->where('id=?', 10)->update(['col0' => 1]);
 
 // update table0 set num = num + 1 where id = 10
-$pdo->setTable('table0')->update(['num' => ['raw' => 'num + 1']], ['id=?', 10]);
+$pdo->setTable('table0')->where('id=?', 10)->update(['num' => ['raw' => 'num + 1']]);
 
 // update table0 set utime = UNIX_TIMESTAMP() where id = 10
-$pdo->setTable('table0')->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']], ['id=?', 10]);
+$pdo->setTable('table0')->where('id=?', 10)->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']]);
 ```
 
 #### 删除 `->delete()`
-> 参数`where`与`selectOne()`的`where`用法一样
+> 默认必须要有 where
 
 ```php
 // delete from table0 where id = 10
-$pdo->setTable('table0')->delete(['id=?', 10]);
+$pdo->setTable('table0')->where('id=?', 10)->delete();
 ```
 
 #### 上一次查询的影响行数 `->affectedRows()`
@@ -389,10 +389,10 @@ $pdo->section('sec0');
 
 建议规则：
 - 每个 worker 只消费一个队列；
-- 队列名与 worker 名一致，便于定位队列名对应的 worker 文件；
-- 队列名/worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
+- 队列名与 worker名 一致，便于定位队列名对应的 worker 文件；
+- 队列名与 worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
 
-#### 请求时带上`Token`
+## 请求时带上`Token`
 
 使用以下任意一种方法
 
@@ -433,7 +433,7 @@ $pdo->section('sec0');
 把下面代码复制进去并修改即可
 
 ```php
-if (is_file('/www/PUB')) { // publish
+if (is_file('/www/.pub.env')) { // publish
     define('APP_ENV', 'pub');
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
     ini_set('display_errors', 0);

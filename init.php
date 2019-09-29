@@ -17,7 +17,7 @@ define('TIME', $_SERVER['REQUEST_TIME']); // 注意：不能在 worker 里使用
 if (file_exists(PATH_CONFIG . '/env.php')) {
     require PATH_CONFIG . '/env.php';
 } else {
-    if (is_file('/www/PUB')) { // publish
+    if (is_file('/www/.pub.env')) { // publish
         define('APP_ENV', 'pub');
         error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
         ini_set('display_errors', 0);
