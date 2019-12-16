@@ -72,11 +72,11 @@ $foo = input('get.foo:i');
 
 // 验证并且以集合返回，非短路式验证所有 input() 指定的字段，错误提示在异常 AppException::getData 里获取
 try {
-    $inputs = validate(function () {
-        input('get.foo:i')->required();
-        input('get.bar:i')->required();
-        input('get.name')->required()->setTitle('名字');
-    })
+    begin();
+    input('get.foo:i')->required();
+    input('get.bar:i')->required();
+    input('get.name')->required()->setTitle('名字');
+    $inputs = validate();
 } catch (AppException $exception) {
     var_dump($exception->getData());
 }
