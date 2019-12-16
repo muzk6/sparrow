@@ -5,7 +5,6 @@ namespace App\Controllers;
 
 
 use App\Services\DemoService;
-use Core\AppException;
 use Core\BaseController;
 
 /**
@@ -15,17 +14,13 @@ class IndexController extends BaseController
 {
     public function index()
     {
-        try {
-            $inputs = validate(function () {
-                input('get.foo:i')->required();
-                input('get.bar:i')->required();
-                input('get.name')->required()->setTitle('名字');
-            });
+        begin();
+        input('get.foo:i')->required();
+        input('get.bar:i')->required();
+        input('get.name')->required()->setTitle('名字');
+        $inputs = validate();
 
-            $row = app(DemoService::class)->foo();
-            return api_json(true, ['inputs' => $inputs, 'row' => $row]);
-        } catch (AppException $exception) {
-            return api_json($exception);
-        }
+        $row = app(DemoService::class)->foo();
+        return ['inputs' => $inputs, 'row' => $row];
     }
 }

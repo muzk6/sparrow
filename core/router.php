@@ -1,6 +1,7 @@
 <?php
 
 use Core\AppContainer;
+use Core\AppException;
 use Core\Response;
 use Core\Xdebug;
 use Core\XHProf;
@@ -44,8 +45,17 @@ if ($found) {
         $xdebug = app(Xdebug::class);
         $xdebug->auto();
 
-        // 执行控制方法
-        echo call_user_func([$controllerInstance, $action], ...$actionParams);
+        try {
+            // 执行控制方法
+            $out = call_user_func([$controllerInstance, $action], ...$actionParams);
+            if (is_array($out)) {
+                echo api_json(true, $out);
+            } else {
+                echo strval($out);
+            }
+        } catch (AppException $appException) {
+            echo api_json($appException);
+        }
 
     } catch (ReflectionException $e) {
         return $response->status404();

@@ -237,20 +237,26 @@ function input(string $field, $default = '', callable $after = null)
 }
 
 /**
- * 对回调函数里的所有 \Core\Request::input 进行批量验证并返回参数值
+ * 开始验证事务
+ */
+function begin()
+{
+    app(Request::class)->begin();
+}
+
+/**
+ * 表单验证并结束验证事务
  * <p>
- * 用例 validate(function () { input()->required(); input()->max(10); });<br>
- * 注：回调函数里的 Validator 对象不再需要调用 \Core\Validator::validate<br>
+ * 必须在调用 \Core\Request::begin 之后
  * </p>
- * @param callable $fn 支持自动依赖注入
  * @return array
  * @throws AppException
  */
-function validate(callable $fn)
+function validate()
 {
     /** @var Request $request */
     $request = app(Request::class);
-    return $request->validate($fn);
+    return $request->validate();
 }
 
 /**

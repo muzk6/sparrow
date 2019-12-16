@@ -200,21 +200,23 @@ class Request
     }
 
     /**
-     * 对回调函数里的所有 \Core\Request::input 进行批量验证并返回参数值
+     * 开始验证事务
+     */
+    public function begin()
+    {
+        $this->validationMode = true;
+    }
+
+    /**
+     * 表单验证并结束验证事务
      * <p>
-     * 用例 validate(function () { input()->required(); input()->max(10); });<br>
-     * 注：回调函数里的 Validator 对象不再需要调用 \Core\Validator::validate<br>
+     * 必须在调用 \Core\Request::begin 之后
      * </p>
-     * @param callable $fn
      * @return array
      * @throws AppException
      */
-    public function validate(callable $fn)
+    public function validate()
     {
-        $this->validationMode = true;
-
-        $fn();
-
         $data = [];
         $errors = [];
         foreach ($this->validationSets as $k => $v) {
