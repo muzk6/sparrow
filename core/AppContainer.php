@@ -43,6 +43,14 @@ class AppContainer
     }
 
     /**
+     * 销毁容器
+     */
+    public static function destroy()
+    {
+        self::$container = null;
+    }
+
+    /**
      * 取容器对象、函数、数值
      * <p>支持递归取对象</p>
      * @param string $name

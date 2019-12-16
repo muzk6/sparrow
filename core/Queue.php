@@ -14,6 +14,11 @@ use PhpAmqpLib\Message\AMQPMessage;
 class Queue
 {
     /**
+     * 超时时间，用于销毁容器
+     */
+    const TIMEOUT = 300;
+
+    /**
      * 配置
      * @var array
      */
@@ -105,10 +110,8 @@ class Queue
         $channel->basic_consume($queue, '', false, false, false, false,
             function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
                 // worker 超时退出
-                if (time() - $scriptTime >= $this->conf['worker_timeout']) {
-                    echo PHP_EOL . PHP_EOL;
-                    echo sprintf('Exit at %s, Timeout %s(s).', date('Y-m-d H:i:s'), $this->conf['worker_timeout']) . PHP_EOL;
-                    exit;
+                if (time() - $scriptTime >= self::TIMEOUT) {
+                    AppContainer::destroy();
                 }
 
                 // worker 文件更新时退出
