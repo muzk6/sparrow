@@ -4,7 +4,6 @@
 namespace App\Controllers;
 
 
-use App\Services\DemoService;
 use Core\BaseController;
 
 /**
@@ -12,15 +11,17 @@ use Core\BaseController;
  */
 class IndexController extends BaseController
 {
+    /**
+     * 主页
+     * @return array
+     * @throws \Core\AppException
+     */
     public function index()
     {
-        begin();
         input('get.foo:i')->required();
-        input('get.bar:i')->required();
-        input('get.name')->required()->setTitle('名字');
-        $inputs = validate();
+        input('get.bar')->required()->setTitle('名字');
+        $inputs = request();
 
-        $row = app(DemoService::class)->foo();
-        return ['inputs' => $inputs, 'row' => $row];
+        return ['inputs' => $inputs];
     }
 }

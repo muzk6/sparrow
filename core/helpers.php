@@ -237,26 +237,16 @@ function input(string $field, $default = '', callable $after = null)
 }
 
 /**
- * 开始验证事务
- */
-function begin()
-{
-    app(Request::class)->begin();
-}
-
-/**
- * 表单验证并结束验证事务
- * <p>
- * 必须在调用 \Core\Request::begin 之后
- * </p>
+ * 读取所有请求参数，如果有验证则验证
+ * @param bool $fetchNum 以非关联数组格式返回
  * @return array
  * @throws AppException
  */
-function validate()
+function request(bool $fetchNum = false)
 {
     /** @var Request $request */
     $request = app(Request::class);
-    return $request->validate();
+    return $request->request($fetchNum);
 }
 
 /**

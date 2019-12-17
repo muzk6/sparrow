@@ -67,19 +67,20 @@ URI | Controller | Action
 #### 用例
 
 ```php
-// 不验证直接返回
-$foo = input('get.foo:i');
+// 验证并且以集合返回，默认非短路式验证所有 input() 指定的字段，错误提示在异常 AppException::getData 里获取
+input('get.foo:i')->required();
+input('get.bar')->required()->setTitle('名字');
+$inputs = request();
 
-// 验证并且以集合返回，非短路式验证所有 input() 指定的字段，错误提示在异常 AppException::getData 里获取
-try {
-    begin();
-    input('get.foo:i')->required();
-    input('get.bar:i')->required();
-    input('get.name')->required()->setTitle('名字');
-    $inputs = validate();
-} catch (AppException $exception) {
-    var_dump($exception->getData());
-}
+// 短路式验证，遇到验证不通过的直接抛出异常，终止后面的验证
+input('get.foo:i')->required()->validate();
+input('get.bar')->required()->setTitle('名字')->validate();
+$inputs = request();
+
+// 参数解构
+input('get.foo:i')->required();
+input('get.bar')->required()->setTitle('名字');
+[$foo, $bar] = request(true);
 ```
 
 #### 参数说明

@@ -18,11 +18,6 @@ class Request
     protected $payload = null;
 
     /**
-     * @var bool 是否在验证模式中
-     */
-    protected $validationMode = false;
-
-    /**
      * @var array 验证模式的参数及验证对象集合
      */
     protected $validationSets = [];
@@ -167,7 +162,7 @@ class Request
      * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
      * 回调函数格式为 function ($v, $k) {}<br>
      * </p>
-     * @return mixed|Validator
+     * @return Validator
      */
     public function input(string $field, $default = '', callable $after = null)
     {
@@ -186,36 +181,22 @@ class Request
             $fieldValue = $after($fieldValue, $fieldName);
         }
 
-        if ($this->validationMode) {
-            $validator = new Validator($fieldValue);
-            $this->validationSets[$fieldName] = [
-                'value' => $fieldValue,
-                'validator' => $validator,
-            ];
+        $validator = new Validator($fieldValue);
+        $this->validationSets[$fieldName] = [
+            'value' => $fieldValue,
+            'validator' => $validator,
+        ];
 
-            return $validator;
-        } else {
-            return $fieldValue;
-        }
+        return $validator;
     }
 
     /**
-     * 开始验证事务
-     */
-    public function begin()
-    {
-        $this->validationMode = true;
-    }
-
-    /**
-     * 表单验证并结束验证事务
-     * <p>
-     * 必须在调用 \Core\Request::begin 之后
-     * </p>
+     * 读取所有请求参数，如果有验证则验证
+     * @param bool $fetchNum 以非关联数组格式返回
      * @return array
      * @throws AppException
      */
-    public function validate()
+    public function request(bool $fetchNum = false)
     {
         $data = [];
         $errors = [];
@@ -224,13 +205,15 @@ class Request
             $validator = $v['validator'];
             try {
                 $validator->validate(true);
-                $data[$k] = $v['value'];
+                if ($fetchNum) {
+                    $data[] = $v['value'];
+                } else {
+                    $data[$k] = $v['value'];
+                }
             } catch (Exception $exception) {
                 $errors[$k] = $exception->getMessage();
             }
         }
-
-        $this->validationMode = false;
         $this->validationSets = [];
 
         array_filter($errors) || $errors = null;
