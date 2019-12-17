@@ -14,11 +14,6 @@ use PhpAmqpLib\Message\AMQPMessage;
 class Queue
 {
     /**
-     * 超时时间，用于销毁容器
-     */
-    const TIMEOUT = 300;
-
-    /**
      * 配置
      * @var array
      */
@@ -109,8 +104,8 @@ class Queue
         $fileStats = [];
         $channel->basic_consume($queue, '', false, false, false, false,
             function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
-                // worker 超时退出
-                if (time() - $scriptTime >= self::TIMEOUT) {
+                // 运行时间超时后销毁容器
+                if (time() - $scriptTime >= 300) {
                     AppContainer::destroy();
                 }
 
