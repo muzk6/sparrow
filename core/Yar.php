@@ -12,8 +12,6 @@ use Exception;
  */
 class Yar
 {
-    protected $hosts = [];
-
     protected $servers = [];
 
     protected $traceName = '';
@@ -27,8 +25,7 @@ class Yar
             trigger_error('"pecl install msgpack && pecl install yar" at first');
         }
 
-        $this->hosts = $conf['hosts'];
-        $this->servers = $conf['servers'];
+        $this->servers = $conf;
     }
 
     /**
@@ -38,13 +35,10 @@ class Yar
      */
     protected function getUrl(string $index): string
     {
-        $rpc = &$this->servers[$index];
-        isset($rpc) || trigger_error('请在 yar.php 配置 servers');
+        $server = &$this->servers[$index];
+        isset($server) || trigger_error('请在 yar.php 配置相关地址');
 
-        $host = &$this->hosts[$rpc['host']];
-        isset($host) || trigger_error('请在 yar.php 配置 hosts');
-
-        $url = rtrim($host, '/') . $rpc['uri'];
+        $url = $server['url'];
         if ($this->traceName) {
             $url .= (strpos($url, '?') === false ? '?' : '&') . "_xt={$this->traceName}";
             $this->traceName = '';

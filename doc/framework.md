@@ -414,7 +414,7 @@ $pdo->section('sec0');
 
 以下任意方式可开启跟踪，日志位于`data/trace/`
 
-### 跟踪fpm
+### 跟踪 fpm
 
 - 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
 - 当前URI 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
@@ -422,7 +422,13 @@ $pdo->section('sec0');
 
 *注意：`URI`, `Cookie` 方式的前提必须先设置 `config/dev/whitelist.php` 白名单 `IP`*
 
-### 跟踪cli
+### 跟踪 rpc
+
+在调用 `->request()` 前先调用 `->trace()` 即可
+
+`app(\Core\Yar::class)->trace('rpc')->request('sparrow', 'bar', [1, 2, 3])`
+
+### 跟踪 cli
 
 `php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
 

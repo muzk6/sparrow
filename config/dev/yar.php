@@ -5,13 +5,7 @@
  */
 
 return [
-    'hosts' => [
-        'sparrow' => 'http://rpc.sparrow.com',
+    'sparrow' => [
+        'url' => 'http://rpc.sparrow.com/rpc_server_demo.php',
     ],
-    'servers' => [
-        'demo' => [
-            'host' => 'sparrow',
-            'uri' => '/rpc_server_demo.php',
-        ],
-    ]
 ];
