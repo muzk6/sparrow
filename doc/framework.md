@@ -414,6 +414,8 @@ $pdo->section('sec0');
 
 以下任意方式可开启跟踪，日志位于`data/trace/`
 
+*注意：请确保对 `data/` 目录有写权限*
+
 ### 跟踪 fpm
 
 - 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
