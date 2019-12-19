@@ -6,6 +6,7 @@
 ## 安装
 
 - `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>`
+- `composer install`
 
 ## 网站入口
 
@@ -183,17 +184,17 @@ old('name', $data['name']);
 
 ### `PdoEngine`, `AppPDO`, `Model` 区别
 
-- `app('pdo')` 或 `app(\PDO::class)` 或 `app(\Core\PdoEngine::class)` 返回 PdoEngine 对象，用法与原生 PDO 一致，同时支持分区，支持自动主从切换
-- `app(\Core\AppPDO::class)` 返回 AppPDO 对象，内部组合于 PdoEngine 对象, 在其基础上封装了增删改查的方法，可以使用 `->getEngine()` 返回 PdoEngine 对象
+- `app('pdo')` 或 `app(\PDO::class)` 或 `app(\Core\PdoEngine::class)` 返回 PdoEngine 对象，用法与原生 PDO 一致，同时支持分区，支持自动主从切换，但要注意防注入事项
+- `app(\Core\AppPDO::class)` 返回 AppPDO 对象，内部组合于 PdoEngine 对象, 在其基础上封装了防注入的 增、删、改、查 的方法，可以使用 `->getEngine()` 返回 PdoEngine 对象
 - `app(\App\Models\DemoModel::class)` 返回 DemoModel 对象，继承于 AppPDO, 在其基础上定义了 分区、库名、表名，可以通过覆盖 `->sharding()` 方法实现 分区、分库、分表 效果
 
 ### `Model`对象(推荐)
-> 在`$pdo`的基础上，封装成`Model`类(1个表对应1个`Model`)自动进行 分区、分库、分表 (后面统称分表)
+> 在 `AppPDO` 的基础上，封装成 `Model` 类(1个表对应1个 `Model`)自动进行 分区、分库、分表 (后面统称分表)
 
 #### 配置说明 
 
-- 参考`app/Models/DemoModel.php`，配置类属性`$table`
-- 需要分表时，定义`sharding`规则，在子类覆盖`\Core\BaseModel::sharding`即可
+- 参考 `app/Models/DemoModel.php`，配置类属性 `$table`
+- 需要分表时，定义 `sharding` 规则，在子类覆盖 `\Core\BaseModel::sharding` 即可
 
 #### 用例
 
@@ -419,7 +420,7 @@ $pdo->section('sec0');
 - 当前URI 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
 - Cookie 主动开启: `_xt=name0;`
 
-*注意：`URI`, `Cookie`方式的的前提必须先设置`config/dev/whitelist.php`白名单`IP`*
+*注意：`URI`, `Cookie` 方式的前提必须先设置 `config/dev/whitelist.php` 白名单 `IP`*
 
 ### 跟踪cli
 
