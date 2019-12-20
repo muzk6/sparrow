@@ -4,6 +4,7 @@
 namespace App\Controllers;
 
 
+use Core\AppException;
 use Core\BaseController;
 
 /**
@@ -14,7 +15,7 @@ class IndexController extends BaseController
     /**
      * 主页
      * @return array
-     * @throws \Core\AppException
+     * @throws AppException
      */
     public function index()
     {

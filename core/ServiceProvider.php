@@ -86,6 +86,10 @@ class ServiceProvider implements ServiceProviderInterface
             return $redis;
         };
 
+        $pimple[Router::class] = function () {
+            return new Router(config('routes'));
+        };
+
         /**
          * 文档 https://github.com/elastic/elasticsearch-php
          */

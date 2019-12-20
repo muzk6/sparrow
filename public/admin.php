@@ -6,6 +6,4 @@
  */
 
 require_once dirname(__DIR__) . '/init.php';
-
-define('CONTROLLER_NAMESPACE', 'App\Controllers\Admin\\');
-require_once PATH_ROOT . '/core/router.php';
+app(\Core\Router::class)->dispatch('admin');

@@ -12,6 +12,7 @@
 
 - `public/index.php` 前台入口
 - `public/admin.php` 后台入口
+- 可以自定义入口
 
 *注意：每个入口必须使用独立域名*
 
@@ -54,6 +55,8 @@ PATH_LOG | 日志目录
 
 ## 路由
 
+### 默认值规则
+
 URI | Controller | Action
 --- | --- | ---
 `/` | `IndexController` | `index()`
@@ -61,6 +64,49 @@ URI | Controller | Action
 `/foo/` | `FooController` | `index()`
 `/foo/bar` | `FooController` | `bar()`
 `/foo/bar/` | `FooController` | `bar()`
+
+### 自定义路由
+
+*config/routes.php*
+```php
+/**
+ * 路由配置
+ *
+ * 规则里必须定义以下任意一个类型：
+ *
+ * namespace: 全自动分发，指定命名空间，
+ *  根据正则捕获命名分组 ct, ac (没指定命名分组时两者默认值均为 index)来自动分发到相应的控制器和方法
+ *
+ * controller: 半自动分发，指定控制器，
+ *  根据正则捕获命名分组 ac (没指定命名分组时默认值为 index)来自动分发到相应的方法
+ *
+ * action: 手动分发，同时指定控制器和方法
+ */
+
+return [
+    // 默认路由组
+    'default' => [
+        [
+            // url: /
+            'pattern' => '#^/$#',
+            'action' => 'App\Controllers\IndexController@index',
+        ],
+        [
+            // url: /foo, /foo/, /foo/bar, /foo/bar/
+            'pattern' => '#^/(?<ct>[a-zA-Z_\d]+)/?(?<ac>[a-zA-Z_\d]+)?/?$#',
+            'namespace' => 'App\Controllers\\',
+        ],
+    ],
+    // 后台路由组
+    'admin' => [
+        [
+            // url: /secret, /secret/, /secret/index, /secret/index/
+            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#', // url: /secret
+            'controller' => 'App\Controllers\Admin\IndexController',
+        ]
+    ],
+];
+```
 
 ## 请求参数`Request params`
 > 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
