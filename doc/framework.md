@@ -381,6 +381,15 @@ $pdo->forceMaster()->setTable('table0')->selectOne(['id=?', 1]);
 $pdo->section('sec0');
 ```
 
+## 登录
+
+```php
+app(\Core\Auth::class)->login(1010); // 使用 1010 ID 使用
+app(\Core\Auth::class)->getUserId(); // 1010
+app(\Core\Auth::class)->isLogin(); // true
+app(\Core\Auth::class)->logout(); // 退出登录
+```
+
 ## RPC 远程过程调用
 
 - 客户端参考`cli/rpc_client_demo.php`
