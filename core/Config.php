@@ -56,7 +56,7 @@ class Config
      * @param $value
      * @return bool
      */
-    public function set(string $key, $value): bool
+    public function set(string $key, $value)
     {
         $keys = explode('.', $key);
         $filename = array_shift($keys);

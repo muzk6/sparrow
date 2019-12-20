@@ -33,7 +33,7 @@ class Yar
      * @param string $index
      * @return string
      */
-    protected function getUrl(string $index): string
+    protected function getUrl(string $index)
     {
         $server = &$this->servers[$index];
         isset($server) || trigger_error('请在 yar.php 配置相关地址');
