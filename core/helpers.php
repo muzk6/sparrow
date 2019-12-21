@@ -129,6 +129,7 @@ function logfile(string $index, $data, string $type = 'app')
         '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
         '__file' => "{$trace['file']}:{$trace['line']}",
         '__sapi' => PHP_SAPI,
+        '__hostname' => php_uname('n'),
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         '__userid' => $auth->getUserId(),
