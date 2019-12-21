@@ -127,10 +127,10 @@ app(\Core\Router::class)->setStatus404Handler(function () {
 })->dispatch();
 ```
 
-## 请求参数`Request params`
+## 请求参数 `Request params`
 > 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
 
-#### 用例
+### 用例
 
 ```php
 // 验证并且以集合返回，默认非短路式验证所有 input() 指定的字段，错误提示在异常 AppException::getData 里获取
@@ -138,18 +138,43 @@ input('get.foo:i')->required();
 input('get.bar')->required()->setTitle('名字');
 $inputs = request();
 
-// 短路式验证，遇到验证不通过的直接抛出异常，终止后面的验证
-input('get.foo:i')->required()->validate();
-input('get.bar')->required()->setTitle('名字')->validate();
-$inputs = request();
-
-// 参数解构
+// 以串联短路方式验证（默认），遇到验证不通过时，立即终止后面的验证
 input('get.foo:i')->required();
 input('get.bar')->required()->setTitle('名字');
-[$foo, $bar] = request(true);
+$inputs = request();
+
+// 以并联方式验证，即使前面的验证不通过，也会继续验证后面的字段
+input('get.foo:i')->required();
+input('get.bar')->required()->setTitle('名字');
+$inputs = request(true);
 ```
 
-#### 参数说明
+*串联短路结果*
+```json
+{
+    "s": false,
+    "c": 10001000,
+    "m": "参数错误",
+    "d": {
+        "foo": "不能为空"
+    }
+}
+```
+
+*并联结果*
+```json
+{
+    "s": false,
+    "c": 10001000,
+    "m": "参数错误",
+    "d": {
+        "foo": "不能为空",
+        "bar": "名字不能为空"
+    }
+}
+```
+
+### `input()` 参数说明
 
 `'get.foo:i'` 中的类型转换`i`为整型，其它类型为：
 

@@ -242,15 +242,15 @@ function input(string $field, $default = '', callable $after = null)
 
 /**
  * 读取所有请求参数，如果有验证则验证
- * @param bool $fetchNum 以非关联数组格式返回
+ * @param bool $inParallel false: 以串联短路方式验证；true: 以并联方式验证，即使前面的验证不通过，也会继续验证后面的字段
  * @return array
  * @throws AppException
  */
-function request(bool $fetchNum = false)
+function request(bool $inParallel = false)
 {
     /** @var Request $request */
     $request = app(Request::class);
-    return $request->request($fetchNum);
+    return $request->request($inParallel);
 }
 
 /**

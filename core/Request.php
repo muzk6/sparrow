@@ -192,26 +192,27 @@ class Request
 
     /**
      * 读取所有请求参数，如果有验证则验证
-     * @param bool $fetchNum 以非关联数组格式返回
+     * @param bool $inParallel false: 以串联短路方式验证；true: 以并联方式验证，即使前面的验证不通过，也会继续验证后面的字段
      * @return array
      * @throws AppException
      */
-    public function request(bool $fetchNum = false)
+    public function request(bool $inParallel = false)
     {
         $data = [];
         $errors = [];
         foreach ($this->validationSets as $k => $v) {
             /** @var Validator $validator */
             $validator = $v['validator'];
+
             try {
                 $validator->validate(true);
-                if ($fetchNum) {
-                    $data[] = $v['value'];
-                } else {
-                    $data[$k] = $v['value'];
-                }
+                $data[$k] = $v['value'];
             } catch (Exception $exception) {
                 $errors[$k] = $exception->getMessage();
+
+                if (!$inParallel) {
+                    break;
+                }
             }
         }
         $this->validationSets = [];
