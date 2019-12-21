@@ -8,8 +8,12 @@ use Core\BaseController;
 
 class IndexController extends BaseController
 {
+    /**
+     * 后台主页
+     * @return string
+     */
     public function index()
     {
-        return 'Welcome Admin!';
+        return 'Hello Admin.';
     }
 }

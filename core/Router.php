@@ -39,6 +39,10 @@ class Router
     public function __construct(array $conf)
     {
         $this->conf = $conf;
+
+        $this->setStatus404Handler(function () {
+            http_response_code(404);
+        });
     }
 
     /**
@@ -82,12 +86,9 @@ class Router
             }
         }
 
-        /** @var Response $response */
-        $response = app(Response::class);
-
         if ($found) {
             if (!is_callable([$controller, $action])) {
-                return $response->status404();
+                return call_user_func($this->status404Handler);
             }
 
             try {
@@ -126,10 +127,10 @@ class Router
                 }
 
             } catch (ReflectionException $e) {
-                return $response->status404();
+                return call_user_func($this->status404Handler);
             }
         } else {
-            return $response->status404();
+            return call_user_func($this->status404Handler);
         }
     }
 
@@ -163,10 +164,12 @@ class Router
     /**
      * 设置响应 404 的回调函数
      * @param callable $status404Handler
+     * @return Router
      */
-    public function setStatus404Handler(callable $status404Handler)
+    public function setStatus404Handler($status404Handler)
     {
         $this->status404Handler = $status404Handler;
+        return $this;
     }
 
 }

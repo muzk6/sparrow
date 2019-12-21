@@ -108,11 +108,24 @@ return [
 ];
 ```
 
+- `app(\Core\Router::class)->dispatch();` 使用默认路由组 default
+- `app(\Core\Router::class)->dispatch('admin');` 使用后台路由组 admin
+
 ### 路由相关信息
 
 - `\Core\Router::getUrl` 返回请求的 url 路径
 - `\Core\Router::getMatchGroups` 返回路由规则正则匹配项
 - `\Core\Router::getMatchRule` 返回命中的路由规则
+
+### 自定义404
+
+在调用 `\Core\Router::dispatch` 之前调用 `\Core\Router::setStatus404Handler`
+
+```php
+app(\Core\Router::class)->setStatus404Handler(function () {
+    echo '404';
+})->dispatch();
+```
 
 ## 请求参数`Request params`
 > 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
@@ -150,28 +163,16 @@ f | float
 
 ## 控制器方法 action 用例
 
-```php
-/**
- * 主页
- * @param DemoService $demo
- * @return array
- * @throws AppException
- */
-public function index(DemoService $demo)
-{
-    input('get.foo:i')->required();
-    input('get.bar')->required()->setTitle('名字');
-    $inputs = request();
-
-    return [
-        'inputs' => $inputs,
-        'foo' => $demo->foo(), // 通过自动依赖注入使用 DemoService 的对象
-        'foo2' => app(DemoService::class)->foo(), // 或者通过容器使用 DemoService 的对象
-    ];
-}
-```
-
 - 支持自动依赖注入
+
+参考 `app/Controllers/DemoController.php`
+
+### 自定义勾子
+
+覆盖控制器基类勾子方法即可
+
+- `\Core\BaseController::beforeAction`
+- `\Core\BaseController::afterAction`
 
 ## `helper` 辅助函数用例
 

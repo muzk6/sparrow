@@ -118,6 +118,10 @@ function logfile(string $index, $data, string $type = 'app')
         return null;
     }
 
+    if (function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
+
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
