@@ -121,7 +121,7 @@ class Yar
             \Yar_Concurrent_Client::loop();
             \Yar_Concurrent_Client::reset();
         } catch (Exception $exception) {
-            logfile('\ar_Concurrent_Client::loop', $exception->getMessage(), '__rpc');
+            logfile('\Yar_Concurrent_Client::loop', $exception->getMessage(), '__rpc');
         }
     }
 
