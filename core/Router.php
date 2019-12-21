@@ -31,6 +31,11 @@ class Router
      */
     protected $matchRule = [];
 
+    /**
+     * @var callable 响应 404 的回调函数
+     */
+    protected $status404Handler;
+
     public function __construct(array $conf)
     {
         $this->conf = $conf;
@@ -103,7 +108,10 @@ class Router
                 $xdebug->auto();
 
                 try {
-                    // 执行控制方法
+                    // 执行 action 前置勾子
+                    is_callable([$controllerInstance, 'beforeAction']) && call_user_func([$controllerInstance, 'beforeAction']);
+
+                    // 执行控制方法 action
                     $out = call_user_func([$controllerInstance, $action], ...$actionParams);
                     if (is_array($out)) {
                         echo api_json(true, $out);
@@ -112,6 +120,9 @@ class Router
                     }
                 } catch (AppException $appException) {
                     echo api_json($appException);
+                } finally {
+                    // 执行 action 后置勾子
+                    is_callable([$controllerInstance, 'afterAction']) && call_user_func([$controllerInstance, 'afterAction']);
                 }
 
             } catch (ReflectionException $e) {
@@ -148,4 +159,14 @@ class Router
     {
         return $this->matchRule;
     }
+
+    /**
+     * 设置响应 404 的回调函数
+     * @param callable $status404Handler
+     */
+    public function setStatus404Handler(callable $status404Handler)
+    {
+        $this->status404Handler = $status404Handler;
+    }
+
 }

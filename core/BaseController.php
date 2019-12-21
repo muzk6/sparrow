@@ -26,4 +26,19 @@ abstract class BaseController
         $this->isLogin = $auth->isLogin();
     }
 
+    /**
+     * action 前置勾子
+     */
+    public function beforeAction()
+    {
+    }
+
+    /**
+     * action 后置勾子
+     */
+    public function afterAction()
+    {
+        logfile('access', '', '__access');
+    }
+
 }
