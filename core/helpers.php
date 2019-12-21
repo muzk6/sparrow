@@ -121,8 +121,6 @@ function logfile(string $index, $data, string $type = 'app')
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
-    /** @var Auth $auth */
-    $auth = app(Auth::class);
     $log = json_encode([
         '__time' => date('Y-m-d H:i:s'),
         '__index' => $index,
@@ -131,8 +129,9 @@ function logfile(string $index, $data, string $type = 'app')
         '__sapi' => PHP_SAPI,
         '__hostname' => php_uname('n'),
         '__uri' => $_SERVER['REQUEST_URI'] ?? '',
+        '__ip' => app(Request::class)->getIp(),
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => $auth->getUserId(),
+        '__userid' => app(Auth::class)->getUserId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
