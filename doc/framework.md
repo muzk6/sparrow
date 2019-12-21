@@ -108,6 +108,12 @@ return [
 ];
 ```
 
+### 路由相关信息
+
+- `\Core\Router::getUrl` 返回请求的 url 路径
+- `\Core\Router::getMatchGroups` 返回路由规则正则匹配项
+- `\Core\Router::getMatchRule` 返回命中的路由规则
+
 ## 请求参数`Request params`
 > 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
 
@@ -141,6 +147,31 @@ s | string
 b | bool
 a | array
 f | float
+
+## 控制器方法 action 用例
+
+```php
+/**
+ * 主页
+ * @param DemoService $demo
+ * @return array
+ * @throws AppException
+ */
+public function index(DemoService $demo)
+{
+    input('get.foo:i')->required();
+    input('get.bar')->required()->setTitle('名字');
+    $inputs = request();
+
+    return [
+        'inputs' => $inputs,
+        'foo' => $demo->foo(), // 通过自动依赖注入使用 DemoService 的对象
+        'foo2' => app(DemoService::class)->foo(), // 或者通过容器使用 DemoService 的对象
+    ];
+}
+```
+
+- 支持自动依赖注入
 
 ## `helper` 辅助函数用例
 
