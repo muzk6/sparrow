@@ -82,7 +82,7 @@ class PdoEngine
         $isSqlStatement = in_array($name, ['query', 'prepare', 'exec']);
         if ($isSqlStatement) {
             $arguments[0] = preg_replace('/\s+/m', ' ', trim($arguments[0]));
-            empty($this->conf['log']) || logfile('statement', ['name' => $name, 'arguments' => $arguments], '__sql');
+            empty($this->conf['log']) || logfile('statement', ['name' => $name, 'arguments' => $arguments], 'sql');
         }
 
         $isSlave = !$this->isForceMaster

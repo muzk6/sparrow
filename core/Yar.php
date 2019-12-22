@@ -70,14 +70,14 @@ class Yar
                     return $result;
                 }
             } catch (Exception $exception) {
-                logfile('Yar_Client::call', [
+                logfile('Yar::request', [
                     'message' => $exception->getMessage(),
                     'server' => $server,
                     'action' => $action,
                     'params' => $params,
                     'timeout' => $timeout,
                     'retry' => "{$i}/{$retry}",
-                ], '__rpc');
+                ], 'error');
             }
         }
 
@@ -101,13 +101,13 @@ class Yar
                 [YAR_OPT_TIMEOUT => $timeout]
             );
         } catch (Exception $exception) {
-            logfile('Yar_Concurrent_Client::call', [
+            logfile('Yar::requestConcurrently', [
                 'message' => $exception->getMessage(),
                 'server' => $server,
                 'action' => $action,
                 'params' => $params,
                 'timeout' => $timeout,
-            ], '__rpc');
+            ], 'error');
         }
     }
 
@@ -121,7 +121,7 @@ class Yar
             \Yar_Concurrent_Client::loop();
             \Yar_Concurrent_Client::reset();
         } catch (Exception $exception) {
-            logfile('\Yar_Concurrent_Client::loop', $exception->getMessage(), '__rpc');
+            logfile('Yar::loop', $exception->getMessage(), 'error');
         }
     }
 
@@ -141,7 +141,7 @@ class Yar
             $xdebug->auto();
             $server->handle();
         } catch (Exception $exception) {
-            logfile('server_handle', $exception->getMessage(), '__rpc');
+            logfile('Yar::server', $exception->getMessage(), 'error');
         }
     }
 

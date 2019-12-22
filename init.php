@@ -42,7 +42,7 @@ define('IS_OPTIONS', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METH
 
 // 精简错误日志，能记录 Fatal Error, Parse Error
 ini_set('log_errors', 1);
-ini_set('error_log', sprintf('%s/__display_%s.log', PATH_LOG, date('ymd')));
+ini_set('error_log', sprintf('%s/fatal_%s.log', PATH_LOG, date('ymd')));
 if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
@@ -76,7 +76,7 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline) {
         'line' => $errline,
     ];
 
-    logfile('error_handler', $data, '__error');
+    logfile('error_handler', $data, 'error');
 });
 
 // 优先加载自己的 helpers

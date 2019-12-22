@@ -38,7 +38,7 @@ abstract class BaseController
      */
     public function afterAction()
     {
-        logfile('access', ['__POST' => $_POST], '__access');
+        logfile('access', ['__POST' => $_POST], 'access');
     }
 
 }
