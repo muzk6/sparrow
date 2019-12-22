@@ -221,7 +221,7 @@ f | float
 
 #### `view()` 返回渲染后的视图HTML
 
-- 需要安装`blade`库`composer require duncan3dc/blade`
+- 需要安装 `blade` 库 `composer require duncan3dc/blade`
 - `view(string $view, array $params = [])`
 
 #### `logfile()` 文件日志
@@ -275,6 +275,12 @@ old('name', $data['name']);
 - `csrf_field()`直接生成 HTML
 - `csrf_token()`生成 token
 - `csrf_check()`效验，token 来源于 `$_SERVER['HTTP_X_CSRF_TOKEN'], $_POST['_token'], $_GET['_token'], $_REQUEST['_token']`
+
+请求时带上 `Token`, 使用以下任意一种方法
+
+- `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
+- `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
+- 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取2
 
 #### `flash_*()` 闪存，一性次缓存
 
@@ -484,6 +490,16 @@ $pdo->forceMaster()->setTable('table0')->selectOne(['id=?', 1]);
 $pdo->section('sec0');
 ```
 
+## 缓存 redis
+
+### 依赖
+
+`pecl install redis`
+
+### 用例
+
+`app(Redis::class)->setex('key', 3600, 'value')` 与原生一致
+
 ## 登录
 
 ```php
@@ -495,31 +511,41 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 ## RPC 远程过程调用
 
+### 依赖
+
+- CentOS
+    - `yum -y install curl-devel`
+- Ubuntu
+    - `sudo apt install libcurl4-gnutls-dev`
+    - Ubuntu 17 还要兼容一下 curl 的安装路径 `sudo ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/`
+- `pecl install msgpack`
+- `pecl install yar`
+    - 安装过程中建议选择 `yes` 使用 msgpack
+    
+### 用例
+
 - 客户端参考`cli/rpc_client_demo.php`
 - 服务端参考`rpc/rpc_server_demo.php`
 
 ## 消息队列
 
-#### 发布消息
+### 依赖
 
-`app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);`
+`composer require php-amqplib/php-amqplib`
 
-#### 消费的worker
+### 配置
 
-参考 `workers/SPARROW_QUEUE_DEMO.php`
+`config/dev/rabbitmq.php`
+
+### 用例
+
+- `app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);` 发布消息
+- 消费的 worker, 参考 `workers/SPARROW_QUEUE_DEMO.php` 
 
 建议规则：
 - 每个 worker 只消费一个队列；
 - 队列名与 worker名 一致，便于定位队列名对应的 worker 文件；
 - 队列名与 worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
-
-## 请求时带上`Token`
-
-使用以下任意一种方法
-
-- `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
-- `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
-- 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取
 
 ## XDebug Trace
 > 跟踪调试日志
@@ -545,6 +571,30 @@ app(\Core\Auth::class)->logout(); // 退出登录
 ### 跟踪 cli
 
 `php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
+
+## 邮件 email
+
+### 依赖
+
+`composer require swiftmailer/swiftmailer`
+
+### 配置
+
+`config/dev/email.php`
+
+### 用例
+
+参考类文档 `\Core\Mail`
+
+## Elasticsearch, es
+
+### 依赖
+
+`composer require elasticsearch/elasticsearch`
+
+### 文档
+
+https://github.com/elastic/elasticsearch-php
 
 ## 测试文件
 
