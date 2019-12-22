@@ -123,7 +123,9 @@ class Router
                     echo api_json($appException);
                 } finally {
                     // 执行 action 后置勾子
-                    is_callable([$controllerInstance, 'afterAction']) && call_user_func([$controllerInstance, 'afterAction']);
+                    if (is_callable([$controllerInstance, 'afterAction'])) {
+                        call_user_func([$controllerInstance, 'afterAction']);
+                    }
                 }
 
             } catch (ReflectionException $e) {
