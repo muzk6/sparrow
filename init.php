@@ -40,12 +40,44 @@ define('IS_POST', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'
 define('IS_GET', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'GET');
 define('IS_OPTIONS', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS');
 
-// 日志
-ini_set('log_errors', 'On');
-ini_set('error_log', sprintf('%s/__error_%s.log', PATH_LOG, date('ymd')));
+// 精简错误日志，能记录 Fatal Error, Parse Error
+ini_set('log_errors', 1);
+ini_set('error_log', sprintf('%s/__display_%s.log', PATH_LOG, date('ymd')));
 if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
+
+// 详细错误日志
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+    if (in_array(strtolower(ini_get('display_errors')), ['1', 'on'])) {
+        return false;
+    }
+
+    $errorType = array(
+        E_ERROR => 'ERROR',
+        E_WARNING => 'WARNING',
+        E_PARSE => 'PARSING ERROR',
+        E_NOTICE => 'NOTICE',
+        E_CORE_ERROR => 'CORE ERROR',
+        E_CORE_WARNING => 'CORE WARNING',
+        E_COMPILE_ERROR => 'COMPILE ERROR',
+        E_COMPILE_WARNING => 'COMPILE WARNING',
+        E_USER_ERROR => 'USER ERROR',
+        E_USER_WARNING => 'USER WARNING',
+        E_USER_NOTICE => 'USER NOTICE',
+        E_STRICT => 'STRICT NOTICE',
+        E_RECOVERABLE_ERROR => 'RECOVERABLE ERROR'
+    );
+
+    $data = [
+        'level' => $errorType[$errno] ?? 'CAUGHT EXCEPTION',
+        'msg' => $errstr,
+        'file' => $errfile,
+        'line' => $errline,
+    ];
+
+    logfile('error_handler', $data, '__error');
+});
 
 // 优先加载自己的 helpers
 require_once PATH_ROOT . '/core/helpers.php';
@@ -64,7 +96,7 @@ define('APP_LANG', isset($_COOKIE['lang'])
     : $appConf['lang']
 );
 
-if (PHP_SAPI != 'cli') {
+if (PHP_SAPI != 'cli') { // fpm 模式
     // session
     $sessionConf = config('session');
     if ($sessionConf['session.save_handler'] == 'files' && !file_exists($sessionConf['session.save_path'])) {
@@ -74,10 +106,9 @@ if (PHP_SAPI != 'cli') {
         ini_set($k, $v);
     }
     session_id() || session_start();
-} else {
+} else { // cli 模式
+    // xdebug trace
     if (isset($_SERVER['argv']) && in_array('--trace', $_SERVER['argv'])) {
-        /** @var Xdebug $xdebug */
-        $xdebug = app(Xdebug::class);
-        $xdebug->start('cli');
+        app(Xdebug::class)->start('cli');
     }
 }

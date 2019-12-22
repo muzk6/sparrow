@@ -210,8 +210,10 @@ function api_format($state, array $data = [], string $message = '', int $code = 
 function api_json($state, array $data = [], string $message = '', int $code = 0)
 {
     // 先刷出 buffer, 避免被后面的 header 影响
-    ob_flush();
-    flush();
+    if (ob_get_status()) {
+        ob_flush();
+        flush();
+    }
 
     headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
 
