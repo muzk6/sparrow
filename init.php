@@ -1,5 +1,6 @@
 <?php
 
+use Core\ErrorHandler;
 use Core\Xdebug;
 
 define('PATH_ROOT', __DIR__);
@@ -13,25 +14,11 @@ define('PATH_CONFIG', PATH_ROOT . '/config');
 define('PATH_LANG', PATH_ROOT . '/lang');
 define('TIME', $_SERVER['REQUEST_TIME']); // 注意：不能在 worker 里使用，否则不会变化
 
-// 环境与通用配置文件
-if (file_exists(PATH_CONFIG . '/env.php')) {
-    require PATH_CONFIG . '/env.php';
-} else {
-    if (is_file('/www/.pub.env')) { // publish
-        define('APP_ENV', 'pub');
-        error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
-        ini_set('display_errors', 0);
-    } else { // develop
-        define('APP_ENV', 'dev');
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-    }
-}
+// 环境配置
+require_once PATH_CONFIG . '/env.php';
 
-// 指定环境的配置文件
-define('PATH_CONFIG_ENV', PATH_ROOT . '/config/' . APP_ENV);
 if (!file_exists(PATH_CONFIG_ENV)) {
-    echo '缺少配置: ' . PATH_CONFIG_ENV;
+    trigger_error(PATH_CONFIG_ENV  . ' 配置目录不存在');
     exit;
 }
 
@@ -47,43 +34,18 @@ if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
 
-// 详细错误日志
-set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-    if (in_array(strtolower(ini_get('display_errors')), ['1', 'on'])) {
-        return false;
-    }
-
-    $errorType = array(
-        E_ERROR => 'ERROR',
-        E_WARNING => 'WARNING',
-        E_PARSE => 'PARSING ERROR',
-        E_NOTICE => 'NOTICE',
-        E_CORE_ERROR => 'CORE ERROR',
-        E_CORE_WARNING => 'CORE WARNING',
-        E_COMPILE_ERROR => 'COMPILE ERROR',
-        E_COMPILE_WARNING => 'COMPILE WARNING',
-        E_USER_ERROR => 'USER ERROR',
-        E_USER_WARNING => 'USER WARNING',
-        E_USER_NOTICE => 'USER NOTICE',
-        E_STRICT => 'STRICT NOTICE',
-        E_RECOVERABLE_ERROR => 'RECOVERABLE ERROR'
-    );
-
-    $data = [
-        'level' => $errorType[$errno] ?? 'CAUGHT EXCEPTION',
-        'msg' => $errstr,
-        'file' => $errfile,
-        'line' => $errline,
-    ];
-
-    logfile('error_handler', $data, 'error');
-});
-
 // 优先加载自己的 helpers
 require_once PATH_ROOT . '/core/helpers.php';
 
 // composer
 require_once PATH_ROOT . '/vendor/autoload.php';
+
+// 详细错误日志
+set_error_handler([app(ErrorHandler::class), 'errorHandler']);
+// 未捕获的异常日志
+if (!app(ErrorHandler::class)->is_display_errors()) {
+    set_exception_handler([app(ErrorHandler::class), 'exceptionHandler']);
+}
 
 // 配置文件里的默认配置
 $appConf = config('app');

@@ -605,20 +605,3 @@ https://github.com/elastic/elasticsearch-php
 > 开启维护模式，关闭网站访问入口
 
 - `php cli/maintain.php`
-
-## 环境与配置文件
-
-以下为默认的环境配置，如果要自定义可以新建`config/env.php`，
-把下面代码复制进去并修改即可
-
-```php
-if (is_file('/www/.pub.env')) { // publish
-    define('APP_ENV', 'pub');
-    error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
-    ini_set('display_errors', 0);
-} else { // develop
-    define('APP_ENV', 'dev');
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-}
-```

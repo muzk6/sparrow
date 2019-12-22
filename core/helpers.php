@@ -118,24 +118,20 @@ function logfile(string $index, $data, string $type = 'app')
         return null;
     }
 
-    if (function_exists('fastcgi_finish_request')) {
-        fastcgi_finish_request();
-    }
-
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
     $type = trim(str_replace('/', '', $type));
 
     $log = json_encode([
         '__time' => date('Y-m-d H:i:s'),
         '__index' => $index,
-        '__requestid' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
+        '__request_id' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
         '__file' => "{$trace['file']}:{$trace['line']}",
         '__sapi' => PHP_SAPI,
         '__hostname' => php_uname('n'),
-        '__uri' => $_SERVER['REQUEST_URI'] ?? '',
+        '__url' => $_SERVER['REQUEST_URI'] ?? '',
         '__ip' => app(Request::class)->getIp(),
         '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__userid' => app(Auth::class)->getUserId(),
+        '__user_id' => app(Auth::class)->getUserId(),
         '__data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
