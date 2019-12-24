@@ -122,21 +122,21 @@ function logfile(string $index, $data, string $type = 'app')
     $type = trim(str_replace('/', '', $type));
 
     $log = json_encode([
-        '__time' => date('Y-m-d H:i:s'),
-        '__index' => $index,
-        '__request_id' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
-        '__file' => "{$trace['file']}:{$trace['line']}",
-        '__sapi' => PHP_SAPI,
-        '__hostname' => php_uname('n'),
-        '__url' => $_SERVER['REQUEST_URI'] ?? '',
-        '__ip' => app(Request::class)->getIp(),
-        '__agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-        '__user_id' => app(Auth::class)->getUserId(),
-        '__data' => $data,
+        'time' => date('Y-m-d H:i:s'),
+        'index' => $index,
+        'request_id' => isset($_SERVER['REQUEST_TIME_FLOAT']) ? md5(strval($_SERVER['REQUEST_TIME_FLOAT'])) : '',
+        'file' => "{$trace['file']}:{$trace['line']}",
+        'sapi' => PHP_SAPI,
+        'hostname' => php_uname('n'),
+        'url' => $_SERVER['REQUEST_URI'] ?? '',
+        'ip' => app(Request::class)->getIp(),
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        'user_id' => app(Auth::class)->getUserId(),
+        'data' => $data,
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
     $path = sprintf('%s/%s_%s.log',
-        PATH_LOG, $type, date('ymd'));
+        PATH_LOG, $type, date('ym'));
 
     return file_put_contents($path, $log . PHP_EOL, FILE_APPEND);
 }
