@@ -10,7 +10,7 @@
 
 require_once dirname(__DIR__) . '/init.php';
 
-$opt = getopt('', ['help::', 'uri::', 'uid::', 'name::', 'expire::', 'off::',
+$opt = getopt('', ['help::', 'url::', 'uid::', 'name::', 'expire::', 'off::',
     'max-depth::', 'max-data::', 'max-children::'], $ind);
 
 $maxDepth = intval(ini_get('xdebug.var_display_max_depth'));
@@ -20,11 +20,11 @@ $maxChildren = intval(ini_get('xdebug.var_display_max_children'));
 if (isset($opt['help'])) {
     echo <<<DOC
 USAGE
-    php trace.php [OPTION...] NAME URI
+    php trace.php [OPTION...] NAME URL
 PARAM
     NAME
         Name Of Xdebug Trace as xt: segment in log name.
-    URI
+    URL
         Url path which trigger start xdebug trace.
 OPTION
     --uid=
@@ -58,14 +58,14 @@ if (empty($name)) {
     exit;
 }
 
-$uri = &$argv[$ind++];
-if (empty($uri)) {
-    echo 'Require URI' . PHP_EOL;
+$url = &$argv[$ind++];
+if (empty($url)) {
+    echo 'Require URL' . PHP_EOL;
     exit;
 }
 
 $conf = [
-    'uri' => $uri,
+    'url' => $url,
     'user_id' => $opt['uid'] ?? 0,
     'name' => $name,
     'expire' => isset($opt['expire']) ? TIME + $opt['expire'] : TIME + 600,

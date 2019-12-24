@@ -101,7 +101,7 @@ class Xdebug
             $auth = app(Auth::class);
 
             if ($traceConf['expire'] > time() // 检查过期
-                && strpos(strval($_SERVER['REQUEST_URI']), $traceConf['uri']) !== false // 检查 uri path 是否匹配
+                && strpos(strval($_SERVER['REQUEST_URI']), $traceConf['url']) !== false // 检查 url path 是否匹配
                 && (!$traceConf['user_id'] || ($auth->isLogin() && $traceConf['user_id'] == $auth->getUserId())) // 有指定用户时，检查特定用户
             ) {
                 $traceStart = true;
@@ -147,17 +147,17 @@ class Xdebug
 
         if (PHP_SAPI == 'cli') {
             $cmd = basename($_SERVER['argv'][0]);
-            $uri = $cmd . '_' . implode('_', array_slice($_SERVER['argv'], 1));
+            $url = $cmd . '_' . implode('_', array_slice($_SERVER['argv'], 1));
         } else {
-            $uri = isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : '';
+            $url = isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : '';
         }
 
-        $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.uri:%s',
+        $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.url:%s',
             uniqid(), // 目的是排序用，和保证文件名唯一
             date('ymd_His'),
             $traceName,
             $auth->getUserId(),
-            $uri
+            $url
         );
 
         register_shutdown_function(function () {
