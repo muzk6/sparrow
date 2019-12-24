@@ -323,12 +323,11 @@ $pdo = app(\Core\AppPDO::class);
 $pdo->setTable('table0')->selectOne();
 
 // select * from table0 where id = 1 limit 1
-$pdo->setTable('table0')->selectOne('id=1'); // 有注入风险
-$pdo->setTable('table0')->selectOne(['id=1']); // 有注入风险
-$pdo->setTable('table0')->selectOne(['id=?', 1]); // 防注入
-$pdo->setTable('table0')->selectOne(['id=?', [1]]); // 防注入
-$pdo->setTable('table0')->selectOne(['id=:id', ['id' => 1]]); // 防注入
-$pdo->setTable('table0')->selectOne(['id=:id', [':id' => 1]]); // 防注入
+$pdo->setTable('test')->where('id=1')->selectOne(); // 有注入风险
+$pdo->setTable('test')->where('id=?', 1)->selectOne(); // 防注入
+$pdo->setTable('test')->where('id=?', [1])->selectOne(); // 防注入
+$pdo->setTable('test')->where('id=:id', ['id' => 1])->selectOne(); // 防注入
+$pdo->setTable('test')->where('id=:id', [':id' => 1])->selectOne(); // 防注入
 
 // 用 ->where() 指定条件
 $pdo->setTable('table0')->where('id=1')->selectOne(); // 有注入风险
@@ -378,7 +377,7 @@ $pdo->setTable('table0')->limit(2)->selectCalc('col1');
 
 ```php
 // select 1 from table0 limit 1
-$pdo->setTable('table0')->exists('id=128'); // return true, false
+$pdo->setTable('table0')->exists(); // return true, false
 ```
 
 #### 综合查询
