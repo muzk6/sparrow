@@ -167,7 +167,6 @@ class AppPDO
         $order = $this->getOrder();
         $append = $this->getAppend();
         $column = $this->quoteColumn($column);
-        $this->reset();
 
         $sql = "SELECT {$column} FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
@@ -209,7 +208,6 @@ class AppPDO
         $columns = $this->quoteColumn($columns);
         $order = $this->getOrder();
         $append = $this->getAppend();
-        $this->reset();
 
         $sql = "SELECT {$columns} FROM {$table} {$where[0]} {$order} {$append} LIMIT 1";
 
@@ -247,7 +245,6 @@ class AppPDO
             . $this->getAppend()
             . $this->getLimit();
 
-        $this->reset();
         if (empty($where[1])) {
             /* @var PDO $this */
             return $this->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -278,7 +275,6 @@ class AppPDO
 
         $isForceMaster && $this->forceMaster();
         $count = $this->foundRows();
-        $this->reset();
 
         return ['count' => $count, 'data' => $data];
     }
@@ -363,10 +359,7 @@ class AppPDO
         $statement = $this->prepare($sql);
         $statement->execute($values);
 
-        $lastInsertId = intval($this->setSection($section)->lastInsertId());
-        $this->reset();
-
-        return $lastInsertId;
+        return intval($this->setSection($section)->lastInsertId());
     }
 
     /**
@@ -470,7 +463,6 @@ class AppPDO
                 $this->getLimit()
             );
 
-            $this->reset();
             /* @var PDO $this */
             return $this->query($sql)->rowCount();
         } else {
@@ -481,7 +473,6 @@ class AppPDO
                 $this->getLimit()
             );
 
-            $this->reset();
             /* @var PDO $this */
             $statement = $this->prepare($sql);
             $statement->execute(array_merge($bind, $where[1]));
@@ -507,7 +498,6 @@ class AppPDO
             $where[0],
             $this->getLimit()
         );
-        $this->reset();
 
         if (empty($where[1])) {
             /* @var PDO $this */
