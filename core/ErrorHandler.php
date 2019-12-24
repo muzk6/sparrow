@@ -81,7 +81,13 @@ class ErrorHandler
             'code' => $exception->getCode(),
             'message' => $exception->getMessage(),
             'file' => "{$filename}:{$lineNum}",
+            'backtrace' => [],
         ];
+
+        $trace = $exception->getTraceAsString();
+        if (trim($trace)) {
+            $data['backtrace'] = explode("\n", $trace);
+        }
 
         logfile('exception_handler', $data, 'error');
     }
