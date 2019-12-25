@@ -12,7 +12,7 @@ use Core\Translator;
 /**
  * 获取/设置 容器元素
  * @param string $name
- * @param mixed $newValue null: 获取元素；其它值: 如果是回调函数，支持容器参数即 function (Container $pimple) {}
+ * @param mixed $newValue null: 获取元素；其它值: 设置容器，如果是回调函数，支持容器参数即 function (Container $pimple) {}
  * @return mixed
  */
 function app(string $name, $newValue = null)
