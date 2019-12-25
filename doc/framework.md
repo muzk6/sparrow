@@ -226,16 +226,6 @@ f | float
 - `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
 - 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
 
-#### `back()` 网页跳转回上一步
-
-- `back()` 网页跳转回上一步
-- 不要`exit`
-
-#### `redirect()` 网页跳转到指定地址
-
-- `redirect('/foo/bar')` 跳转到当前域名的`/foo/bar`地址去
-- `redirect('https://google.com')` 跳转到谷歌
-
 #### `url()` 带协议和域名的完整URL
 
 - 当前域名URL：`url('path/to')`

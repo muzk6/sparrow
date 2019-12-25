@@ -57,7 +57,7 @@ class DemoController extends BaseController
             flash_set('data', $appException->getData());
         }
 
-        back();
+        $this->back();
     }
 
     /**

@@ -101,4 +101,25 @@ abstract class BaseController
         return app(Request::class)->request($inParallel);
     }
 
+    /**
+     * 网页后退
+     * <p>`back()` 网页跳转回上一步</p>
+     * <p>不要 `exit`</p>
+     */
+    protected function back()
+    {
+        header('Location: ' . getenv('HTTP_REFERER'));
+    }
+
+    /**
+     * 网页跳转
+     * <p>`redirect('/foo/bar')` 跳转到当前域名的`/foo/bar`地址去</p>
+     * <p>`redirect('https://google.com')` 跳转到谷歌</p>
+     * @param string $url
+     */
+    protected function redirect(string $url)
+    {
+        header('Location: ' . $url);
+    }
+
 }

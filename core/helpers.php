@@ -124,23 +124,6 @@ function logfile(string $index, $data, string $type = 'app')
 }
 
 /**
- * 网页后退
- */
-function back()
-{
-    header('Location: ' . getenv('HTTP_REFERER'));
-}
-
-/**
- * 网页跳转
- * @param string $url
- */
-function redirect(string $url)
-{
-    header('Location: ' . $url);
-}
-
-/**
  * API格式化
  * @param bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
  * @param array $data 对象体
