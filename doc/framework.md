@@ -132,21 +132,23 @@ app(\Core\Router::class)->setStatus404Handler(function () {
 
 ### 用例
 
+以下 `$this` 指的是 `Controller` 对象
+
 ```php
-// 验证并且以集合返回，默认非短路式验证所有 input() 指定的字段，错误提示在异常 AppException::getData 里获取
-input('get.foo:i')->required();
-input('get.bar')->required()->setTitle('名字');
-$inputs = request();
+// 验证并且以集合返回，默认非短路式验证所有 $this->input() 指定的字段，错误提示在异常 AppException::getData 里获取
+$this->input('get.foo:i')->required();
+$this->input('get.bar')->required()->setTitle('名字');
+$inputs = $this->request();
 
 // 以串联短路方式验证（默认），遇到验证不通过时，立即终止后面的验证
-input('get.foo:i')->required();
-input('get.bar')->required()->setTitle('名字');
-$inputs = request();
+$this->input('get.foo:i')->required();
+$this->input('get.bar')->required()->setTitle('名字');
+$inputs = $this->request();
 
 // 以并联方式验证，即使前面的验证不通过，也会继续验证后面的字段
-input('get.foo:i')->required();
-input('get.bar')->required()->setTitle('名字');
-$inputs = request(true);
+$this->input('get.foo:i')->required();
+$this->input('get.bar')->required()->setTitle('名字');
+$inputs = $this->request(true);
 ```
 
 *串联短路结果*
@@ -174,7 +176,7 @@ $inputs = request(true);
 }
 ```
 
-### `input()` 参数说明
+### `\Core\BaseController::input` 参数说明
 
 `'get.foo:i'` 中的类型转换`i`为整型，其它类型为：
 
@@ -204,7 +206,7 @@ f | float
 #### `app()` 容器
 
 - `app(\App\Models\DemoModel::class)` 取 DemoModel 对象(只有 Model, AppPDO 的对象才是默认多例，容器的其它对象都是默认单例)
-- `app_set(\App\Models\DemoModel::class, ...)` 设置(或重置)容器里的 DemoModel 对象，常用于单元测试 mock 对象
+- `app(\App\Models\DemoModel::class, ...)` 设置(或重置)容器里的 DemoModel 对象，常用于单元测试 mock 对象
 
 #### `config()` 配置文件
 
@@ -219,25 +221,10 @@ f | float
 - 假设当前语言是`zh_CN`, 默认语言是`en`
 - 依次搜索`lang/zh_CN.php, lang/en.php`, 存在`10001000`这个`key`时返回第一个结果内容，都不存在时返回`?`
 
-#### `view()` 返回渲染后的视图HTML
-
-- 需要安装 `blade` 库 `composer require duncan3dc/blade`
-- `view(string $view, array $params = [])`
-
 #### `logfile()` 文件日志
 
 - `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
 - 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
-
-#### `back()` 网页跳转回上一步
-
-- `back()` 网页跳转回上一步
-- 不要`exit`
-
-#### `redirect()` 网页跳转到指定地址
-
-- `redirect('/foo/bar')` 跳转到当前域名的`/foo/bar`地址去
-- `redirect('https://google.com')` 跳转到谷歌
 
 #### `url()` 带协议和域名的完整URL
 
@@ -249,6 +236,8 @@ f | float
 - `panic('foo')` 等于 `new AppException('foo')`
 - `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
 - `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
+
+*注意：强烈建议使用 `panic` 或 `AppException` 抛出异常，不要使用 `Exception`, 否则会有业务外的错误返回到客户端，引起安全风险！*
 
 #### `inject()` 支持自动依赖注入的函数调用
 
@@ -293,7 +282,7 @@ old('name', $data['name']);
 
 ### `PdoEngine`, `AppPDO`, `Model` 区别
 
-- `app('pdo')` 或 `app(\PDO::class)` 或 `app(\Core\PdoEngine::class)` 返回 PdoEngine 对象，用法与原生 PDO 一致，同时支持分区，支持自动主从切换，但要注意防注入事项
+- `app(\Core\PdoEngine::class)` 返回 PdoEngine 对象，用法与原生 PDO 一致，同时支持分区，支持自动主从切换，但要注意防注入事项
 - `app(\Core\AppPDO::class)` 返回 AppPDO 对象，内部组合于 PdoEngine 对象, 在其基础上封装了防注入的 增、删、改、查 的方法，可以使用 `->getEngine()` 返回 PdoEngine 对象
 - `app(\App\Models\DemoModel::class)` 返回 DemoModel 对象，继承于 AppPDO, 在其基础上定义了 分区、库名、表名，可以通过覆盖 `->sharding()` 方法实现 分区、分库、分表 效果
 

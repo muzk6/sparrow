@@ -10,7 +10,7 @@ class DemoTest extends \TestCase
     {
         $mock = $this->createMock(DemoService::class);
         $mock->method('foo')->willReturn('bar');
-        app_set(DemoService::class, $mock);
+        app(DemoService::class, $mock);
 
         return $this->assertEquals('bar', app(DemoService::class)->foo());
     }

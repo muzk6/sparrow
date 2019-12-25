@@ -8,28 +8,23 @@ use Core\CSRF;
 use Core\Flash;
 use Core\Request;
 use Core\Translator;
-use Core\Validator;
-use duncan3dc\Laravel\BladeInstance;
 
 /**
- * 取容器元素
+ * 获取/设置 容器元素
  * @param string $name
+ * @param mixed $newValue null: 获取元素；其它值: 如果是回调函数，支持容器参数即 function (Container $pimple) {}
  * @return mixed
  */
-function app(string $name)
+function app(string $name, $newValue = null)
 {
-    return AppContainer::get($name);
-}
+    if (!is_null($newValue)) {
+        $container = AppContainer::init();
+        $container[$name] = $newValue;
 
-/**
- * 设置容器里的元素
- * @param string $name
- * @param mixed $value 如果是回调函数，支持容器参数即 function (Container $pimple) {}
- */
-function app_set(string $name, $value)
-{
-    $container = AppContainer::init();
-    $container[$name] = $value;
+        return $newValue;
+    }
+
+    return AppContainer::get($name);
 }
 
 /**
@@ -93,19 +88,6 @@ function trans(int $code, array $params = [])
 }
 
 /**
- * 渲染视图模板
- * @param string $view 模板名
- * @param array $params 模板里的参数
- * @return string
- */
-function view(string $view, array $params = [])
-{
-    /** @var BladeInstance $blade */
-    $blade = app(BladeInstance::class);
-    return $blade->render($view, $params);
-}
-
-/**
  * 文件日志
  * @param string $index 日志索引，用于正查和反查，建议传入 uniqid()
  * @param array|string $data 日志内容
@@ -139,23 +121,6 @@ function logfile(string $index, $data, string $type = 'app')
         PATH_LOG, $type, date('ym'));
 
     return file_put_contents($path, $log . PHP_EOL, FILE_APPEND);
-}
-
-/**
- * 网页后退
- */
-function back()
-{
-    header('Location: ' . getenv('HTTP_REFERER'));
-}
-
-/**
- * 网页跳转
- * @param string $url
- */
-function redirect(string $url)
-{
-    header('Location: ' . $url);
 }
 
 /**
@@ -217,42 +182,6 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
     $body['d'] = (object)$body['d'];
 
     return json_encode($body);
-}
-
-/**
- * 从 $_GET, $_POST 获取请求参数，支持payload
- * <p>
- * 简单用例：input('age') 即 $_POST['age'] <br>
- * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
- * 即 $_POST['age']不存在时默认为18，最终返回 intval($_GET['age'])+1
- * @param string $field [(post|get|request).]<field_name>[.(i|b|a|f|d|s)]<br>
- * 参数池默认为 $_POST<br>
- * field_name 为字段名<br>
- * 类型强转：i=int, b=bool, a=array, f=float, d=double, s=string(默认)
- * @param mixed $default 默认值
- * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
- * 回调函数格式为 function ($v, $k) {}<br>
- * </p>
- * @return mixed|Validator
- */
-function input(string $field, $default = '', callable $after = null)
-{
-    /** @var Request $request */
-    $request = app(Request::class);
-    return $request->input($field, $default, $after);
-}
-
-/**
- * 读取所有请求参数，如果有验证则验证
- * @param bool $inParallel false: 以串联短路方式验证；true: 以并联方式验证，即使前面的验证不通过，也会继续验证后面的字段
- * @return array
- * @throws AppException
- */
-function request(bool $inParallel = false)
-{
-    /** @var Request $request */
-    $request = app(Request::class);
-    return $request->request($inParallel);
 }
 
 /**
