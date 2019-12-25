@@ -247,6 +247,8 @@ f | float
 - `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
 - `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
 
+*注意：强烈建议使用 `panic` 或 `AppException` 抛出异常，不要使用 `Exception`, 否则会有业务外的错误返回到客户端，引起安全风险！*
+
 #### `inject()` 支持自动依赖注入的函数调用
 
 通过回调函数的形参里声明类型，就能会自动注入
