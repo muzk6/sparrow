@@ -5,6 +5,7 @@ use Core\AppException;
 use Core\Auth;
 use Core\Config;
 use Core\CSRF;
+use Core\DB;
 use Core\Flash;
 use Core\Request;
 use Core\Translator;
@@ -350,4 +351,13 @@ function csrf_check()
     /** @var CSRF $csrf */
     $csrf = app(CSRF::class);
     return $csrf->check();
+}
+
+/**
+ * DB 对象
+ * @return DB
+ */
+function db()
+{
+    return app(DB::class);
 }

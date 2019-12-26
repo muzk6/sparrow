@@ -28,6 +28,7 @@ return [
             'hosts' => [
                 'master' => ['host' => 'localhost', 'port' => 3306],
                 'slaves' => [
+                    ['host' => 'localhost', 'port' => 3306],
                 ]
             ]
         ],
