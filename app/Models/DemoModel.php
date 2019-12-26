@@ -10,5 +10,16 @@ use Core\BaseModel;
  */
 class DemoModel extends BaseModel
 {
-    protected $table = 'test';
+    public const DB_NAME = 'test';
+    public const TABLE_NAME = 'test';
+
+    public function sharding($index)
+    {
+        return [
+            'section' => static::SECTION . "_{$index}",
+            'db_name' => static::DB_NAME . "_{$index}",
+            'table_name' => static::TABLE_NAME . "_{$index}",
+        ];
+    }
+
 }

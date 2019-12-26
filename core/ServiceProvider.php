@@ -4,7 +4,6 @@
 namespace Core;
 
 
-use PDO;
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
 use Redis;
@@ -17,7 +16,7 @@ class ServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple[PdoEngine::class] = $pimple[PDO::class] = $pimple['pdo'] = function () {
+        $pimple[PdoEngine::class] = function () {
             return new PdoEngine(config('database'));
         };
 

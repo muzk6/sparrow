@@ -66,15 +66,12 @@ class AppContainer
         }
 
         try {
-            $byFactory = preg_match('/Model$/', $name); // 自动注入时，所有 Model 都不使用单例
             $ref = new ReflectionClass($name);
-
             $constructor = $ref->getConstructor();
             if (!$constructor) {
-                $fn = function () use ($ref) {
+                $container[$name] = function () use ($ref) {
                     return $ref->newInstance();
                 };
-                $container[$name] = $byFactory ? $container->factory($fn) : $fn;
                 return $container[$name];
             }
 
@@ -84,10 +81,10 @@ class AppContainer
                 $instanceArgs[] = self::get($param->getClass()->getName());
             }
 
-            $fn = function () use ($ref, $instanceArgs) {
+            $container[$name] = function () use ($ref, $instanceArgs) {
                 return $ref->newInstanceArgs($instanceArgs);
             };
-            $container[$name] = $byFactory ? $container->factory($fn) : $fn;
+
             return $container[$name];
         } catch (\ReflectionException $e) {
             trigger_error($e->getMessage());

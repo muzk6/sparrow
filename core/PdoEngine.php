@@ -13,22 +13,7 @@ use PDO;
 class PdoEngine
 {
     /**
-     * @var PDO 主库连接对象
-     */
-    protected $masterConn;
-
-    /**
-     * @var PDO 从库连接对象
-     */
-    protected $slaveConn;
-
-    /**
-     * @var string 连接资源的分区名，空为默认分区
-     */
-    protected $section = '';
-
-    /**
-     * @var array 分区的连接对象集合
+     * @var array 所有分区的连接对象集合
      */
     protected $sectionConn = [];
 
@@ -46,7 +31,17 @@ class PdoEngine
     }
 
     /**
-     * 创建连接
+     * 关闭所有连接资源
+     * @return $this
+     */
+    public function close()
+    {
+        $this->sectionConn = [];
+        return $this;
+    }
+
+    /**
+     * 创建新连接
      * @param array $host
      * @param string $user
      * @param string $passwd
@@ -67,78 +62,87 @@ class PdoEngine
     }
 
     /**
-     * 参数重置
+     * 获取数据库连接
+     * @param bool $useMaster
+     * @param string $section 分区
+     * @return PDO
      */
-    public function reset()
+    public function getConnection(bool $useMaster = false, string $section = 'default')
     {
-        $this->section = ''; // 重置为默认分区
-        $this->isForceMaster = false; // 使用完后自动切换为非强制
+        $sectionConf = &$this->conf['sections'][$section];
+
+        if ($useMaster || empty($sectionConf['hosts']['slaves'])) { // 主库；在没有配置从库时也使用主库
+            $connection = &$this->sectionConn[$section]['master'];
+            if (empty($connection)) {
+                $connection = $this->initConnection($sectionConf['hosts']['master'],
+                    $sectionConf['user'],
+                    $sectionConf['passwd'],
+                    $sectionConf['dbname'] ?? '',
+                    $sectionConf['charset'] ?? ''
+                );
+            }
+
+        } else { // 从库
+            $connection = &$this->sectionConn[$section]['slave'];
+            if (empty($connection)) {
+                $connection = $this->initConnection($sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)],
+                    $sectionConf['user'],
+                    $sectionConf['passwd'],
+                    $sectionConf['dbname'] ?? '',
+                    $sectionConf['charset'] ?? ''
+                );
+            }
+        }
+
+        var_dump($this->sectionConn);
+        return $connection;
+    }
+
+    protected function log($sql)
+    {
+        if ($this->conf['log']) {
+            logfile('statement', $sql, 'sql');
+        }
     }
 
     /**
-     * 关闭所有连接资源
-     * @return $this
+     * 前置勾子
+     * @param string $sql
+     * @return string
      */
-    public function close()
+    protected function before(string $sql)
     {
-        $this->masterConn = null;
-        $this->slaveConn = null;
-        $this->sectionConn = [];
+        $sql = trim($sql);
+        $this->log($sql);
 
-        return $this;
+        return $sql;
     }
 
-    public function getPDO(string $cmd, array $arguments, bool $useMaster = false, string $section = 'default')
+    /**
+     * @param string $sql
+     * @param array $binds
+     * @param bool $useMaster
+     * @param array $sharding
+     * @return array|false
+     */
+    public function selectOne(string $sql, array $binds = [], bool $useMaster = false, array $sharding = [])
     {
-        $isSqlStatement = in_array($cmd, ['query', 'prepare', 'exec']);
-        if ($isSqlStatement) {
-            $arguments[0] = preg_replace('/\s+/m', ' ', trim($arguments[0]));
-            empty($this->conf['log']) || logfile('statement', ['name' => $cmd, 'arguments' => $arguments], 'sql');
-        }
+        $sql = $this->before($sql);
 
-        $isSlave = !$useMaster
-            && $isSqlStatement
-            && strpos(strtolower($arguments[0]), 'select') === 0;
-
-        if (!$this->section) { // 默认区
-            if ($isSlave && !empty($this->conf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
-                if (!$this->slaveConn) {
-                    $slave = $this->conf['hosts']['slaves'][mt_rand(0, count($this->conf['hosts']['slaves']) - 1)];
-                    $this->slaveConn = $this->initConnection($slave, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
-                }
-                $pdo = $this->slaveConn;
-
-            } else { // 其它查询使用主库
-                if (!$this->masterConn) {
-                    $master = $this->conf['hosts']['master'];
-                    $this->masterConn = $this->initConnection($master, $this->conf['user'], $this->conf['passwd'], $this->conf['dbname'] ?? '', $this->conf['charset'] ?? '');
-                }
-                $pdo = $this->masterConn;
-            }
-
-        } else { // 扩展区
-            $sectionConf = &$this->conf['sections'][$section];
-
-            if ($isSlave && !empty($sectionConf['hosts']['slaves'])) { // select 使用从库(有 slave 配置的情况下)
-                $sectionConn = &$this->sectionConn[$section]['slave'];
-                if (empty($sectionConn)) {
-                    $slave = $sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)];
-                    $sectionConn = $this->initConnection($slave, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
-                }
-
-                $pdo = $sectionConn;
-            } else { // 其它查询使用主库
-                $sectionConn = &$sectionConn[$section]['master'];
-                if (empty($sectionConn)) {
-                    $master = $sectionConf['hosts']['master'];
-                    $sectionConn = $this->initConnection($master, $sectionConf['user'], $sectionConf['passwd'], $sectionConf['dbname'] ?? '', $sectionConf['charset'] ?? '');
-                }
-
-                $pdo = $sectionConn;
+        if (!empty($sharding)) {
+            foreach ($sharding as $class => $index) {
+                /** @var \Core\BaseModel $model */
+                $model = app($class);
+                $model->sharding($index);
+                
             }
         }
 
-        return $pdo;
+        $connection = $this->getConnection($useMaster);
+        $statement = $connection->prepare($sql);
+        $statement->execute($binds);
+
+        return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
 }
