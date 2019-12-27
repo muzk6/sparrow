@@ -16,8 +16,8 @@ class ServiceProvider implements ServiceProviderInterface
 {
     public function register(Container $pimple)
     {
-        $pimple[DB::class] = function () {
-            return new DB(config('database'));
+        $pimple[PDOEngine::class] = function () {
+            return new PDOEngine(config('database'));
         };
 
         $pimple[Aes::class] = function () {

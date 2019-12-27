@@ -5,8 +5,8 @@ use Core\AppException;
 use Core\Auth;
 use Core\Config;
 use Core\CSRF;
-use Core\DB;
 use Core\Flash;
+use Core\PDOEngine;
 use Core\Request;
 use Core\Translator;
 
@@ -354,10 +354,10 @@ function csrf_check()
 }
 
 /**
- * DB 对象
- * @return DB
+ * PDOEngine 对象
+ * @return PDOEngine
  */
 function db()
 {
-    return app(DB::class);
+    return app(PDOEngine::class);
 }

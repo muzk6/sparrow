@@ -12,29 +12,27 @@ require_once dirname(__DIR__) . '/init.php';
 app(Whitelist::class)->checkSafeIpOrExit();
 
 //todo..
-$conn = db()->beginTransaction();
-exit;
 $sqlAll = "select * from test";
 $sqlOne = "select * from test where id = :id";
-
-$ds['all1'] = db()->getAll($sqlAll, [], false, 'sec0');
-$ds['insert'] = $id = db()->query("insert into test(name, `order`) values(?, ?)", ['tom_04', 3], 'sec0');
-$ds['one1'] = db()->getOne($sqlOne, ['id' => $id]);
-$ds['update'] = db()->query('update test set name = :name where id = :id', ['name' => 'tom_44', 'id' => $id]);
-$ds['one2'] = db()->getOne($sqlOne, ['id' => $id]);
-$ds['delete'] = db()->query('delete from test where id = :id', ['id' => $id], 'sec0');
+$ds['all1'] = db()->selectAll($sqlAll, [], false, 'sec0');
+$ds['insert'] = $id = db()->insert("insert into test(name, `order`) values(?, ?)", ['tom_04', 3], 'sec0');
+$ds['one1'] = db()->selectOne($sqlOne, ['id' => $id]);
+$ds['update'] = db()->update('update test set name = :name where id = :id', ['name' => 'tom_44', 'id' => $id]);
+$ds['one2'] = db()->selectOne($sqlOne, ['id' => $id]);
+$ds['delete'] = db()->delete('delete from test where id = :id', ['id' => $id], 'sec0');
+$ds['all2'] = db()->selectAll($sqlAll);
+$ds['one3'] = db()->selectOne('select * from test where id = :id', ['id' => 196]);
 db()->close();
-$ds['all2'] = db()->getAll($sqlAll);
 
-$update = [
-    'name' => 'tom_042',
-    'order' => 3,
-    'id' => 196
-];
-$sql = "update test set name=:name, `order`=:order where id=:id";
-db()->query($sql, $update);
+$pdo = db()->beginTransaction();
+$ds['faker_id'] = $pdo->insert('insert into test(name, `order`) values (?,?)', ['faker', 99]);
+$ds['faker'] = $pdo->selectOne($sqlOne, ['id' => $ds['faker_id']]);
+$pdo->rollBack();
+$ds['faker2'] = $pdo->selectOne($sqlOne, ['id' => $ds['faker_id']]);
 
-$ds['one3'] = db()->getOne('select * from test where id = :id', ['id' => 196]);
+$table = 'test';
+$sql = "select * from {$table} where id = :id";
+$ds['sharding'] = db()->selectOne($sql, ['id' => 122]);
 
 var_dump($ds);
 exit;

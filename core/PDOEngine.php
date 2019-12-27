@@ -5,11 +5,10 @@ namespace Core;
 use PDO;
 
 /**
- * PDO 二次封装<br>
- * 支持主从切换
+ * PDO 引擎
  * @package Core
  */
-class DB
+class PDOEngine
 {
     /**
      * @var array 数据库配置
@@ -27,6 +26,11 @@ class DB
     public function __construct(array $conf)
     {
         $this->conf = $conf;
+    }
+
+    public function __destruct()
+    {
+        $this->close();
     }
 
     /**
@@ -93,22 +97,6 @@ class DB
     }
 
     /**
-     * 开启事务，并获取数据库连接
-     * @param bool $useMaster 是否使用主库
-     * @param string $section 数据库区域
-     * @return PDO
-     */
-    public function beginTransaction(bool $useMaster = false, string $section = 'default')
-    {
-        $connection = $this->getConnection($useMaster, $section);
-        if (!$connection->inTransaction()) {
-            $connection->beginTransaction();
-        }
-
-        return $connection;
-    }
-
-    /**
      * 关闭所有连接资源
      * @return void
      */
@@ -122,6 +110,22 @@ class DB
     }
 
     /**
+     * 开启事务，并返回数据库连接
+     * @param bool $useMaster 是否使用主库
+     * @param string $section 数据库区域
+     * @return AppPDO|PDO
+     */
+    public function beginTransaction(bool $useMaster = false, string $section = 'default')
+    {
+        $connection = $this->getConnection($useMaster, $section);
+        if (!$connection->inTransaction()) {
+            $connection->beginTransaction();
+        }
+
+        return new AppPDO($connection, $this->conf['log']);
+    }
+
+    /**
      * 前置勾子
      * @param string $sql
      * @return string
@@ -130,7 +134,7 @@ class DB
     {
         $sql = trim($sql);
         if ($this->conf['log']) {
-            logfile('statement', $sql, 'sql');
+            logfile('PDOEngine', $sql, 'sql');
         }
 
         return $sql;
@@ -144,7 +148,7 @@ class DB
      * @param string $section 数据库区域
      * @return array|false 无记录时返回 false
      */
-    public function getOne(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
+    public function selectOne(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
     {
         $sql = $this->before($sql);
 
@@ -163,115 +167,12 @@ class DB
      * @param string $section 数据库区域
      * @return array 无记录时返回空数组 []
      */
-    public function getAll(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
+    public function selectAll(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
     {
         $sql = $this->before($sql);
 
         $connection = $this->getConnection($useMaster, $section);
         $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * 执行 insert, replace, update, delete 等 sql 语句
-     * @param string $sql 原生 sql 语句
-     * @param array $binds 防注入的参数绑定
-     * @param string $section 数据库区域
-     * @return int 执行 insert, replace 时返回最后插入的主键ID, 失败时返回0
-     * <br>其它语句返回受影响行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
-     */
-    public function query(string $sql, array $binds = [], string $section = 'default')
-    {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection(true, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        if (preg_match('/^(insert|replace)\s/i', $sql)) {
-            return intval($connection->lastInsertId());
-        } else {
-            return $statement->rowCount();
-        }
-    }
-
-}
-
-class DBConnection
-{
-    /**
-     * @var PDO
-     */
-    protected $connection;
-
-    /**
-     * @var bool 日志开关
-     */
-    protected $log = false;
-
-    public function __construct(PDO $connection)
-    {
-        $this->connection = $connection;
-    }
-
-    public function __call($name, $arguments)
-    {
-        return call_user_func_array([$this->connection, $name], $arguments);
-    }
-
-    /**
-     * 前置勾子
-     * @param string $sql
-     * @return string
-     */
-    protected function before(string $sql)
-    {
-        $sql = trim($sql);
-        if ($this->log) {
-            logfile('statement', $sql, 'sql');
-        }
-
-        return $sql;
-    }
-
-    /**
-     * 日志开关
-     * @param bool $open
-     */
-    public function switchLog($open = true)
-    {
-        $this->log = $open;
-    }
-
-    /**
-     * 查询一行记录
-     * @param string $sql 原生 sql 语句
-     * @param array $binds 防注入的参数绑定
-     * @return array|false 无记录时返回 false
-     */
-    public function selectOne(string $sql, array $binds = [])
-    {
-        $sql = $this->before($sql);
-
-        $statement = $this->connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->fetch(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * 查询多行记录
-     * @param string $sql 原生 sql 语句
-     * @param array $binds 防注入的参数绑定
-     * @return array 无记录时返回空数组 []
-     */
-    public function selectAll(string $sql, array $binds = [])
-    {
-        $sql = $this->before($sql);
-
-        $statement = $this->connection->prepare($sql);
         $statement->execute($binds);
 
         return $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -281,29 +182,33 @@ class DBConnection
      * 插入记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
+     * @param string $section 数据库区域
      * @return int 返回最后插入的主键ID, 失败时返回0
      */
-    public function insert(string $sql, array $binds = [])
+    public function insert(string $sql, array $binds = [], string $section = 'default')
     {
         $sql = $this->before($sql);
 
-        $statement = $this->connection->prepare($sql);
+        $connection = $this->getConnection(true, $section);
+        $statement = $connection->prepare($sql);
         $statement->execute($binds);
 
-        return intval($this->connection->lastInsertId());
+        return intval($connection->lastInsertId());
     }
 
     /**
      * 更新记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
+     * @param string $section 数据库区域
      * @return int 被更新的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function update(string $sql, array $binds = [])
+    public function update(string $sql, array $binds = [], string $section = 'default')
     {
         $sql = $this->before($sql);
 
-        $statement = $this->connection->prepare($sql);
+        $connection = $this->getConnection(true, $section);
+        $statement = $connection->prepare($sql);
         $statement->execute($binds);
 
         return $statement->rowCount();
@@ -313,13 +218,15 @@ class DBConnection
      * 删除记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
+     * @param string $section 数据库区域
      * @return int 被删除的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function delete(string $sql, array $binds = [])
+    public function delete(string $sql, array $binds = [], string $section = 'default')
     {
         $sql = $this->before($sql);
 
-        $statement = $this->connection->prepare($sql);
+        $connection = $this->getConnection(true, $section);
+        $statement = $connection->prepare($sql);
         $statement->execute($binds);
 
         return $statement->rowCount();
