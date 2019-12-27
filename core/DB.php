@@ -144,7 +144,7 @@ class DB
      * @param string $section 数据库区域
      * @return array|false 无记录时返回 false
      */
-    public function selectOne(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
+    public function getOne(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
     {
         $sql = $this->before($sql);
 
@@ -163,7 +163,7 @@ class DB
      * @param string $section 数据库区域
      * @return array 无记录时返回空数组 []
      */
-    public function selectAll(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
+    public function getAll(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
     {
         $sql = $this->before($sql);
 
@@ -175,13 +175,14 @@ class DB
     }
 
     /**
-     * 插入记录
+     * 执行 insert, replace, update, delete 等 sql 语句
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
      * @param string $section 数据库区域
-     * @return int 返回最后插入的主键ID, 失败时返回0
+     * @return int 执行 insert, replace 时返回最后插入的主键ID, 失败时返回0
+     * <br>其它语句返回受影响行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function insert(string $sql, array $binds = [], string $section = 'default')
+    public function query(string $sql, array $binds = [], string $section = 'default')
     {
         $sql = $this->before($sql);
 
@@ -189,43 +190,11 @@ class DB
         $statement = $connection->prepare($sql);
         $statement->execute($binds);
 
-        return intval($connection->lastInsertId());
-    }
-
-    /**
-     * 更新记录
-     * @param string $sql 原生 sql 语句
-     * @param array $binds 防注入的参数绑定
-     * @param string $section 数据库区域
-     * @return int 被更新的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
-     */
-    public function update(string $sql, array $binds = [], string $section = 'default')
-    {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection(true, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->rowCount();
-    }
-
-    /**
-     * 删除记录
-     * @param string $sql 原生 sql 语句
-     * @param array $binds 防注入的参数绑定
-     * @param string $section 数据库区域
-     * @return int 被删除的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
-     */
-    public function delete(string $sql, array $binds = [], string $section = 'default')
-    {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection(true, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->rowCount();
+        if (preg_match('/^(insert|replace)\s/i', $sql)) {
+            return intval($connection->lastInsertId());
+        } else {
+            return $statement->rowCount();
+        }
     }
 
 }
