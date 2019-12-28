@@ -13,7 +13,7 @@ use PDO;
 class AppPDO
 {
     /**
-     * @var PDO
+     * @var PDO 连接资源
      */
     protected $connection;
 
@@ -42,7 +42,7 @@ class AppPDO
     {
         $sql = trim($sql);
         if ($this->openLog) {
-            logfile('AppDB', $sql, 'sql');
+            logfile('sql', $sql, 'sql');
         }
 
         return $sql;
@@ -57,6 +57,10 @@ class AppPDO
     public function selectOne(string $sql, array $binds = [])
     {
         $sql = $this->before($sql);
+
+        if (!preg_match('/limit\s+(?:\d+|\d+\,\d)\s*;?$/i', $sql)) {
+            $sql .= ' LIMIT 1';
+        }
 
         $statement = $this->connection->prepare($sql);
         $statement->execute($binds);

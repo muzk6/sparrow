@@ -201,6 +201,60 @@ f | float
 - `\Core\BaseController::beforeAction`
 - `\Core\BaseController::afterAction`
 
+## 数据库查询
+
+配置文件 `config/dev/database.php`
+
+### 默认分区
+
+```php
+$sqlAll = "select * from test order by id desc limit 2";
+$sqlOne = "select * from test where id=:id";
+$ds['all'] = db()->selectAll($sqlAll, []);
+$ds['insert'] = db()->insert("insert into test(name, `order`) values(?, ?)", ['tom_04', 3]);
+$ds['one'] = db()->selectOne($sqlOne, ['id' => $ds['insert']]);
+$ds['update'] = db()->update('update test set `order`=`order`+1 where id=:id', ['id' => $ds['insert']]);
+$ds['one2'] = db()->selectOne($sqlOne, ['id' => $ds['insert']]);
+$ds['delete'] = db()->delete('delete from test where id=:id', ['id' => $ds['insert']]);
+$ds['all2'] = db()->selectAll($sqlAll);
+$ds['one3'] = db()->selectOne('select * from test where id=:id', ['id' => -1]);
+var_dump($ds);
+```
+
+### 默认分区事务
+
+```php
+$transaction = db()->beginTransaction();
+$ds2['faker_id'] = $transaction->insert('insert into test(name, `order`) values (?,?)', ['faker', 99]);
+$ds2['faker'] = $transaction->selectOne($sqlOne, ['id' => $ds2['faker_id']]);
+$transaction->rollBack();
+$ds2['faker2'] = $transaction->selectOne($sqlOne, ['id' => $ds2['faker_id']]);
+var_dump($ds2);
+```
+
+### 扩展分区
+
+分表逻辑 `config/sharding.php`
+
+```php
+$sharding = db()->shard('test', 1010);
+$ds3['sharding'] = $sharding->selectOne("select * from {$sharding->table} where id=:id", ['id' => 122]);
+var_dump($ds3);
+```
+
+### 扩展分区事务
+
+```php
+$sharding = db()->shard('test', 1010);
+$shardingTransaction = $sharding->beginTransaction();
+$ds4['sharding_faker'] = $shardingTransaction->selectOne("select * from {$sharding->table} order by id desc");
+$ds4['sharding_update'] = $shardingTransaction->update("update {$sharding->table} set `order`=`order`+1 where id=:id", ['id' => $ds4['sharding_faker']['id']]);
+$ds4['sharding_faker2'] = $shardingTransaction->selectOne("select * from {$sharding->table} where id=:id", ['id' => $ds4['sharding_faker']['id']]);
+$shardingTransaction->rollBack();
+$ds4['sharding_faker3'] = $shardingTransaction->selectOne("select * from {$sharding->table} where id=:id", ['id' => $ds4['sharding_faker']['id']]);
+var_dump($ds4);
+```
+
 ## `helper` 辅助函数用例
 
 #### `app()` 容器
@@ -277,206 +331,6 @@ old('name', $data['name']);
 - `flash_has(string $key)` 闪存是否存在
 - `flash_get(string $key)` 闪存获取并删除
 - `flash_del(string $key)` 闪存删除
-
-## 数据库查询
-
-### `PdoEngine`, `AppPDO`, `Model` 区别
-
-- `app(\Core\PdoEngine::class)` 返回 PdoEngine 对象，用法与原生 PDO 一致，同时支持分区，支持自动主从切换，但要注意防注入事项
-- `app(\Core\AppPDO::class)` 返回 AppPDO 对象，内部组合于 PdoEngine 对象, 在其基础上封装了防注入的 增、删、改、查 的方法，可以使用 `->getEngine()` 返回 PdoEngine 对象
-- `app(\App\Models\DemoModel::class)` 返回 DemoModel 对象，继承于 AppPDO, 在其基础上定义了 分区、库名、表名，可以通过覆盖 `->sharding()` 方法实现 分区、分库、分表 效果
-
-### `Model`对象(推荐)
-> 在 `AppPDO` 的基础上，封装成 `Model` 类(1个表对应1个 `Model`)自动进行 分区、分库、分表 (后面统称分表)
-
-#### 配置说明 
-
-- 参考 `app/Models/DemoModel.php`，配置类属性 `$table`
-- 需要分表时，定义 `sharding` 规则，在子类覆盖 `\Core\BaseModel::sharding` 即可
-
-#### 用例
-
-用法与`AppPDO`一样，不同的是不需要再使用`->setTable()`来指定表
-
-`$model->selectOne(['id=?', 1])`
-
-### `PDO`对象
-> 以下例子都是为了更好还原对比 sql 才用 PDO 对象，实际操作中强烈推荐使用 Model 对象
-
-#### 查询1行所有列 `->selectOne()`
-> 成功时返回第1行记录的数组
-
-```php
-$pdo = app(\Core\AppPDO::class);
-// select * from table0 limit 1
-$pdo->setTable('table0')->selectOne();
-
-// select * from table0 where id = 1 limit 1
-$pdo->setTable('test')->where('id=1')->selectOne(); // 有注入风险
-$pdo->setTable('test')->where('id=?', 1)->selectOne(); // 防注入
-$pdo->setTable('test')->where('id=?', [1])->selectOne(); // 防注入
-$pdo->setTable('test')->where('id=:id', ['id' => 1])->selectOne(); // 防注入
-$pdo->setTable('test')->where('id=:id', [':id' => 1])->selectOne(); // 防注入
-
-// 用 ->where() 指定条件
-$pdo->setTable('table0')->where('id=1')->selectOne(); // 有注入风险
-$pdo->setTable('table0')->where('id=?', 1)->selectOne(); // 防注入
-$pdo->setTable('table0')->where->selectOne('id=:id', ['id' => 1]); // 防注入
-
-// select * from table0 where id = 1 and (status=1 or type=2) limit 1
-$pdo->setTable('table0')->where('id=?', 1)->where('(status=? or type=?)', 1, 2)->selectOne();
-
-// select * from table0 where status=1 or type=2 limit 1 
-$pdo->setTable('table0')->where('status=?', 1)->orWhere('type=?', 2)->selectOne();
-```
-
-#### 查询1行1列 `->selectColumn()`
-> 成功时返回第1行第1列的值<br>
-第二个参数`where`与`selectOne()`的`where`用法一样
-
-```php
-// select col1 from table0 limit 1
-$pdo->setTable('table0')->selectColumn('col1');
-$pdo->setTable('table0')->selectColumn(['col1']);
-
-// select COUNT(1) from table0 limit 1
-$pdo->setTable('table0')->selectColumn(['raw' => 'COUNT(1)']);
-```
-
-#### 查询多行 `->selectAll()`
-> 成功时返回所有行的记录数组<br>
-第二个参数`where`与`->selectOne()`的`where`用法一样
-
-```php
-// select col1, col2 from table0 order by col1, col2 desc
-// ->orderBy('col1, col2') 等价于 ->append('order by col1, col2')
-$pdo->setTable('table0')->orderBy('col1, col2')->selectAll('col1, col2');
-$pdo->setTable('table0')->orderBy(['col1', 'raw' => 'col2'])->selectAll(['col1', 'col2']);
-
-// select col1, COUNT(1) from table0 order by 1 desc
-$pdo->setTable('table0')->orderBy(['raw' => '1 desc'])->selectAll(['col1', ['raw' => 'COUNT(1)']]);
-
-// 查询多行(分页查询)的同时返回记录总行数
-// select sql_calc_found_rows col1 from table0 limit 2
-// select found_rows()
-$pdo->setTable('table0')->limit(2)->selectCalc('col1');
-```
-
-#### 查询是否存在
-
-```php
-// select 1 from table0 limit 1
-$pdo->setTable('table0')->exists(); // return true, false
-```
-
-#### 综合查询
-
-```php
-// select * from table0 where id > 100 order by col0 desc limit 0, 10 
-$pdo->setTable('table0')->orderBy('col0 desc')->where('id>?', 100)->limit(10)->selectAll('*');
-
-// select col0, col1 from table0 where name like 'tom%' group by col0 limit 0, 10 
-$pdo->setTable('table0')->append('group by col0')->where('name like :name', ['name' => 'tom%'])->page(1, 10)->selectAll('col0, col1');
-
-// select count(1) from table0
-$pdo->setTable('table0')->count();
-```
-
-- `append('group by col0')`把自己的`sql`(支持`order by`, `group by`, `having`等等)拼接到`where`语句后面
-- `limit(10)`等价于`limit([10]), limit(0, 10), limit([0, 10]), page(1, 10)`
-
-#### `->getWhere()`, `->getLimit()` 方便拼接原生`sql`
-
-- 调用`->where()`后可以通过`->getWhere()`获取`['name=?', ['foo']]`这种格式的条件
-- 同理`->page()`, `->limit()` 也是可以通过`->getLimit()`返回` LIMIT 10,10`这个格式的字符串
-
-```php
-$pdo->where('code=?', $code);
-$pdo->page(1, 5);
-$where = $pdo->getWhere(); // 没有条件时返回 ['', null]
-$limit = $pdo->getLimit();
-
-$sql = "select SQL_CALC_FOUND_ROWS * from table0 {$where[0]} {$limit}"
-$st = $pdo->prepare($sql);
-$st->execute($where[1]);
-var_dump($pdo->foundRows(), $st->fetchAll(2)); 
-```
-
-#### 插入 `->insert()`
-
-```php
-// insert into table0(col0) values(1)
-$pdo->setTable('table0')->insert(['col0' => 1]);
-
-// insert into table0(col0) values(1),(2)
-$pdo->setTable('table0')->insert([ ['col0' => 1], ['col0' => 2] ]);
-
-// insert into table0(ctime) values(UNIX_TIMESTAMP())
-$pdo->setTable('table0')->insert(['ctime' => ['raw' => 'UNIX_TIMESTAMP()']]);
-```
-
-以下两个的用法与`->insert()`一致
-
-- `->insertIgnore()` 即 `insert ignore ...`
-- `->replace()` 即 `replace into ...`
-
-#### 插入更新 `->insertUpdate()`
-
-```php
-// insert into table0(col0) values(1) on duplicate key update num = num + 1 
-$pdo->setTable('table0')->insertUpdate(['col0' => 1], ['num' => ['raw' => 'num + 1']]);
-
-// insert into table0(col0) values(1) on duplicate key update utime = UNIX_TIMESTAMP()
-$pdo->setTable('table0')->insertUpdate(['col0' => 1], ['utime' => ['raw' => 'UNIX_TIMESTAMP()']);
-```
-
-#### 更新 `->update()`
-> 默认必须要有 where
-
-```php
-// update table0 set col0 = 1 where id = 10
-$pdo->setTable('table0')->where('id=?', 10)->update(['col0' => 1]);
-
-// update table0 set num = num + 1 where id = 10
-$pdo->setTable('table0')->where('id=?', 10)->update(['num' => ['raw' => 'num + 1']]);
-
-// update table0 set utime = UNIX_TIMESTAMP() where id = 10
-$pdo->setTable('table0')->where('id=?', 10)->update(['utime' => ['raw' => 'UNIX_TIMESTAMP()']]);
-```
-
-#### 删除 `->delete()`
-> 默认必须要有 where
-
-```php
-// delete from table0 where id = 10
-$pdo->setTable('table0')->where('id=?', 10)->delete();
-```
-
-#### 上一次查询的影响行数 `->affectedRows()`
-> 在主库查询影响行数
-
-```php
-// select row_count()
-$pdo->affectedRows();
-```
-
-*另外`->lastInsertId()`也会自动切换到主库查询上次插入的`id`*
-
-#### 一次性强制使用主库 `->forceMaster()`
-> 一般用于`select`语句，因为非`select`都已默认是主库
-
-```php
-// 在主库查询 select * from table0 limit 1
-$pdo->forceMaster()->setTable('table0')->selectOne(['id=?', 1]);
-```
-
-#### 一次性切换分区 `->section()`
-> 相关配置在`config/.../database.php`的`sections`里配置
-
-```php
-// 切换到分区 sec0
-$pdo->section('sec0');
-```
 
 ## 缓存 redis
 

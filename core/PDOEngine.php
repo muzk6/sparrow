@@ -51,18 +51,21 @@ class PDOEngine
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
 
-        var_dump(11111111);
         return $pdo;
     }
 
     /**
-     * 获取数据库连接
+     * 获取连接资源 PDO
      * @param bool $useMaster 是否使用主库
-     * @param string $section 数据库区域
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return PDO
      */
-    public function getConnection(bool $useMaster = false, string $section = 'default')
+    public function getConnection(bool $useMaster = false, string $section = '')
     {
+        if (empty($section)) {
+            $section = 'default';
+        }
+
         $sectionConf = &$this->conf['sections'][$section];
         if (is_null($sectionConf)) {
             trigger_error("database.php 配置错误，`sections -> {$section}` 不存在");
@@ -92,7 +95,6 @@ class PDOEngine
             }
         }
 
-        var_dump($this->sectionConn);
         return $connection;
     }
 
@@ -110,14 +112,13 @@ class PDOEngine
     }
 
     /**
-     * 开启事务，并返回数据库连接
-     * @param bool $useMaster 是否使用主库
-     * @param string $section 数据库区域
+     * 开启事务，并返回连接资源
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return AppPDO|PDO
      */
-    public function beginTransaction(bool $useMaster = false, string $section = 'default')
+    public function beginTransaction(string $section = '')
     {
-        $connection = $this->getConnection($useMaster, $section);
+        $connection = $this->getConnection(true, $section);
         if (!$connection->inTransaction()) {
             $connection->beginTransaction();
         }
@@ -126,18 +127,14 @@ class PDOEngine
     }
 
     /**
-     * 前置勾子
-     * @param string $sql
-     * @return string
+     * 分表
+     * @param string $table 原始表名
+     * @param string $index 分表依据
+     * @return PDOSharding
      */
-    protected function before(string $sql)
+    public function shard(string $table, string $index)
     {
-        $sql = trim($sql);
-        if ($this->conf['log']) {
-            logfile('PDOEngine', $sql, 'sql');
-        }
-
-        return $sql;
+        return new PDOSharding($table, $index, config('sharding'), $this->conf['log']);
     }
 
     /**
@@ -145,18 +142,12 @@ class PDOEngine
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
      * @param bool $useMaster 是否使用主库
-     * @param string $section 数据库区域
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return array|false 无记录时返回 false
      */
-    public function selectOne(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
+    public function selectOne(string $sql, array $binds = [], bool $useMaster = false, string $section = '')
     {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection($useMaster, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->fetch(PDO::FETCH_ASSOC);
+        return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectOne($sql, $binds);
     }
 
     /**
@@ -164,72 +155,48 @@ class PDOEngine
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
      * @param bool $useMaster 是否使用主库
-     * @param string $section 数据库区域
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return array 无记录时返回空数组 []
      */
-    public function selectAll(string $sql, array $binds = [], bool $useMaster = false, string $section = 'default')
+    public function selectAll(string $sql, array $binds = [], bool $useMaster = false, string $section = '')
     {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection($useMaster, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectAll($sql, $binds);
     }
 
     /**
      * 插入记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
-     * @param string $section 数据库区域
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return int 返回最后插入的主键ID, 失败时返回0
      */
-    public function insert(string $sql, array $binds = [], string $section = 'default')
+    public function insert(string $sql, array $binds = [], string $section = '')
     {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection(true, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return intval($connection->lastInsertId());
+        return (new AppPDO($this->getConnection(true, $section), $this->conf['log']))->insert($sql, $binds);
     }
 
     /**
      * 更新记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
-     * @param string $section 数据库区域
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return int 被更新的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function update(string $sql, array $binds = [], string $section = 'default')
+    public function update(string $sql, array $binds = [], string $section = '')
     {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection(true, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->rowCount();
+        return (new AppPDO($this->getConnection(true, $section), $this->conf['log']))->update($sql, $binds);
     }
 
     /**
      * 删除记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
-     * @param string $section 数据库区域
+     * @param string $section 数据库区域，为空时自动切换为 default
      * @return int 被删除的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function delete(string $sql, array $binds = [], string $section = 'default')
+    public function delete(string $sql, array $binds = [], string $section = '')
     {
-        $sql = $this->before($sql);
-
-        $connection = $this->getConnection(true, $section);
-        $statement = $connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->rowCount();
+        return (new AppPDO($this->getConnection(true, $section), $this->conf['log']))->delete($sql, $binds);
     }
 
 }

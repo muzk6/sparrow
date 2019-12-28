@@ -16,21 +16,21 @@ return [
             'hosts' => [
                 'master' => ['host' => 'localhost', 'port' => 3306],
                 'slaves' => [
-                    ['host' => 'localhost', 'port' => 3306],
+//                    ['host' => 'localhost', 'port' => 3306],
                 ]
             ],
         ],
         // 扩展分区
-        'sec0' => [
-            'user' => 'dev',
-            'passwd' => 'itH*@$xv@Y49PjDY',
-            'dbname' => 'test',
-            'hosts' => [
-                'master' => ['host' => 'localhost', 'port' => 3306],
-                'slaves' => [
-                    ['host' => 'localhost', 'port' => 3306],
-                ]
-            ]
-        ],
+//        'sec0' => [
+//            'user' => 'dev',
+//            'passwd' => 'itH*@$xv@Y49PjDY',
+//            'dbname' => 'test',
+//            'hosts' => [
+//                'master' => ['host' => 'localhost', 'port' => 3306],
+//                'slaves' => [
+//                    ['host' => 'localhost', 'port' => 3306],
+//                ]
+//            ]
+//        ],
     ]
 ];

@@ -10,7 +10,7 @@ namespace Core;
 class Config
 {
     /**
-     * @var array 配置文件集体
+     * @var array 配置文件集合
      */
     protected $config = [];
 
