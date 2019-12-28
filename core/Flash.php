@@ -25,11 +25,13 @@ class Flash
     /**
      * 是否存在
      * @param string $key
+     * @param bool $strict 是否严格模式；<br>true: 使用 isset() 判断；<br>false: 使用 !empty() 判断
      * @return bool
      */
-    public function has(string $key)
+    public function has(string $key, bool $strict = false)
     {
-        return isset($_SESSION[$this->prefix . $key]);
+        $value = &$_SESSION[$this->prefix . $key];
+        return $strict ? isset($value) : !empty($value);
     }
 
     /**
