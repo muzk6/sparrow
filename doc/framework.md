@@ -127,40 +127,76 @@ app(\Core\Router::class)->setStatus404Handler(function () {
 })->dispatch();
 ```
 
-## 请求参数 `Request params`
+## 请求参数
 > 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
 
-### 用例
+- 以下 `$this` 指的是 `Controller` 对象
+- 以下的验证失败时会抛出异常 \Core\AppException
 
-以下 `$this` 指的是 `Controller` 对象
+### 不验证，一个一个获取
 
 ```php
-// 验证并且以集合返回，默认非短路式验证所有 $this->input() 指定的字段，错误提示在异常 AppException::getData 里获取
-$this->input('get.foo:i')->required();
-$this->input('get.bar')->required()->setTitle('名字');
-$inputs = $this->request();
-
-// 以串联短路方式验证（默认），遇到验证不通过时，立即终止后面的验证
-$this->input('get.foo:i')->required();
-$this->input('get.bar')->required()->setTitle('名字');
-$inputs = $this->request();
-
-// 以并联方式验证，即使前面的验证不通过，也会继续验证后面的字段
-$this->input('get.foo:i')->required();
-$this->input('get.bar')->required()->setTitle('名字');
-$inputs = $this->request(true);
+$firstName = $this->input('post.first_name');
+$lastName = $this->input('last_name');
+var_dump($firstName, $lastName);exit;
 ```
 
-*串联短路结果*
+### 不验证，全部获取
+
+```php
+$this->input('post.first_name');
+$this->input('last_name');
+$request = $this->request();
+var_dump($request);exit;
+```
+
+### 部分验证，一个一个获取
+
+```php
+$firstName = $this->input('post.first_name');
+$lastName = $this->validate('last_name')->required()->setTitle('名字')->get();
+var_dump($firstName, $lastName);exit;
+```
+
+### 部分验证，全部获取
+
+```php
+$this->input('post.first_name');
+$this->validate('last_name')->required()->setTitle('名字');
+$request = $this->request();
+var_dump($request);exit;
+```
+
+### 串联短路方式验证（默认）
+
+遇到验证不通过时，立即终止后面的验证
+
+```php
+$this->validate('post.first_name')->required();
+$this->validate('last_name')->required()->setTitle('名字');
+$request = $this->request(); // 以串联短路方式验证
+```
+
+*串联结果*
 ```json
 {
     "s": false,
     "c": 10001000,
     "m": "参数错误",
     "d": {
-        "foo": "不能为空"
+        "first_name": "不能为空"
     }
 }
+```
+
+### 并联验证
+
+即使前面的验证不通过，也会继续验证后面的字段
+
+```php
+$this->validate('post.first_name')->required();
+$this->validate('last_name')->required()->setTitle('名字');
+$request = $this->request(true); // 以并联方式验证
 ```
 
 *并联结果*
@@ -170,8 +206,8 @@ $inputs = $this->request(true);
     "c": 10001000,
     "m": "参数错误",
     "d": {
-        "foo": "不能为空",
-        "bar": "名字不能为空"
+        "first_name": "不能为空",
+        "last_name": "名字不能为空"
     }
 }
 ```

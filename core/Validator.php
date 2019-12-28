@@ -4,8 +4,6 @@
 namespace Core;
 
 
-use Exception;
-
 /**
  * 验证器
  * @package Core
@@ -33,26 +31,17 @@ class Validator
     }
 
     /**
-     * 执行验证
-     * @param bool $throwable 验证失败时是否需要抛出异常
+     * 验证并返回参数值
      * @return bool
-     * @throws Exception
+     * @throws AppException
      */
-    public function validate(bool $throwable = true)
+    public function get()
     {
-        try {
-            foreach ($this->rules as $k => $v) {
-                $v();
-            }
-
-            return true;
-        } catch (Exception $exception) {
-            if ($throwable) {
-                throw $exception;
-            }
-
-            return false;
+        foreach ($this->rules as $k => $v) {
+            $v();
         }
+
+        return $this->getValue();
     }
 
     /**

@@ -26,17 +26,14 @@ class DemoController extends BaseController
     /**
      * 主页
      * @return string
-     * @throws AppException
      */
     public function index()
     {
-        $this->input('get.title', 'Sparrow Demo');
-        $inputs = $this->request();
+        $title = $this->input('get.title', 'Sparrow Demo');
 
         $this->assign('firstName', 'Hello');
         $this->assign('lastName', 'Sparrow');
-
-        return $this->view('index', $inputs);
+        return $this->view('index', ['title' => $title]);
     }
 
     /**
@@ -47,11 +44,14 @@ class DemoController extends BaseController
         try {
             csrf_check();
 
-            $this->input('post.first_name')->required();
-            $this->input('last_name')->required()->setTitle('名字');
-            $inputs = $this->request(true); // 以并联方式验证
+            // 部分验证，一个一个获取
+            $firstName = $this->input('post.first_name');
+            $lastName = $this->validate('last_name')->required()->setTitle('名字')->get();
 
-            flash_set('data', $inputs);
+            // 部分验证，全部获取
+            $request = $this->request();
+
+            flash_set('data', ['first_name' => $firstName, 'last_name' => $lastName, 'request' => $request]);
         } catch (AppException $appException) {
             flash_set('msg', $appException->getMessage());
             flash_set('data', $appException->getData());
@@ -70,12 +70,12 @@ class DemoController extends BaseController
     {
         csrf_check();
 
-        $this->input('post.first_name')->required();
-        $this->input('last_name')->required()->setTitle('名字');
-        $inputs = $this->request(); // 以串联短路方式验证
+        $this->validate('post.first_name')->required();
+        $this->validate('last_name')->required()->setTitle('名字');
+        $request = $this->request(true); // 以并联方式验证
 
         return [
-            'inputs' => $inputs,
+            'request' => $request,
             'user_id' => $this->userId, // 获取登录后的 userId
             'foo' => $demo->foo(), // 通过自动依赖注入使用 DemoService 的对象
             'foo2' => app(DemoService::class)->foo(), // 或者通过容器使用 DemoService 的对象

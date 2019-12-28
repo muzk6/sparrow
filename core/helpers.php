@@ -261,11 +261,12 @@ function flash_set(string $key, $value)
 /**
  * 闪存是否存在
  * @param string $key
+ * @param bool $strict 是否严格模式；<br>true: 使用 isset() 判断；<br>false: 使用 !empty() 判断
  * @return bool
  */
-function flash_has(string $key)
+function flash_has(string $key, bool $strict = false)
 {
-    return app(Flash::class)->has($key);
+    return app(Flash::class)->has($key, $strict);
 }
 
 /**

@@ -18,9 +18,9 @@ class Request
     protected $payload = null;
 
     /**
-     * @var array 验证模式的参数及验证对象集合
+     * @var array 所有请求参数的集合
      */
-    protected $validationSets = [];
+    protected $request = [];
 
     /**
      * 上次请求的参数
@@ -149,22 +149,13 @@ class Request
     }
 
     /**
-     * 从 $_GET, $_POST 获取请求参数，支持payload
-     * <p>
-     * 简单用例：input('age') 即 $_POST['age'] <br>
-     * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
-     * 即 $_POST['age']不存在时默认为18，最终返回 intval($_GET['age'])+1
-     * @param string $field [(post|get|request).]<field_name>[.(i|b|a|f|d|s)]<br>
-     * 参数池默认为 $_POST<br>
-     * field_name 为字段名<br>
-     * 类型强转：i=int, b=bool, a=array, f=float, d=double, s=string(默认)
-     * @param mixed $default 默认值
-     * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
-     * 回调函数格式为 function ($v, $k) {}<br>
-     * </p>
-     * @return Validator
+     * 解析并返回参数信息
+     * @param string $field
+     * @param string $default
+     * @param callable|null $after
+     * @return array
      */
-    public function input(string $field, $default = '', callable $after = null)
+    protected function getValue(string $field, $default = '', callable $after = null)
     {
         list($bucket, $fieldName, $fieldType) = $this->parse($field);
 
@@ -181,8 +172,48 @@ class Request
             $fieldValue = $after($fieldValue, $fieldName);
         }
 
+        return [$fieldName, $fieldValue];
+    }
+
+    /**
+     * 从 $_GET, $_POST 获取请求参数，支持 payload
+     * <p>
+     * 简单用例：input('age') 即 $_POST['age'] <br>
+     * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
+     * 即 $_POST['age']不存在时默认为18，最终返回 intval($_GET['age'])+1
+     * @param string $field [(post|get|request).]<field_name>[.(i|b|a|f|d|s)]<br>
+     * 参数池默认为 $_POST<br>
+     * field_name 为字段名<br>
+     * 类型强转：i=int, b=bool, a=array, f=float, d=double, s=string(默认)
+     * @param mixed $default 默认值
+     * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
+     * 回调函数格式为 function ($v, $k) {}<br>
+     * </p>
+     * @return mixed
+     */
+    public function input(string $field, $default = '', callable $after = null)
+    {
+        list($fieldName, $fieldValue) = $this->getValue($field, $default, $after);
+        $this->request[$fieldName] = [
+            'value' => $fieldValue,
+        ];
+
+        return $fieldValue;
+    }
+
+    /**
+     * 用法与 \Core\Request::input 一致
+     * @param string $field
+     * @param string $default
+     * @param callable|null $after
+     * @return Validator
+     */
+    public function validate(string $field, $default = '', callable $after = null)
+    {
+        list($fieldName, $fieldValue) = $this->getValue($field, $default, $after);
+
         $validator = new Validator($fieldValue);
-        $this->validationSets[$fieldName] = [
+        $this->request[$fieldName] = [
             'value' => $fieldValue,
             'validator' => $validator,
         ];
@@ -200,12 +231,15 @@ class Request
     {
         $data = [];
         $errors = [];
-        foreach ($this->validationSets as $k => $v) {
+        foreach ($this->request as $k => $v) {
             /** @var Validator $validator */
-            $validator = $v['validator'];
+            $validator = &$v['validator'];
 
             try {
-                $validator->validate(true);
+                if (!empty($validator)) {
+                    $validator->get();
+                }
+
                 $data[$k] = $v['value'];
             } catch (Exception $exception) {
                 $errors[$k] = $exception->getMessage();
@@ -215,7 +249,7 @@ class Request
                 }
             }
         }
-        $this->validationSets = [];
+        $this->request = [];
 
         array_filter($errors) || $errors = null;
         if ($errors) {

@@ -70,7 +70,7 @@ abstract class BaseController
     }
 
     /**
-     * 从 $_GET, $_POST 获取请求参数，支持payload
+     * 从 $_GET, $_POST 获取请求参数，支持 payload
      * <p>
      * 简单用例：input('age') 即 $_POST['age'] <br>
      * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
@@ -83,11 +83,32 @@ abstract class BaseController
      * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
      * 回调函数格式为 function ($v, $k) {}<br>
      * </p>
-     * @return mixed|Validator
+     * @return mixed
      */
     protected function input(string $field, $default = '', callable $after = null)
     {
         return app(Request::class)->input($field, $default, $after);
+    }
+
+    /**
+     * 从 $_GET, $_POST 获取请求参数，支持 payload
+     * <p>
+     * 简单用例：input('age') 即 $_POST['age'] <br>
+     * 高级用例：input('post.age:i', 18, function ($val) { return $val+1; }) <br>
+     * 即 $_POST['age']不存在时默认为18，最终返回 intval($_GET['age'])+1
+     * @param string $field [(post|get|request).]<field_name>[.(i|b|a|f|d|s)]<br>
+     * 参数池默认为 $_POST<br>
+     * field_name 为字段名<br>
+     * 类型强转：i=int, b=bool, a=array, f=float, d=double, s=string(默认)
+     * @param mixed $default 默认值
+     * @param callable $after 后置回调函数，其返回值将覆盖原字段值<br>
+     * 回调函数格式为 function ($v, $k) {}<br>
+     * </p>
+     * @return Validator
+     */
+    protected function validate(string $field, $default = '', callable $after = null)
+    {
+        return app(Request::class)->validate($field, $default, $after);
     }
 
     /**

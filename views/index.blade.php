@@ -20,7 +20,7 @@
     @endif
 
     @if (flash_has('data'))
-    alert('{{ json_encode(flash_get('data')) }}');
+    alert('{!! json_encode(flash_get('data')) !!}');
     @endif
 
     $(function () {
