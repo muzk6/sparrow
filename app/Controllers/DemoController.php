@@ -10,6 +10,7 @@ use Core\Auth;
 use Core\BaseController;
 
 /**
+ * 示例控制器
  * @package App\Controllers
  */
 class DemoController extends BaseController
@@ -31,9 +32,11 @@ class DemoController extends BaseController
     {
         $title = input('get.title', 'Sparrow Demo');
 
-        $this->assign('firstName', 'Hello');
-        $this->assign('lastName', 'Sparrow');
-        return $this->view('index', ['title' => $title]);
+        assign('firstName', 'Hello'); // 定义模板变量
+        assign('lastName', 'Sparrow');
+        assign('userId', $this->userId);
+
+        return view('demo', ['title' => $title]); // 也可以在这里定义模板变量
     }
 
     /**
@@ -80,6 +83,44 @@ class DemoController extends BaseController
             'foo' => $demo->foo(), // 通过自动依赖注入使用 DemoService 的对象
             'foo2' => app(DemoService::class)->foo(), // 或者通过容器使用 DemoService 的对象
         ];
+    }
+
+    /**
+     * 登录
+     */
+    public function login()
+    {
+        try {
+            csrf_check();
+
+            $userId = validate('user_id:i')->gt(0)->setTitle('用户ID ')->get();
+
+            app(Auth::class)->login($userId);
+            flash_set('msg', '登录成功');
+
+            return redirect('/demo');
+        } catch (AppException $appException) {
+            flash_set('msg', $appException->getMessage());
+            return back();
+        }
+    }
+
+    /**
+     * 注销
+     */
+    public function logout()
+    {
+        try {
+            csrf_check();
+
+            app(Auth::class)->logout();
+            flash_set('msg', '注销成功');
+
+            return redirect('/demo');
+        } catch (AppException $appException) {
+            flash_set('msg', $appException->getMessage());
+            return back();
+        }
     }
 
 }

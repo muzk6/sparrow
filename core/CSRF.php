@@ -45,8 +45,8 @@ class CSRF
     }
 
     /**
-     * 令牌<br>
-     * 会话初始化时才更新 token
+     * 获取 token
+     * <p>会话初始化时才更新 token</p>
      * @return string
      */
     public function token()
@@ -69,7 +69,7 @@ class CSRF
     }
 
     /**
-     * 带有 token 的表单域 html 元素
+     * 生成带有 token 的表单域 html 元素
      * @return string
      */
     public function field()
@@ -79,7 +79,7 @@ class CSRF
     }
 
     /**
-     * token 校验
+     * 校验 token
      * @return true
      * @throws AppException
      */

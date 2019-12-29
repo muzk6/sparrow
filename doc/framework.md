@@ -22,7 +22,6 @@ Dir | Desc
 --- | ---
 app | 业务逻辑
 app/Controllers | 控制器层，负责输入(请求参数，中间件)、处理(Service)、输出
-app/Models | 模型层，1表1模型
 app/Providers | 容器服务提供层
 app/Services | 业务服务层
 cli | 命令行脚本
@@ -101,7 +100,7 @@ return [
     'admin' => [
         [
             // url: /secret, /secret/, /secret/index, /secret/index/
-            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#', // url: /secret
+            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#',
             'controller' => 'App\Controllers\Admin\IndexController',
         ]
     ],
@@ -295,8 +294,8 @@ var_dump($ds4);
 
 #### `app()` 容器
 
-- `app(\App\Models\DemoModel::class)` 取 DemoModel 对象(只有 Model, AppPDO 的对象才是默认多例，容器的其它对象都是默认单例)
-- `app(\App\Models\DemoModel::class, ...)` 设置(或重置)容器里的 DemoModel 对象，常用于单元测试 mock 对象
+- `app(\App\Services\DemoService::class)` 取 DemoService 单例对象，自动定义容器元素和依赖注入。如果需要手动定义，可以在 `app/Providers` 里定义
+- `app(\App\Services\DemoService::class, $value)` 设置(或重置)容器里的元素，常用于单元测试 mock 对象
 
 #### `config()` 配置文件
 

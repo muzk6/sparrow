@@ -3,6 +3,7 @@
 use Core\AppContainer;
 use Core\AppException;
 use Core\Auth;
+use Core\Blade;
 use Core\Config;
 use Core\CSRF;
 use Core\Flash;
@@ -62,18 +63,46 @@ function inject(callable $fn)
  */
 function config($keys)
 {
-    /** @var Config $config */
-    $config = app(Config::class);
     if (is_array($keys)) {
         $ret = false;
         foreach ($keys as $k => $v) {
-            $ret = $config->set($k, $v);
+            $ret = app(Config::class)->set($k, $v);
         }
 
         return $ret;
     } else {
-        return $config->get($keys);
+        return app(Config::class)->get($keys);
     }
+}
+
+/**
+ * 抛出业务异常对象
+ * @param string|int|array $messageOrCode 错误码或错误消息
+ * <p>带有参数的错误码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]</p>
+ * @param array $data 附加数组
+ * @throws AppException
+ */
+function panic($messageOrCode = '', array $data = [])
+{
+    if (is_array($messageOrCode)) {
+        $code = $messageOrCode[0];
+        $langParams = (isset($messageOrCode[1]) && is_array($messageOrCode[1]))
+            ? $messageOrCode[1]
+            : array_slice($messageOrCode, 1);
+        $message = trans($code, $langParams);
+
+        $exception = new AppException($message, $code);
+    } elseif (is_int($messageOrCode)) {
+        $code = $messageOrCode;
+        $message = trans($code);
+        $exception = new AppException($message, $code);
+    } else {
+        $message = $messageOrCode;
+        $exception = new AppException($message);
+    }
+
+    $data && $exception->setData($data);
+    throw $exception;
 }
 
 /**
@@ -84,9 +113,7 @@ function config($keys)
  */
 function trans(int $code, array $params = [])
 {
-    /** @var Translator $translator */
-    $translator = app(Translator::class);
-    return $translator->trans($code, $params);
+    return app(Translator::class)->trans($code, $params);
 }
 
 /**
@@ -184,6 +211,37 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
     $body['d'] = (object)$body['d'];
 
     return json_encode($body);
+}
+
+/**
+ * PDOEngine 对象
+ * @return PDOEngine
+ */
+function db()
+{
+    return app(PDOEngine::class);
+}
+
+/**
+ * 定义模板变量
+ * @param string $name
+ * @param mixed $value
+ * @return Blade
+ */
+function assign(string $name, $value)
+{
+    return app(Blade::class)->assign($name, $value);
+}
+
+/**
+ * 渲染视图模板
+ * @param string $view 模板名
+ * @param array $params 模板里的参数
+ * @return string
+ */
+function view(string $view, array $params = [])
+{
+    return app(Blade::class)->view($view, $params);
 }
 
 /**
@@ -304,9 +362,7 @@ function url($path, array $params = [], bool $secure = false)
  */
 function request_flash()
 {
-    /** @var Request $request */
-    $request = app(Request::class);
-    return $request->flash();
+    return app(Request::class)->flash();
 }
 
 /**
@@ -317,9 +373,7 @@ function request_flash()
  */
 function old(string $name = null, string $default = '')
 {
-    /** @var Request $request */
-    $request = app(Request::class);
-    return $request->old($name, $default);
+    return app(Request::class)->old($name, $default);
 }
 
 /**
@@ -365,75 +419,30 @@ function flash_del(string $key)
 }
 
 /**
- * 抛出业务异常对象
- * @param string|int|array $messageOrCode 错误码或错误消息
- * <p>带有参数的错误码，使用 array: [10002001, 'name' => 'tom'] 或 [10002001, ['name' => 'tom']]</p>
- * @param array $data 附加数组
- * @throws AppException
- */
-function panic($messageOrCode = '', array $data = [])
-{
-    if (is_array($messageOrCode)) {
-        $code = $messageOrCode[0];
-        $langParams = (isset($messageOrCode[1]) && is_array($messageOrCode[1]))
-            ? $messageOrCode[1]
-            : array_slice($messageOrCode, 1);
-        $message = trans($code, $langParams);
-
-        $exception = new AppException($message, $code);
-    } elseif (is_int($messageOrCode)) {
-        $code = $messageOrCode;
-        $message = trans($code);
-        $exception = new AppException($message, $code);
-    } else {
-        $message = $messageOrCode;
-        $exception = new AppException($message);
-    }
-
-    $data && $exception->setData($data);
-    throw $exception;
-}
-
-/**
- * 带有 token 的表单域 html 元素
+ * 生成带有 token 的表单域 html 元素
  * @return string
  */
 function csrf_field()
 {
-    /** @var CSRF $csrf */
-    $csrf = app(CSRF::class);
-    return $csrf->field();
+    return app(CSRF::class)->field();
 }
 
 /**
- * 令牌
+ * 获取 token
  * <p>会话初始化时才更新 token</p>
  * @return string
  */
 function csrf_token()
 {
-    /** @var CSRF $csrf */
-    $csrf = app(CSRF::class);
-    return $csrf->token();
+    return app(CSRF::class)->token();
 }
 
 /**
- * token 校验
+ * 校验 token
  * @return true
  * @throws AppException
  */
 function csrf_check()
 {
-    /** @var CSRF $csrf */
-    $csrf = app(CSRF::class);
-    return $csrf->check();
-}
-
-/**
- * PDOEngine 对象
- * @return PDOEngine
- */
-function db()
-{
-    return app(PDOEngine::class);
+    return app(CSRF::class)->check();
 }

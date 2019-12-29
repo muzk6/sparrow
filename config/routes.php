@@ -32,7 +32,7 @@ return [
     'admin' => [
         [
             // url: /secret, /secret/, /secret/index, /secret/index/
-            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#', // url: /secret
+            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#',
             'controller' => 'App\Controllers\Admin\IndexController',
         ]
     ],

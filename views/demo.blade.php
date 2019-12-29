@@ -13,6 +13,16 @@
     <button>Doc Submit</button>
     <input type="button" id="ok" value="XHR Submit"/>
 </form>
+<label style="display: block; margin-top: 30px;">{{ $userId ? "ID: {$userId} 已登录" : '未登录' }}</label>
+<form style="display: inline-block" method="post" action="/demo/login">
+    {!! csrf_field() !!}
+    <label>UserID: <input name="user_id"></label>
+    <button>Login</button>
+</form>
+<form style="display: inline-block" method="post" action="/demo/logout">
+    {!! csrf_field() !!}
+    <button>Logout</button>
+</form>
 <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 <script>
     @if (flash_has('msg'))

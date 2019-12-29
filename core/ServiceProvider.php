@@ -85,6 +85,10 @@ class ServiceProvider implements ServiceProviderInterface
             return new Router(config('routes'));
         };
 
+        $pimple[Blade::class] = function () {
+            return new Blade(PATH_VIEW, PATH_DATA . '/view_cache');
+        };
+
         /**
          * 文档 https://github.com/elastic/elasticsearch-php
          */
@@ -102,14 +106,6 @@ class ServiceProvider implements ServiceProviderInterface
                 ->build();
 
             return $es;
-        };
-
-        $pimple[\duncan3dc\Laravel\BladeInstance::class] = function () {
-            if (!class_exists('\duncan3dc\Laravel\BladeInstance')) {
-                trigger_error('"composer require duncan3dc/blade" at first');
-            }
-
-            return new \duncan3dc\Laravel\BladeInstance(PATH_VIEW, PATH_DATA . '/view_cache');
         };
 
     }
