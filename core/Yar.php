@@ -127,18 +127,15 @@ class Yar
 
     /**
      * RPC 服务端
-     * @param string $class 接口的类名
+     * @param BaseYar $server Yar 类对象
      * @see 例子参考 rpc/rpc_server_demo.php
      */
-    public function server(string $class)
+    public function server(BaseYar $server)
     {
         try {
-            $server = new \Yar_Server(app($class));
+            $server = new \Yar_Server($server);
+            app(Xdebug::class)->auto();
 
-            /** @var Xdebug $xdebug */
-            $xdebug = app(Xdebug::class);
-
-            $xdebug->auto();
             $server->handle();
         } catch (Exception $exception) {
             logfile('Yar::server', $exception->getMessage(), 'error');

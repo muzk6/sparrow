@@ -136,34 +136,34 @@ app(\Core\Router::class)->setStatus404Handler(function () {
 ### 不验证，一个一个获取
 
 ```php
-$firstName = $this->input('post.first_name');
-$lastName = $this->input('last_name');
+$firstName = input('post.first_name');
+$lastName = input('last_name');
 var_dump($firstName, $lastName);exit;
 ```
 
 ### 不验证，全部获取
 
 ```php
-$this->input('post.first_name');
-$this->input('last_name');
-$request = $this->request();
+input('post.first_name');
+input('last_name');
+$request = request();
 var_dump($request);exit;
 ```
 
 ### 部分验证，一个一个获取
 
 ```php
-$firstName = $this->input('post.first_name');
-$lastName = $this->validate('last_name')->required()->setTitle('名字')->get();
+$firstName = input('post.first_name');
+$lastName = validate('last_name')->required()->setTitle('名字')->get();
 var_dump($firstName, $lastName);exit;
 ```
 
 ### 部分验证，全部获取
 
 ```php
-$this->input('post.first_name');
-$this->validate('last_name')->required()->setTitle('名字');
-$request = $this->request();
+input('post.first_name');
+validate('last_name')->required()->setTitle('名字');
+$request = request();
 var_dump($request);exit;
 ```
 
@@ -172,9 +172,9 @@ var_dump($request);exit;
 遇到验证不通过时，立即终止后面的验证
 
 ```php
-$this->validate('post.first_name')->required();
-$this->validate('last_name')->required()->setTitle('名字');
-$request = $this->request(); // 以串联短路方式验证
+validate('post.first_name')->required();
+validate('last_name')->required()->setTitle('名字');
+$request = request(); // 以串联短路方式验证
 ```
 
 *串联结果*
@@ -194,9 +194,9 @@ $request = $this->request(); // 以串联短路方式验证
 即使前面的验证不通过，也会继续验证后面的字段
 
 ```php
-$this->validate('post.first_name')->required();
-$this->validate('last_name')->required()->setTitle('名字');
-$request = $this->request(true); // 以并联方式验证
+validate('post.first_name')->required();
+validate('last_name')->required()->setTitle('名字');
+$request = request(true); // 以并联方式验证
 ```
 
 *并联结果*

@@ -9,12 +9,10 @@ use Core\Yar;
 
 require_once dirname(__DIR__) . '/init.php';
 
-class Foo extends BaseYar
+app(Yar::class)->server(new class extends BaseYar
 {
     public function bar()
     {
         return api_format(true, ['data' => func_get_args()]);
     }
-}
-
-app(Yar::class)->server(Foo::class);
+});

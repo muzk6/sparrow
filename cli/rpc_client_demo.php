@@ -9,17 +9,16 @@ use Core\Yar;
 require_once dirname(__DIR__) . '/init.php';
 
 // 串行调用；
-// 开启 Xdebug Trace 跟踪: $yar->trace('demo_bar');
-var_export(app(Yar::class)->trace('demo_bar')->request('demo', 'bar', ['arg1', 'arg2']));
+// 开启 Xdebug Trace 跟踪: app(Yar::class)->trace('demo_bar');
+var_export(app(Yar::class)->request('sparrow', 'bar', ['arg1', 'arg2']));
 
 echo str_repeat('-', 50) . PHP_EOL;
-exit;
 
 $fn = function ($retval, $callinfo) {
     var_export($retval, $callinfo); // $retval: 返回值; $callinfo: 请求信息(url, 目标函数名)
 };
 
 // 并行调用
-app(Yar::class)->requestConcurrently('demo', 'bar', ['name' => 'tom'], $fn);
-app(Yar::class)->requestConcurrently('demo', 'bar', ['name' => 'tom'], $fn);
+app(Yar::class)->requestConcurrently('sparrow', 'bar', ['name' => 'tom'], $fn);
+app(Yar::class)->requestConcurrently('sparrow', 'bar', ['name' => 'tom'], $fn);
 app(Yar::class)->loop();

@@ -29,7 +29,7 @@ class DemoController extends BaseController
      */
     public function index()
     {
-        $title = $this->input('get.title', 'Sparrow Demo');
+        $title = input('get.title', 'Sparrow Demo');
 
         $this->assign('firstName', 'Hello');
         $this->assign('lastName', 'Sparrow');
@@ -45,11 +45,11 @@ class DemoController extends BaseController
             csrf_check();
 
             // 部分验证，一个一个获取
-            $firstName = $this->input('post.first_name');
-            $lastName = $this->validate('last_name')->required()->setTitle('名字')->get();
+            $firstName = input('post.first_name');
+            $lastName = validate('last_name')->required()->setTitle('名字')->get();
 
             // 部分验证，全部获取
-            $request = $this->request();
+            $request = request();
 
             flash_set('data', ['first_name' => $firstName, 'last_name' => $lastName, 'request' => $request]);
         } catch (AppException $appException) {
@@ -57,7 +57,7 @@ class DemoController extends BaseController
             flash_set('data', $appException->getData());
         }
 
-        $this->back();
+        return back();
     }
 
     /**
@@ -70,9 +70,9 @@ class DemoController extends BaseController
     {
         csrf_check();
 
-        $this->validate('post.first_name')->required();
-        $this->validate('last_name')->required()->setTitle('名字');
-        $request = $this->request(true); // 以并联方式验证
+        validate('post.first_name')->required();
+        validate('last_name')->required()->setTitle('名字');
+        $request = request(true); // 以并联方式验证
 
         return [
             'request' => $request,
