@@ -123,7 +123,7 @@ return [
 
 ```php
 app(\Core\Router::class)->setStatus404Handler(function () {
-    echo '404';
+    http_response_code(404);
 })->dispatch();
 ```
 
@@ -234,7 +234,7 @@ f | float
 
 覆盖控制器基类勾子方法即可
 
-- `\Core\BaseController::beforeAction`
+- `\Core\BaseController::beforeAction` 当且仅当返回 false 时，将终止后面的 action 调用(afterAction 不受影响)
 - `\Core\BaseController::afterAction`
 
 ## 数据库查询

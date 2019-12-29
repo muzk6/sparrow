@@ -15,12 +15,14 @@ use Core\BaseController;
  */
 class DemoController extends BaseController
 {
-    public function __construct(Auth $auth)
+    public function beforeAction()
     {
-        parent::__construct($auth);
-
         if (!$this->isLogin) {
             //todo 未登录时的逻辑
+        }
+
+        if (isset($_GET['404'])) {
+            return $this->httpResponse404(); // 响应 404, 并结束请求(因为这里返回了 false)
         }
     }
 

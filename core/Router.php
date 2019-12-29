@@ -99,25 +99,24 @@ class Router
                 }
 
                 $controllerInstance = AppContainer::get($controller);
+                call_user_func([$controllerInstance, 'setStatus404Handler'], $this->status404Handler);
 
-                /** @var XHProf $xhprof */
-                $xhprof = app(XHProf::class);
-                $xhprof->auto();
-
-                /** @var Xdebug $xdebug */
-                $xdebug = app(Xdebug::class);
-                $xdebug->auto();
+                app(XHProf::class)->auto();
+                app(Xdebug::class)->auto();
 
                 try {
                     // 执行 action 前置勾子
-                    is_callable([$controllerInstance, 'beforeAction']) && call_user_func([$controllerInstance, 'beforeAction']);
-
-                    // 执行控制方法 action
-                    $out = call_user_func([$controllerInstance, $action], ...$actionParams);
-                    if (is_array($out)) {
-                        echo api_json(true, $out);
+                    if (is_callable([$controllerInstance, 'beforeAction'])
+                        && call_user_func([$controllerInstance, 'beforeAction']) === false) {
+                        // NOP
                     } else {
-                        echo strval($out);
+                        // 执行控制方法 action
+                        $out = call_user_func([$controllerInstance, $action], ...$actionParams);
+                        if (is_array($out)) {
+                            echo api_json(true, $out);
+                        } else {
+                            echo strval($out);
+                        }
                     }
                 } catch (AppException $appException) {
                     echo api_json($appException);
@@ -168,7 +167,7 @@ class Router
      * @param callable $status404Handler
      * @return Router
      */
-    public function setStatus404Handler($status404Handler)
+    public function setStatus404Handler(callable $status404Handler)
     {
         $this->status404Handler = $status404Handler;
         return $this;
