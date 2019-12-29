@@ -5,8 +5,9 @@
 
 ## 安装
 
-- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>`
-- `composer install`
+- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架
+- `composer install` 安装基础依赖
+- `rm -rf .git` 删除原版本库
 
 ## 网站入口
 
@@ -290,7 +291,7 @@ $ds4['sharding_faker3'] = $shardingTransaction->selectOne("select * from {$shard
 var_dump($ds4);
 ```
 
-## `helper` 辅助函数用例
+## `helpers` 其它辅助函数用例
 
 #### `app()` 容器
 
@@ -348,7 +349,7 @@ request_flash();
 old('name', $data['name']);
 ```
 
-#### `csrf_*()` XSRF
+#### `csrf_*()` CSRF, XSRF
 
 - `csrf_field()`直接生成 HTML
 - `csrf_token()`生成 token
@@ -366,6 +367,22 @@ old('name', $data['name']);
 - `flash_has(string $key)` 闪存是否存在
 - `flash_get(string $key)` 闪存获取并删除
 - `flash_del(string $key)` 闪存删除
+
+#### `api_format()`, `api_json()` 格式化为接口输出的内容结构
+
+- `api_format(true, ['foo' => 1])` 格式化为成功的内容结构
+- `api_format($exception)` 格式化异常对象为失败的内容结构
+- `api_json()` 与 `api_format()` 用法一样，区别是返回 json 字符串
+
+#### `assign()`, `view()` 模板与变量
+
+- `assign('firstName', 'Hello')` 定义模板变量
+- `return view('demo', ['title' => $title])` 定义模板变量的同时返回渲染内容
+
+#### `back()`, `redirect()` 网页跳转
+
+- `return back()` 跳转回上一步
+- `return redirect('/demo')` 跳转到 `/demo`
 
 ## 缓存 redis
 

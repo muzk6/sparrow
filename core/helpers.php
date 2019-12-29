@@ -153,7 +153,7 @@ function logfile(string $index, $data, string $type = 'app')
 }
 
 /**
- * API格式化
+ * API 格式化
  * @param bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
  * @param array $data 对象体
  * @param string $message 消息体
@@ -190,7 +190,7 @@ function api_format($state, array $data = [], string $message = '', int $code = 
 }
 
 /**
- * JSON类型的API格式
+ * JSON 类型的 API 格式
  * @param bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
  * @param array $data 对象体
  * @param string $message 消息体
