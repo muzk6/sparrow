@@ -87,6 +87,12 @@ class Router
         }
 
         if ($found) {
+            // 过滤掉内置的 public 方法
+            if (in_array($action, ['beforeAction', 'afterAction'])) {
+                return call_user_func($this->status404Handler);
+            }
+
+            // 只能调用 public 方法
             if (!is_callable([$controller, $action])) {
                 return call_user_func($this->status404Handler);
             }
@@ -98,8 +104,7 @@ class Router
                     $actionParams[] = AppContainer::get($actionParam->getClass()->getName());
                 }
 
-                $controllerInstance = AppContainer::get($controller);
-                call_user_func([$controllerInstance, 'setStatus404Handler'], $this->status404Handler);
+                $controllerInstance = $ref->newInstance($this->status404Handler);
 
                 app(XHProf::class)->auto();
                 app(Xdebug::class)->auto();

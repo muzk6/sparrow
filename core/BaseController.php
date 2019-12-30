@@ -25,21 +25,15 @@ abstract class BaseController
      */
     protected $status404Handler;
 
-    public function __construct()
-    {
-        $this->userId = app(Auth::class)->getUserId();
-        $this->isLogin = app(Auth::class)->isLogin();
-    }
-
     /**
-     * 设置响应 404 的回调函数
-     * @param callable $status404Handler
-     * @return $this
+     * BaseController constructor.
+     * @param callable|null $status404Handler 响应 404 的回调函数
      */
-    public function setStatus404Handler(callable $status404Handler)
+    public function __construct(callable $status404Handler = null)
     {
         $this->status404Handler = $status404Handler;
-        return $this;
+        $this->userId = app(Auth::class)->getUserId();
+        $this->isLogin = app(Auth::class)->isLogin();
     }
 
     /**
@@ -48,9 +42,12 @@ abstract class BaseController
      * <p>在控制里需要主动调用的时候用到</p>
      * @return false
      */
-    public function httpResponse404()
+    protected function httpResponse404()
     {
-        call_user_func($this->status404Handler);
+        if ($this->status404Handler) {
+            call_user_func($this->status404Handler);
+        }
+
         return false;
     }
 
