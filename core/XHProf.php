@@ -46,6 +46,7 @@ class XHProf
         }
 
         if (!extension_loaded('tideways_xhprof')) {
+            trigger_error('请安装扩展: tideways_xhprof');
             return false;
         }
 
@@ -72,10 +73,14 @@ class XHProf
             return false;
         }
 
+        $path = PATH_DATA . '/xhprof';
+        if (!file_exists($path)) {
+            mkdir($path, 0755, true);
+        }
+
         $data = tideways_xhprof_disable();
-        $path = rtrim($this->config['save_path'], '/');
         file_put_contents(
-            sprintf('%s/%s.%s.xhprof', $path, uniqid(), $this->config['namespace']),
+            sprintf('%s/%s.%s.xhprof', $path, uniqid()),
             serialize($data)
         );
     }
