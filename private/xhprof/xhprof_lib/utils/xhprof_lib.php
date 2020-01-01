@@ -969,3 +969,13 @@ function xhprof_get_matching_functions($q, $xhprof_data)
 
     return ($res);
 }
+
+/**
+ * 解析文件名
+ * @param string $run_name
+ * @return bool|string
+ */
+function xhprof_decode_run_name(string $run_name)
+{
+    return base64_decode(str_replace(['-', '_'], ['+', '/'], $run_name));
+}

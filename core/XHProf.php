@@ -78,9 +78,17 @@ class XHProf
             mkdir($path, 0755, true);
         }
 
+        if (PHP_SAPI == 'cli') {
+            $cmd = basename($_SERVER['argv'][0]);
+            $url = $cmd . ' ' . implode(' ', array_slice($_SERVER['argv'], 1));
+        } else {
+            $url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        }
+        $url = rtrim(str_replace(['+', '/'], ['-', '_'], base64_encode($url)), '=');
+
         $data = tideways_xhprof_disable();
         file_put_contents(
-            sprintf('%s/%s.xhprof', $path, uniqid()),
+            sprintf('%s/%s.%s.xhprof', $path, $url, uniqid()),
             serialize($data)
         );
     }

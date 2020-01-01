@@ -483,8 +483,7 @@ function profiler_report($url_params,
         $symbol_tab = xhprof_compute_flat_info($run1_data, $totals);
     }
 
-    $run1_txt = sprintf("<b>Run #%s:</b> %s",
-        $run1, $run1_desc);
+    $run1_txt = sprintf('URL: %s', xhprof_decode_run_name($run1));
 
     $base_url_params = xhprof_array_unset(xhprof_array_unset($url_params,
         'symbol'),
@@ -501,8 +500,7 @@ function profiler_report($url_params,
             http_build_query(xhprof_array_set($base_url_params,
                 'run',
                 $run1)));
-        $run2_txt = sprintf("<b>Run #%s:</b> %s",
-            $run2, $run2_desc);
+        $run2_txt = sprintf('URL: %s', xhprof_decode_run_name($run2));
 
         $run2_link = xhprof_render_link('View Run #' . $run2,
             "$base_path/?" .
@@ -546,8 +544,6 @@ function profiler_report($url_params,
             $run1_txt . '<br><b>vs.</b><br>' . $run2_txt :
             $run1_txt) .
         '  </dd>' .
-        '  <dt>Tip</dt>' .
-        '  <dd>Click a function name below to drill down.</dd>' .
         '</dl>' .
         '<div style="clear: both; margin: 3em 0em;"></div>';
 
