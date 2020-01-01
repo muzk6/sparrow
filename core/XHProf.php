@@ -80,7 +80,7 @@ class XHProf
 
         $data = tideways_xhprof_disable();
         file_put_contents(
-            sprintf('%s/%s.%s.xhprof', $path, uniqid()),
+            sprintf('%s/%s.xhprof', $path, uniqid()),
             serialize($data)
         );
     }
