@@ -29,16 +29,15 @@ class Yar
     }
 
     /**
-     * 返回 RPC地址
+     * 获取 RPC 地址
      * @param string $index
      * @return string
      */
     protected function getUrl(string $index)
     {
-        $server = &$this->servers[$index];
-        isset($server) || trigger_error('请在 yar.php 配置相关地址');
+        $url = &$this->servers[$index];
+        isset($url) || trigger_error('请在 yar.php 配置相关地址');
 
-        $url = $server['url'];
         if ($this->traceName) {
             $url .= (strpos($url, '?') === false ? '?' : '&') . "_xt={$this->traceName}";
             $this->traceName = '';

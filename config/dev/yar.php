@@ -5,7 +5,5 @@
  */
 
 return [
-    'sparrow' => [
-        'url' => 'http://rpc.sparrow.com/rpc_server_demo.php',
-    ],
+    'sparrow' => 'http://rpc.sparrow.com/rpc_server_demo.php',
 ];
