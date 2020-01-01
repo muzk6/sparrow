@@ -35,18 +35,19 @@
 // are at the same level.
 $GLOBALS['XHPROF_LIB_ROOT'] = dirname(__FILE__) . '/../xhprof_lib';
 
-require_once $GLOBALS['XHPROF_LIB_ROOT'].'/display/xhprof.php';
+require_once $GLOBALS['XHPROF_LIB_ROOT'] . '/display/xhprof.php';
 
 // param name, its type, and default value
-$params = array('run'        => array(XHPROF_STRING_PARAM, ''),
-                'wts'        => array(XHPROF_STRING_PARAM, ''),
-                'symbol'     => array(XHPROF_STRING_PARAM, ''),
-                'sort'       => array(XHPROF_STRING_PARAM, 'wt'), // wall time
-                'run1'       => array(XHPROF_STRING_PARAM, ''),
-                'run2'       => array(XHPROF_STRING_PARAM, ''),
-                'source'     => array(XHPROF_STRING_PARAM, 'xhprof'),
-                'all'        => array(XHPROF_UINT_PARAM, 0),
-                );
+$params = [
+    'run' => [XHPROF_STRING_PARAM, ''],
+    'wts' => [XHPROF_STRING_PARAM, ''],
+    'symbol' => [XHPROF_STRING_PARAM, ''],
+    'sort' => [XHPROF_STRING_PARAM, 'wt'], // wall time
+    'run1' => [XHPROF_STRING_PARAM, ''],
+    'run2' => [XHPROF_STRING_PARAM, ''],
+    'source' => [XHPROF_STRING_PARAM, ''],
+    'all' => [XHPROF_UINT_PARAM, 0],
+];
 
 // pull values of these params, and create named globals for each param
 xhprof_param_init($params);
@@ -56,13 +57,13 @@ xhprof_param_init($params);
    to be preserved for the next page. unset all unwanted keys in $params.
  */
 foreach ($params as $k => $v) {
-  $params[$k] = $$k;
+    $params[$k] = $$k;
 
-  // unset key from params that are using default values. So URLs aren't
-  // ridiculously long.
-  if ($params[$k] == $v[1]) {
-    unset($params[$k]);
-  }
+    // unset key from params that are using default values. So URLs aren't
+    // ridiculously long.
+    if ($params[$k] == $v[1]) {
+        unset($params[$k]);
+    }
 }
 
 echo "<html>";
@@ -73,7 +74,7 @@ echo "</head>";
 
 echo "<body>";
 
-$vbar  = ' class="vbar"';
+$vbar = ' class="vbar"';
 $vwbar = ' class="vwbar"';
 $vwlbar = ' class="vwlbar"';
 $vbbar = ' class="vbbar"';
@@ -83,7 +84,7 @@ $vgbar = ' class="vgbar"';
 $xhprof_runs_impl = new XHProfRuns_Default();
 
 displayXHProfReport($xhprof_runs_impl, $params, $source, $run, $wts,
-                    $symbol, $sort, $run1, $run2);
+    $symbol, $sort, $run1, $run2);
 
 
 echo "</body>";
