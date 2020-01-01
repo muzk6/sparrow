@@ -495,6 +495,21 @@ https://github.com/elastic/elasticsearch-php
 - `cli/test.php` 为 `php-cli` 测试脚本
 - `public/test.php` 为 `php-cgi` 测试入口
 
+## XHProf
+
+### 依赖
+
+- [扩展 tideways_xhprof](https://github.com/tideways/php-xhprof-extension/releases)
+- GUI - View Full Callgraph 功能，需要安装 `graphviz`
+    - Ubuntu: `sudo apt install graphviz`
+    - CentOS: `yum install graphviz`
+
+### 使用
+
+- 配置文件 `config/dev/xhprof.php`
+    - `enable` 设置为 `true`, 即可记录大于指定耗时的请求
+- GUI 分析器，配置独立域名(入口为 `private/xhprof/xhprof_html`)，直接访问
+
 ## 维护模式
 > 开启维护模式，关闭网站访问入口
 
