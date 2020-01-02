@@ -418,8 +418,10 @@ app(\Core\Auth::class)->logout(); // 退出登录
     
 ### 用例
 
-- 客户端参考`cli/rpc_client_demo.php`
-- 服务端参考`rpc/rpc_server_demo.php`
+- 客户端参考 `cli/rpc_client_demo.php`
+    - 参考配置文件 `config/dev/yar.php`
+- 服务端参考 `rpc/rpc_server_demo.php`
+    - 配置 http 入口 `private/rpc` 以及独立域名
 
 ## 消息队列
 
