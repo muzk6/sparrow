@@ -33,7 +33,8 @@ data | 缓存、日志数据目录，需要写权限
 doc | 文档目录
 lang | 国际化多语言
 private | 私有 Web 入口目录，配置的域名不应该被外网访问
-private/rpc | RPC入口目录，禁止对外网开放
+private/admin | Admin 后台入口
+private/rpc | RPC 入口目录
 private/xhprof | XHProf 的 Web GUI
 public | 公有 Web 入口目录
 tests | 单元测试
