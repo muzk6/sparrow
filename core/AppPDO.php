@@ -28,9 +28,13 @@ class AppPDO
         $this->openLog = $openLog;
     }
 
-    public function __call($name, $arguments)
+    /**
+     * 获取连接资源 PDO
+     * @return PDO
+     */
+    public function getConnection()
     {
-        return call_user_func_array([$this->connection, $name], $arguments);
+        return $this->connection;
     }
 
     /**
@@ -46,6 +50,45 @@ class AppPDO
         }
 
         return $sql;
+    }
+
+    /**
+     * 开启事务
+     * @return bool
+     */
+    public function beginTransaction()
+    {
+        if (!$this->connection->inTransaction()) {
+            return $this->connection->beginTransaction();
+        }
+
+        return false;
+    }
+
+    /**
+     * 提交事务
+     * @return bool
+     */
+    public function commit()
+    {
+        if ($this->connection->inTransaction()) {
+            return $this->connection->commit();
+        }
+
+        return false;
+    }
+
+    /**
+     * 回滚事务
+     * @return bool
+     */
+    public function rollBack()
+    {
+        if ($this->connection->inTransaction()) {
+            return $this->connection->rollBack();
+        }
+
+        return false;
     }
 
     /**
@@ -82,6 +125,27 @@ class AppPDO
         $statement->execute($binds);
 
         return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * 执行 insert, replace, update, delete 等增删改 sql 语句
+     * @param string $sql 原生 sql 语句
+     * @param array $binds 防注入的参数绑定
+     * @return int 执行 insert, replace 时返回最后插入的主键ID, 失败时返回0
+     * <br>其它语句返回受影响行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
+     */
+    public function query(string $sql, array $binds = [])
+    {
+        $sql = $this->before($sql);
+
+        $statement = $this->connection->prepare($sql);
+        $statement->execute($binds);
+
+        if (preg_match('/^(insert|replace)\s/i', $sql)) {
+            return intval($this->connection->lastInsertId());
+        } else {
+            return $statement->rowCount();
+        }
     }
 
     /**

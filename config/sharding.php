@@ -15,7 +15,11 @@ return function (string $table, string $index) {
 
     switch ($table) {
         case 'test':
-//            $suffix = str_pad(substr($index, -2), 2, '0', STR_PAD_LEFT);
+//            $suffix = str_pad(base_convert(
+//                    substr(md5(strtolower($index)), -2),
+//                    16, 10) % 64,
+//                2, '0', STR_PAD_LEFT);
+
             $sharding['section'] = 'default';
             $sharding['dbname'] = 'test';
             $sharding['table'] = "test";

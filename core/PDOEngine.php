@@ -114,16 +114,14 @@ class PDOEngine
     /**
      * 开启事务，并返回连接资源
      * @param string $section 数据库区域，为空时自动切换为 default
-     * @return AppPDO|PDO
+     * @return AppPDO
      */
     public function beginTransaction(string $section = '')
     {
-        $connection = $this->getConnection(true, $section);
-        if (!$connection->inTransaction()) {
-            $connection->beginTransaction();
-        }
+        $appPDO = new AppPDO($this->getConnection(true, $section), $this->conf['log']);
+        $appPDO->beginTransaction();
 
-        return new AppPDO($connection, $this->conf['log']);
+        return $appPDO;
     }
 
     /**
@@ -161,6 +159,19 @@ class PDOEngine
     public function selectAll(string $sql, array $binds = [], bool $useMaster = false, string $section = '')
     {
         return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectAll($sql, $binds);
+    }
+
+    /**
+     * 执行 insert, replace, update, delete 等增删改 sql 语句
+     * @param string $sql 原生 sql 语句
+     * @param array $binds 防注入的参数绑定
+     * @param string $section 数据库区域，为空时自动切换为 default
+     * @return int 执行 insert, replace 时返回最后插入的主键ID, 失败时返回0
+     * <br>其它语句返回受影响行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
+     */
+    public function query(string $sql, array $binds = [], string $section = '')
+    {
+        return (new AppPDO($this->getConnection(true, $section), $this->conf['log']))->query($sql, $binds);
     }
 
     /**

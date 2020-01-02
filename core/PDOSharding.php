@@ -58,16 +58,14 @@ class PDOSharding
 
     /**
      * 开启事务，并返回连接资源
-     * @return AppPDO|PDO
+     * @return AppPDO
      */
     public function beginTransaction()
     {
-        $connection = $this->getConnection(true);
-        if (!$connection->inTransaction()) {
-            $connection->beginTransaction();
-        }
+        $appPDO = new AppPDO($this->getConnection(true), $this->openLog);
+        $appPDO->beginTransaction();
 
-        return new AppPDO($connection, $this->openLog);
+        return $appPDO;
     }
 
     /**
@@ -92,6 +90,18 @@ class PDOSharding
     public function selectAll(string $sql, array $binds = [], bool $useMaster = false)
     {
         return (new AppPDO($this->getConnection($useMaster), $this->openLog))->selectAll($sql, $binds);
+    }
+
+    /**
+     * 执行 insert, replace, update, delete 等增删改 sql 语句
+     * @param string $sql 原生 sql 语句
+     * @param array $binds 防注入的参数绑定
+     * @return int 执行 insert, replace 时返回最后插入的主键ID, 失败时返回0
+     * <br>其它语句返回受影响行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
+     */
+    public function query(string $sql, array $binds = [])
+    {
+        return (new AppPDO($this->getConnection(true), $this->openLog))->query($sql, $binds);
     }
 
     /**
