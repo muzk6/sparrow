@@ -33,11 +33,13 @@ data | 缓存、日志数据目录，需要写权限
 doc | 文档目录
 lang | 国际化多语言
 private | 私有 Web 入口目录，配置的域名不应该被外网访问
+private/rpc | RPC入口目录，禁止对外网开放
+private/xhprof | XHProf 的 Web GUI
 public | 公有 Web 入口目录
-rpc | RPC入口目录，禁止对外网开放
+tests | 单元测试
 vendor | Composer库
 views | 视图文件
-workers | worker文件
+workers | worker 文件
 
 ## 常用常量
 
