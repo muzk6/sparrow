@@ -32,7 +32,8 @@ core | 框架文件
 data | 缓存、日志数据目录，需要写权限
 doc | 文档目录
 lang | 国际化多语言
-public | Web入口目录
+private | 私有 Web 入口目录，配置的域名不应该被外网访问
+public | 公有 Web 入口目录
 rpc | RPC入口目录，禁止对外网开放
 vendor | Composer库
 views | 视图文件
