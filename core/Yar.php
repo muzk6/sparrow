@@ -56,7 +56,7 @@ class Yar
      * @return mixed
      * @see 例子参考 cli/rpc_client_demo.php
      */
-    public function request(string $server, string $action, array $params, int $timeout = 3000, int $retry = 3)
+    public function request(string $server, string $action, array $params, int $timeout = 5000, int $retry = 1)
     {
         $url = $this->getUrl($server);
         $client = new \Yar_Client($url);
@@ -92,7 +92,7 @@ class Yar
      * @param int $timeout 超时(ms)
      * @see 例子参考 cli/rpc_client_demo.php
      */
-    public function requestConcurrently(string $server, string $action, array $params, callable $callback, int $timeout = 3000)
+    public function requestConcurrently(string $server, string $action, array $params, callable $callback, int $timeout = 5000)
     {
         $url = $this->getUrl($server);
         try {
