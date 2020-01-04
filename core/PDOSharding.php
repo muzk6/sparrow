@@ -105,6 +105,39 @@ class PDOSharding
     }
 
     /**
+     * 查询一行记录
+     * @param string $columns 查询字段
+     * @param array $where WHERE 条件
+     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
+     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param string $table 表名，为空时自动切换为 $this->table
+     * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
+     * @param bool $useMaster 是否使用主库
+     * @return array|false 无记录时返回 false
+     */
+    public function selectOne(string $columns, array $where, string $table = '', string $orderBy = '', bool $useMaster = false)
+    {
+        return (new AppPDO($this->getConnection($useMaster), $this->openLog))->selectOne($columns, $where, $table ?: $this->table, $orderBy);
+    }
+
+    /**
+     * 查询多行记录
+     * @param string $columns 查询字段
+     * @param array $where WHERE 条件
+     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
+     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param string $table 表名，为空时自动切换为 $this->table
+     * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
+     * @param array $limit LIMIT 语法 e.g. LIMIT 25 即 [25]; LIMIT 0, 25 即 [0, 25]
+     * @param bool $useMaster 是否使用主库
+     * @return array 无记录时返回空数组 []
+     */
+    public function selectAll(string $columns, array $where, string $table = '', string $orderBy = '', array $limit = [], bool $useMaster = false)
+    {
+        return (new AppPDO($this->getConnection($useMaster), $this->openLog))->selectAll($columns, $where, $table ?: $this->table, $orderBy, $limit);
+    }
+
+    /**
      * 插入记录
      * @param array $data 要插入的数据 ['col0' => 1]
      * <p>value 使用原生 sql 时，应放在数组里 e.g. ['col0' => ['UNIX_TIMESTAMP()']]</p>
@@ -138,7 +171,7 @@ class PDOSharding
      * @param array $where WHERE 条件
      * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
      * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
-     * @param string $table 表名
+     * @param string $table 表名，为空时自动切换为 $this->table
      * @return int 被删除的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
     public function delete(array $where, string $table = '')

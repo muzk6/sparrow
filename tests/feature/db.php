@@ -6,8 +6,8 @@
 
 require_once __DIR__ . '/../../init.php';
 
-$sqlAll = "select * from test order by id desc limit 2";
-$sqlOne = "select * from test where id=:id";
+$sqlAll = 'select * from test order by id desc limit 2';
+$sqlOne = 'select * from test where id=:id';
 
 /**
  * 默认分区
@@ -16,9 +16,9 @@ $ds['all'] = db()->getAll($sqlAll);
 $ds['insert'] = db()->query("insert into test(name, `order`) values(?, ?)", ['tom_04', 3]);
 $ds['one'] = db()->getOne($sqlOne, ['id' => $ds['insert']]);
 $ds['update'] = db()->query('update test set `order`=`order`+1 where id=:id', ['id' => $ds['insert']]);
-$ds['one2'] = db()->getOne($sqlOne, ['id' => $ds['insert']]);
+$ds['one2'] = db()->selectOne('*', ['id' => $ds['insert']], 'test');
 $ds['delete'] = db()->query('delete from test where id=:id', ['id' => $ds['insert']]);
-$ds['all2'] = db()->getAll($sqlAll);
+$ds['all2'] = db()->selectAll('*', ['1=1'], 'test', 'id DESC', [2]);
 $ds['one3'] = db()->getOne($sqlOne, ['id' => -1]);
 // value 使用原生 sql 时，应放在数组里 e.g. 'order' => ['UNIX_TIMESTAMP()']
 $ds['insert_kv'] = db()->insert(['name' => 'kv', 'order' => ['UNIX_TIMESTAMP()']], 'test', true);
@@ -38,13 +38,13 @@ var_dump($ds);
 $transaction = db()->beginTransaction();
 $ds2['trans_id'] = $transaction->query('insert into test(name, `order`) values (?,?)', ['trans', 99]);
 $ds2['trans'] = $transaction->getOne($sqlOne, ['id' => $ds2['trans_id']]);
-$transaction->rollBack();
+$ds2['trans_rollback'] = $transaction->rollBack();
 $ds2['trans2'] = $transaction->getOne($sqlOne, ['id' => $ds2['trans_id']]);
 
 $transaction = db()->beginTransaction();
 // 插入多条记录
 $ds2['trans_insert_kv_many'] = $transaction->insert([['name' => 'kv1', 'order' => 5], ['name' => 'kv2', 'order' => 6]], 'test', true);
-$transaction->commit();
+$ds2['trans_commit'] = $transaction->commit();
 $ds2['trans3'] = $transaction->getAll('select * from test order by id desc limit 2');
 $ids = array_column($ds2['trans3'], 'id');
 $ds2['trans_delete'] = $transaction->delete(['id IN(?,?)', $ids], 'test');
@@ -55,25 +55,25 @@ var_dump($ds2);
  * 分表
  */
 $sharding = db()->shard('test', 1010);
-var_dump($sharding->table);
-$sqlSharding = "select * from {$sharding->table} where id=:id";
-$ds3['sharding'] = $sharding->getOne($sqlSharding, ['id' => 122]);
 $ds3['sharding_insert_ky_many'] = $sharding->insert([['name' => 'Hello', 'order' => ['UNIX_TIMESTAMP()']], ['name' => 'Sparrow', 'order' => 10]]);
-$ds3['sharding2'] = $sharding->getAll($sqlAll);
+// 使用 $sharding->selectAll(), 不用指定分表 table, section
+$ds3['sharding2'] = $sharding->selectAll('*', ['1=1'], '', 'id DESC', [2]);
 $ids = array_column($ds3['sharding2'], 'id');
 $ds3['sharding_update'] = $sharding->update(['order' => 1], ['id IN(?,?)', $ids]);
+// 使用 $sharding->getAll(), 只需指定分表 table
 $ds3['sharding3'] = $sharding->getAll("select * from {$sharding->table} where id IN(?,?)", $ids);
 $ds3['sharding_delete'] = $sharding->delete(['id IN(?,?)', $ids]);
-$ds3['sharding4'] = $sharding->getAll("select * from {$sharding->table} where id IN(?,?)", $ids);
+// 也可以使用 db()->getAll(), 但需要指定分表 table, section
+$ds3['sharding4'] = db()->getAll("select * from {$sharding->table} where id IN(?,?)", $ids, false, $sharding->section);
 var_dump($ds3);
 
 /**
  * 分表事务
  */
 $shardingTransaction = $sharding->beginTransaction();
-$ds4['sharding_trans'] = $shardingTransaction->getOne("select * from {$sharding->table} order by id desc");
+$ds4['sharding_trans'] = $shardingTransaction->selectOne('*', ['1=1'], $sharding->table, 'id DESC');
 $ds4['sharding_update'] = $shardingTransaction->query("update {$sharding->table} set `order` = `order` + 1 where id=:id", ['id' => $ds4['sharding_trans']['id']]);
-$ds4['sharding_trans2'] = $shardingTransaction->getOne("select * from {$sharding->table} where id=:id", ['id' => $ds4['sharding_trans']['id']]);
-$shardingTransaction->rollBack();
-$ds4['sharding_trans3'] = $shardingTransaction->getOne("select * from {$sharding->table} where id=:id", ['id' => $ds4['sharding_trans']['id']]);
+$ds4['sharding_trans2'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']], $sharding->table);
+$ds4['sharding_trans_rollback'] = $shardingTransaction->rollBack();
+$ds4['sharding_trans3'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']], $sharding->table);
 var_dump($ds4);

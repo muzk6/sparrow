@@ -175,6 +175,41 @@ class PDOEngine
     }
 
     /**
+     * 查询一行记录
+     * @param string $columns 查询字段
+     * @param array $where WHERE 条件
+     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
+     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param string $table 表名
+     * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
+     * @param bool $useMaster 是否使用主库
+     * @param string $section 数据库区域，为空时自动切换为 default
+     * @return array|false 无记录时返回 false
+     */
+    public function selectOne(string $columns, array $where, string $table, string $orderBy = '', bool $useMaster = false, string $section = '')
+    {
+        return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectOne($columns, $where, $table, $orderBy);
+    }
+
+    /**
+     * 查询多行记录
+     * @param string $columns 查询字段
+     * @param array $where WHERE 条件
+     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
+     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param string $table 表名
+     * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
+     * @param array $limit LIMIT 语法 e.g. LIMIT 25 即 [25]; LIMIT 0, 25 即 [0, 25]
+     * @param bool $useMaster 是否使用主库
+     * @param string $section 数据库区域，为空时自动切换为 default
+     * @return array 无记录时返回空数组 []
+     */
+    public function selectAll(string $columns, array $where, string $table, string $orderBy = '', array $limit = [], bool $useMaster = false, string $section = '')
+    {
+        return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectAll($columns, $where, $table, $orderBy, $limit);
+    }
+
+    /**
      * 插入记录
      * @param array $data 要插入的数据 ['col0' => 1]
      * <p>value 使用原生 sql 时，应放在数组里 e.g. ['col0' => ['UNIX_TIMESTAMP()']]</p>

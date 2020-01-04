@@ -38,11 +38,11 @@ class AppPDO
     }
 
     /**
-     * 前置勾子
+     * 解析 SQL 语句
      * @param string $sql
      * @return string
      */
-    protected function before(string $sql)
+    protected function parseSql(string $sql)
     {
         $sql = trim($sql);
         if ($this->openLog) {
@@ -62,6 +62,7 @@ class AppPDO
         if (isset($where['0'])) { // 参数绑定方式
             $sqlWhere = $where[0];
             $binds = $where[1] ?? [];
+
         } else { // KV 的 AND 方式
             $placeholder = [];
             $binds = [];
@@ -71,6 +72,10 @@ class AppPDO
             }
 
             $sqlWhere = implode(' AND ', $placeholder);
+        }
+
+        if (empty($sqlWhere)) {
+            trigger_error('WHERE 条件不能为空');
         }
 
         return [$sqlWhere, $binds];
@@ -91,6 +96,26 @@ class AppPDO
         }
 
         return implode('.', $dbTable);
+    }
+
+    /**
+     * 解析 ORDER BY 语句
+     * @param string $orderBy
+     * @return string
+     */
+    protected function parseOrderBy(string $orderBy)
+    {
+        return $orderBy ? "ORDER BY {$orderBy}" : '';
+    }
+
+    /**
+     * 解析 LIMIT 语句
+     * @param array $limit
+     * @return string
+     */
+    protected function parseLimit(array $limit = [])
+    {
+        return $limit ? 'LIMIT ' . implode(',', $limit) : '';
     }
 
     /**
@@ -140,7 +165,7 @@ class AppPDO
      */
     public function getOne(string $sql, array $binds = [])
     {
-        $sql = $this->before($sql);
+        $sql = $this->parseSql($sql);
 
         if (!preg_match('/limit\s+(?:\d+|\d+\,\d)\s*;?$/i', $sql)) {
             $sql .= ' LIMIT 1';
@@ -160,7 +185,7 @@ class AppPDO
      */
     public function getAll(string $sql, array $binds = [])
     {
-        $sql = $this->before($sql);
+        $sql = $this->parseSql($sql);
 
         $statement = $this->connection->prepare($sql);
         $statement->execute($binds);
@@ -177,7 +202,7 @@ class AppPDO
      */
     public function query(string $sql, array $binds = [])
     {
-        $sql = $this->before($sql);
+        $sql = $this->parseSql($sql);
 
         $statement = $this->connection->prepare($sql);
         $statement->execute($binds);
@@ -187,6 +212,58 @@ class AppPDO
         } else {
             return $statement->rowCount();
         }
+    }
+
+    /**
+     * 查询一行记录
+     * @param string $columns 查询字段
+     * @param array $where WHERE 条件
+     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
+     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param string $table 表名
+     * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
+     * @return array|false 无记录时返回 false
+     */
+    public function selectOne(string $columns, array $where, string $table, string $orderBy = '')
+    {
+        list($sqlWhere, $binds) = $this->parseWhere($where);
+        if (empty($sqlWhere)) {
+            return false;
+        }
+
+        $table = $this->parseTable($table);
+        $orderBy = $this->parseOrderBy($orderBy);
+        $sql = "SELECT {$columns} FROM {$table} WHERE {$sqlWhere} {$orderBy}";
+        $result = $this->getOne($sql, $binds);
+
+        return $result;
+    }
+
+    /**
+     * 查询多行记录
+     * @param string $columns 查询字段
+     * @param array $where WHERE 条件
+     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
+     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param string $table 表名
+     * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
+     * @param array $limit LIMIT 语法 e.g. LIMIT 25 即 [25]; LIMIT 0, 25 即 [0, 25]
+     * @return array 无记录时返回空数组 []
+     */
+    public function selectAll(string $columns, array $where, string $table, string $orderBy = '', array $limit = [])
+    {
+        list($sqlWhere, $binds) = $this->parseWhere($where);
+        if (empty($sqlWhere)) {
+            return [];
+        }
+
+        $table = $this->parseTable($table);
+        $orderBy = $this->parseOrderBy($orderBy);
+        $limit = $this->parseLimit($limit);
+        $sql = "SELECT {$columns} FROM {$table} WHERE {$sqlWhere} {$orderBy} {$limit}";
+        $result = $this->getAll($sql, $binds);
+
+        return $result;
     }
 
     /**
@@ -232,8 +309,6 @@ class AppPDO
         $sqlIgnore = $ignore ? ' IGNORE' : '';
         $table = $this->parseTable($table);
         $sql = "INSERT{$sqlIgnore} INTO {$table}({$sqlColumn}) VALUES {$sqlValues}";
-
-        $sql = $this->before($sql);
         $result = $this->query($sql, $binds);
 
         return $result;
@@ -251,7 +326,8 @@ class AppPDO
      */
     public function update(array $data, array $where, string $table)
     {
-        if (empty($where)) {
+        list($sqlWhere, $binds) = $this->parseWhere($where);
+        if (empty($sqlWhere)) {
             return 0;
         }
 
@@ -267,11 +343,8 @@ class AppPDO
         }
         $sqlSet = implode(',', $set);
 
-        list($sqlWhere, $binds) = $this->parseWhere($where);
         $table = $this->parseTable($table);
         $sql = "UPDATE {$table} SET {$sqlSet} WHERE {$sqlWhere}";
-
-        $sql = $this->before($sql);
         $result = $this->query($sql, $binds);
 
         return $result;
@@ -287,15 +360,13 @@ class AppPDO
      */
     public function delete(array $where, string $table)
     {
-        if (empty($where)) {
+        list($sqlWhere, $binds) = $this->parseWhere($where);
+        if (empty($sqlWhere)) {
             return 0;
         }
 
-        list($sqlWhere, $binds) = $this->parseWhere($where);
         $table = $this->parseTable($table);
         $sql = "DELETE FROM {$table} WHERE {$sqlWhere}";
-
-        $sql = $this->before($sql);
         $result = $this->query($sql, $binds);
 
         return $result;
