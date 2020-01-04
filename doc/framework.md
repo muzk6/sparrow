@@ -243,57 +243,8 @@ f | float
 
 ## 数据库查询
 
-配置文件 `config/dev/database.php`
-
-### 默认分区
-
-```php
-$sqlAll = "select * from test order by id desc limit 2";
-$sqlOne = "select * from test where id=:id";
-$ds['all'] = db()->selectAll($sqlAll, []);
-$ds['insert'] = db()->insert("insert into test(name, `order`) values(?, ?)", ['tom_04', 3]);
-$ds['one'] = db()->selectOne($sqlOne, ['id' => $ds['insert']]);
-$ds['update'] = db()->update('update test set `order`=`order`+1 where id=:id', ['id' => $ds['insert']]);
-$ds['one2'] = db()->selectOne($sqlOne, ['id' => $ds['insert']]);
-$ds['delete'] = db()->delete('delete from test where id=:id', ['id' => $ds['insert']]);
-$ds['all2'] = db()->selectAll($sqlAll);
-$ds['one3'] = db()->selectOne('select * from test where id=:id', ['id' => -1]);
-var_dump($ds);
-```
-
-### 默认分区事务
-
-```php
-$transaction = db()->beginTransaction();
-$ds2['faker_id'] = $transaction->insert('insert into test(name, `order`) values (?,?)', ['faker', 99]);
-$ds2['faker'] = $transaction->selectOne($sqlOne, ['id' => $ds2['faker_id']]);
-$transaction->rollBack();
-$ds2['faker2'] = $transaction->selectOne($sqlOne, ['id' => $ds2['faker_id']]);
-var_dump($ds2);
-```
-
-### 扩展分区
-
-分表逻辑 `config/sharding.php`
-
-```php
-$sharding = db()->shard('test', 1010);
-$ds3['sharding'] = $sharding->selectOne("select * from {$sharding->table} where id=:id", ['id' => 122]);
-var_dump($ds3);
-```
-
-### 扩展分区事务
-
-```php
-$sharding = db()->shard('test', 1010);
-$shardingTransaction = $sharding->beginTransaction();
-$ds4['sharding_faker'] = $shardingTransaction->selectOne("select * from {$sharding->table} order by id desc");
-$ds4['sharding_update'] = $shardingTransaction->update("update {$sharding->table} set `order`=`order`+1 where id=:id", ['id' => $ds4['sharding_faker']['id']]);
-$ds4['sharding_faker2'] = $shardingTransaction->selectOne("select * from {$sharding->table} where id=:id", ['id' => $ds4['sharding_faker']['id']]);
-$shardingTransaction->rollBack();
-$ds4['sharding_faker3'] = $shardingTransaction->selectOne("select * from {$sharding->table} where id=:id", ['id' => $ds4['sharding_faker']['id']]);
-var_dump($ds4);
-```
+- 配置文件 `config/dev/database.php`
+- 用例参考 `tests/feature/db.php`
 
 ## `helpers` 其它辅助函数用例
 
