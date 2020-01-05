@@ -62,7 +62,7 @@ class PDOSharding
      */
     public function beginTransaction()
     {
-        $appPDO = new AppPDO($this->getConnection(true), $this->openLog);
+        $appPDO = new AppPDO($this->getConnection(true), $this->openLog, $this->table);
         $appPDO->beginTransaction();
 
         return $appPDO;

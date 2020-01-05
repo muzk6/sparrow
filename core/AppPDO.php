@@ -20,12 +20,18 @@ class AppPDO
     /**
      * @var bool 日志开关
      */
-    protected $openLog = false;
+    protected $openLog;
 
-    public function __construct(PDO $connection, $openLog = false)
+    /**
+     * @var string 表名
+     */
+    protected $table;
+
+    public function __construct(PDO $connection, $openLog = false, string $table = '')
     {
         $this->connection = $connection;
         $this->openLog = $openLog;
+        $this->table = $table;
     }
 
     /**
@@ -88,7 +94,7 @@ class AppPDO
      */
     protected function parseTable(string $table)
     {
-        $dbTable = explode('.', $table);
+        $dbTable = explode('.', $table ?: $this->table);
         foreach ($dbTable as &$v) {
             if (strpos($v, '`') === false) {
                 $v = "`{$v}`";
@@ -167,14 +173,18 @@ class AppPDO
     {
         $sql = $this->parseSql($sql);
 
-        if (!preg_match('/limit\s+(?:\d+|\d+\,\d)\s*;?$/i', $sql)) {
-            $sql .= ' LIMIT 1';
+        try {
+            if (!preg_match('/limit\s+(?:\d+|\d+\,\d)\s*;?$/i', $sql)) {
+                $sql .= ' LIMIT 1';
+            }
+
+            $statement = $this->connection->prepare($sql);
+            $statement->execute($binds);
+
+            return $statement->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $PDOException) {
+            trigger_error($sql . '; ' . $PDOException->getMessage(), E_USER_ERROR);
         }
-
-        $statement = $this->connection->prepare($sql);
-        $statement->execute($binds);
-
-        return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -187,10 +197,14 @@ class AppPDO
     {
         $sql = $this->parseSql($sql);
 
-        $statement = $this->connection->prepare($sql);
-        $statement->execute($binds);
+        try {
+            $statement = $this->connection->prepare($sql);
+            $statement->execute($binds);
 
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $PDOException) {
+            trigger_error($sql . '; ' . $PDOException->getMessage(), E_USER_ERROR);
+        }
     }
 
     /**
@@ -204,13 +218,17 @@ class AppPDO
     {
         $sql = $this->parseSql($sql);
 
-        $statement = $this->connection->prepare($sql);
-        $statement->execute($binds);
+        try {
+            $statement = $this->connection->prepare($sql);
+            $statement->execute($binds);
 
-        if (preg_match('/^(insert|replace)\s/i', $sql)) {
-            return intval($this->connection->lastInsertId());
-        } else {
-            return $statement->rowCount();
+            if (preg_match('/^(insert|replace)\s/i', $sql)) {
+                return intval($this->connection->lastInsertId());
+            } else {
+                return $statement->rowCount();
+            }
+        } catch (\PDOException $PDOException) {
+            trigger_error($sql . '; ' . $PDOException->getMessage(), E_USER_ERROR);
         }
     }
 
@@ -220,11 +238,11 @@ class AppPDO
      * @param array $where WHERE 条件
      * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
      * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
-     * @param string $table 表名
+     * @param string $table 表名，分表情况下允许为空(自动切换为分表 $table)
      * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
      * @return array|false 无记录时返回 false
      */
-    public function selectOne(string $columns, array $where, string $table, string $orderBy = '')
+    public function selectOne(string $columns, array $where, string $table = '', string $orderBy = '')
     {
         list($sqlWhere, $binds) = $this->parseWhere($where);
         if (empty($sqlWhere)) {
@@ -245,12 +263,12 @@ class AppPDO
      * @param array $where WHERE 条件
      * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
      * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
-     * @param string $table 表名
+     * @param string $table 表名，分表情况下允许为空(自动切换为分表 $table)
      * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
      * @param array $limit LIMIT 语法 e.g. LIMIT 25 即 [25]; LIMIT 0, 25 即 [0, 25]
      * @return array 无记录时返回空数组 []
      */
-    public function selectAll(string $columns, array $where, string $table, string $orderBy = '', array $limit = [])
+    public function selectAll(string $columns, array $where, string $table = '', string $orderBy = '', array $limit = [])
     {
         list($sqlWhere, $binds) = $this->parseWhere($where);
         if (empty($sqlWhere)) {
@@ -271,11 +289,11 @@ class AppPDO
      * @param array $data 要插入的数据 ['col0' => 1]
      * <p>value 使用原生 sql 时，应放在数组里 e.g. ['col0' => ['UNIX_TIMESTAMP()']]</p>
      * <p>支持单条 [...]; 或多条 [[...], [...]]</p>
-     * @param string $table 表名
+     * @param string $table 表名，分表情况下允许为空(自动切换为分表 $table)
      * @param bool $ignore 是否使用 INSERT IGNORE 语法
      * @return int 返回最后插入的主键ID(批量插入时返回第1个ID), 失败时返回0
      */
-    public function insert(array $data, string $table, $ignore = false)
+    public function insert(array $data, string $table = '', $ignore = false)
     {
         // 单条插入时，一维转多维
         if (!isset($data[0])) {
@@ -321,10 +339,10 @@ class AppPDO
      * @param array $where WHERE 条件
      * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
      * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
-     * @param string $table 表名
+     * @param string $table 表名，分表情况下允许为空(自动切换为分表 $table)
      * @return int 被更新的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function update(array $data, array $where, string $table)
+    public function update(array $data, array $where, string $table = '')
     {
         list($sqlWhere, $binds) = $this->parseWhere($where);
         if (empty($sqlWhere)) {
@@ -355,10 +373,10 @@ class AppPDO
      * @param array $where WHERE 条件
      * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
      * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
-     * @param string $table 表名
+     * @param string $table 表名，分表情况下允许为空(自动切换为分表 $table)
      * @return int 被删除的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function delete(array $where, string $table)
+    public function delete(array $where, string $table = '')
     {
         list($sqlWhere, $binds) = $this->parseWhere($where);
         if (empty($sqlWhere)) {

@@ -54,9 +54,9 @@ var_dump($ds2);
 /**
  * 分表
  */
-$sharding = db()->shard('test', 1010);
+$sharding = db()->shard('test', 123);
 $ds3['sharding_insert_ky_many'] = $sharding->insert([['name' => 'Hello', 'order' => ['UNIX_TIMESTAMP()']], ['name' => 'Sparrow', 'order' => 10]]);
-// 使用 $sharding->selectAll(), 不用指定分表 table, section
+// 使用 $sharding->selectAll(), 不用指定分表 table, section; 其它非纯 SQL 方法同理
 $ds3['sharding2'] = $sharding->selectAll('*', ['1=1'], '', 'id DESC', [2]);
 $ids = array_column($ds3['sharding2'], 'id');
 $ds3['sharding_update'] = $sharding->update(['order' => 1], ['id IN(?,?)', $ids]);
@@ -71,9 +71,10 @@ var_dump($ds3);
  * 分表事务
  */
 $shardingTransaction = $sharding->beginTransaction();
-$ds4['sharding_trans'] = $shardingTransaction->selectOne('*', ['1=1'], $sharding->table, 'id DESC');
-$ds4['sharding_update'] = $shardingTransaction->query("update {$sharding->table} set `order` = `order` + 1 where id=:id", ['id' => $ds4['sharding_trans']['id']]);
-$ds4['sharding_trans2'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']], $sharding->table);
+// 分表事务对象，非纯 SQL 方法同理可以不指定 table, section
+$ds4['sharding_trans'] = $shardingTransaction->selectOne('*', ['1=1'], '', 'id DESC');
+$ds4['sharding_update'] = $shardingTransaction->update(['order' => ['`order`+1']], ['id' => $ds4['sharding_trans']['id']]);
+$ds4['sharding_trans2'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']]);
 $ds4['sharding_trans_rollback'] = $shardingTransaction->rollBack();
-$ds4['sharding_trans3'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']], $sharding->table);
+$ds4['sharding_trans3'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']]);
 var_dump($ds4);
