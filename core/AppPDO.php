@@ -65,26 +65,39 @@ class AppPDO
      */
     protected function parseWhere(array $where)
     {
-        if (isset($where['0'])) { // 参数绑定方式
-            $sqlWhere = $where[0];
-            $binds = $where[1] ?? [];
-
-        } else { // KV 的 AND 方式
-            $placeholder = [];
-            $binds = [];
-            foreach ($where as $k => $v) {
-                $placeholder[] = '`' . trim($k) . '`=?';
-                $binds[] = $v;
-            }
-
-            $sqlWhere = implode(' AND ', $placeholder);
+        // 把一维 参数绑定 ['col0=?', 1]; ['col0=?', [1]] 转为二维
+        if (isset($where[0]) && is_string($where[0])) {
+            $where = [$where];
         }
 
-        if (empty($sqlWhere)) {
+        $placeholder = [];
+        $binds = [];
+        foreach ($where as $k => $v) {
+            if (is_array($v)) { // 二维参数绑定
+                if (isset($v[0])) { // 占位符
+                    $placeholder[] = trim($v[0]);
+                }
+
+                if (isset($v[1])) { // 参数绑定
+                    if (is_array($v[1])) { // ['between', [1, 10]]
+                        $binds = array_merge($binds, $v[1]);
+                    } else { // ['between', 1, 10]
+                        $binds = array_merge($binds, array_slice($v, 1));
+                    }
+                }
+            } else { // 普通 AND KV
+                $placeholder[] = 'AND `' . trim($k) . '`=?';
+                $binds[] = $v;
+            }
+        }
+
+        $placeholder = implode(' ', $placeholder);
+        $placeholder = preg_replace('/^and\s/i', '', trim($placeholder));
+        if (empty($placeholder)) {
             trigger_error('WHERE 条件不能为空');
         }
 
-        return [$sqlWhere, $binds];
+        return [$placeholder, $binds];
     }
 
     /**
@@ -244,14 +257,14 @@ class AppPDO
      */
     public function selectOne(string $columns, array $where, string $table = '', string $orderBy = '')
     {
-        list($sqlWhere, $binds) = $this->parseWhere($where);
-        if (empty($sqlWhere)) {
+        list($placeholder, $binds) = $this->parseWhere($where);
+        if (empty($placeholder)) {
             return false;
         }
 
         $table = $this->parseTable($table);
         $orderBy = $this->parseOrderBy($orderBy);
-        $sql = "SELECT {$columns} FROM {$table} WHERE {$sqlWhere} {$orderBy}";
+        $sql = "SELECT {$columns} FROM {$table} WHERE {$placeholder} {$orderBy}";
         $result = $this->getOne($sql, $binds);
 
         return $result;
@@ -270,15 +283,15 @@ class AppPDO
      */
     public function selectAll(string $columns, array $where, string $table = '', string $orderBy = '', array $limit = [])
     {
-        list($sqlWhere, $binds) = $this->parseWhere($where);
-        if (empty($sqlWhere)) {
+        list($placeholder, $binds) = $this->parseWhere($where);
+        if (empty($placeholder)) {
             return [];
         }
 
         $table = $this->parseTable($table);
         $orderBy = $this->parseOrderBy($orderBy);
         $limit = $this->parseLimit($limit);
-        $sql = "SELECT {$columns} FROM {$table} WHERE {$sqlWhere} {$orderBy} {$limit}";
+        $sql = "SELECT {$columns} FROM {$table} WHERE {$placeholder} {$orderBy} {$limit}";
         $result = $this->getAll($sql, $binds);
 
         return $result;
@@ -311,8 +324,16 @@ class AppPDO
                     $columns[] = '`' . trim($k) . '`';
                 }
 
-                if (is_array($v) && isset($v[0])) { // 原生不绑定
-                    $rowValues[] = $v[0];
+                if (isset($v[0]) && is_array($v)) {
+                    if (isset($v[1])) { // 参数绑定
+                        if (is_array($v[1])) { // ['inc', [1]]
+                            $binds = array_merge($binds, $v[1]);
+                        } else { // ['inc', 1]
+                            $binds = array_merge($binds, array_slice($v, 1));
+                        }
+                    }
+
+                    $rowValues[] = $v[0]; // 不加引号
                 } else {
                     $rowValues[] = '?';
                     $binds[] = $v;
@@ -344,15 +365,24 @@ class AppPDO
      */
     public function update(array $data, array $where, string $table = '')
     {
-        list($sqlWhere, $binds) = $this->parseWhere($where);
-        if (empty($sqlWhere)) {
+        list($placeholder, $binds) = $this->parseWhere($where);
+        if (empty($placeholder)) {
             return 0;
         }
 
         $set = [];
+        $setBinds = [];
         foreach ($data as $k => $v) {
-            if (is_array($v) && isset($v[0])) { // 原生不加引号
-                $v = $v[0];
+            if (isset($v[0]) && is_array($v)) {
+                if (isset($v[1])) { // 参数绑定
+                    if (is_array($v[1])) { // ['inc', [1]]
+                        $setBinds = array_merge($setBinds, $v[1]);
+                    } else { // ['inc', 1]
+                        $setBinds = array_merge($setBinds, array_slice($v, 1));
+                    }
+                }
+
+                $v = $v[0]; // 不加引号
             } else {
                 $v = "'{$v}'";
             }
@@ -362,8 +392,8 @@ class AppPDO
         $sqlSet = implode(',', $set);
 
         $table = $this->parseTable($table);
-        $sql = "UPDATE {$table} SET {$sqlSet} WHERE {$sqlWhere}";
-        $result = $this->query($sql, $binds);
+        $sql = "UPDATE {$table} SET {$sqlSet} WHERE {$placeholder}";
+        $result = $this->query($sql, array_merge($setBinds, $binds));
 
         return $result;
     }
@@ -378,13 +408,13 @@ class AppPDO
      */
     public function delete(array $where, string $table = '')
     {
-        list($sqlWhere, $binds) = $this->parseWhere($where);
-        if (empty($sqlWhere)) {
+        list($placeholder, $binds) = $this->parseWhere($where);
+        if (empty($placeholder)) {
             return 0;
         }
 
         $table = $this->parseTable($table);
-        $sql = "DELETE FROM {$table} WHERE {$sqlWhere}";
+        $sql = "DELETE FROM {$table} WHERE {$placeholder}";
         $result = $this->query($sql, $binds);
 
         return $result;

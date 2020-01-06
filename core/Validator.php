@@ -483,7 +483,7 @@ class Validator
 
     /**
      * 自定义验证
-     * @param callable($value) $fn
+     * @param callable $fn 不需要 return, 使用 panic() 表示验证不通过
      * @return Validator
      */
     public function custom(callable $fn)

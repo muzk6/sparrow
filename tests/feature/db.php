@@ -6,75 +6,95 @@
 
 require_once __DIR__ . '/../../init.php';
 
-$sqlAll = 'select * from test order by id desc limit 2';
-$sqlOne = 'select * from test where id=:id';
+/**
+ * INSERT
+ */
+$ds['insert_sql'] = db()->query("insert into test(name, `order`) values(?, ?)", ['sparrow_1', 1]);
+// insert KV, insert ignore
+$ds['insert_kv'] = db()->insert(['name' => 'sparrow_2', 'order' => 2], 'test', true);
+// insert ignore
+$ds['insert_kv2'] = db()->insert(['name' => ['?', 'sparrow_3'], 'order' => ['UNIX_TIMESTAMP()']], 'test', true);
+// 批量插入
+$ds['insert_kv_many'] = db()->insert([['name' => 'sparrow_m1', 'order' => 1], ['name' => 'sparrow_m2', 'order' => 2]], 'test');
 
 /**
- * 默认分区
+ * SELECT
  */
-$ds['all'] = db()->getAll($sqlAll);
-$ds['insert'] = db()->query("insert into test(name, `order`) values(?, ?)", ['tom_04', 3]);
-$ds['one'] = db()->getOne($sqlOne, ['id' => $ds['insert']]);
-$ds['update'] = db()->query('update test set `order`=`order`+1 where id=:id', ['id' => $ds['insert']]);
-$ds['one2'] = db()->selectOne('*', ['id' => $ds['insert']], 'test');
-$ds['delete'] = db()->query('delete from test where id=:id', ['id' => $ds['insert']]);
-$ds['all2'] = db()->selectAll('*', ['1=1'], 'test', 'id DESC', [2]);
-$ds['one3'] = db()->getOne($sqlOne, ['id' => -1]);
-// value 使用原生 sql 时，应放在数组里 e.g. 'order' => ['UNIX_TIMESTAMP()']
-$ds['insert_kv'] = db()->insert(['name' => 'kv', 'order' => ['UNIX_TIMESTAMP()']], 'test', true);
-$ds['one4'] = db()->getOne($sqlOne, ['id' => $ds['insert_kv']]);
-$ds['update_kv'] = db()->update(['name' => 'update_kv', 'order' => 5], ['id' => $ds['insert_kv']], 'test');
+$ds['select_sql'] = db()->getOne('select * from test where id=:id', ['id' => $ds['insert_sql']]);
+$ds['select_sql2'] = db()->getAll('select * from test where id in(?,?)', [$ds['insert_kv'], $ds['insert_kv']]);
+// WHERE 参数绑定，['col0=?', 1]
+$ds['select_one'] = db()->selectOne('*', ['id=?', $ds['insert_sql']], 'test');
+// WHERE 参数绑定，['col0=?', [1]]; 结果同上
+$ds['select_one2'] = db()->selectOne('*', ['id=?', [$ds['insert_sql']]], 'test');
+// WHERE and KV
+$ds['select_one3'] = db()->selectOne('*', ['name' => 'sparrow_2', 'order' => 2], 'test');
+// WHERE 二维参数绑定
+$ds['select_all'] = db()->selectAll('*', [['and name like ?', '%sparrow%'], ['or `order`=?', 1]], 'test');
+// KV 与 参数绑定 混合
+$ds['select_all2'] = db()->selectAll('*', ['order' => 2, ['and name like ?', '%sparrow%']], 'test');
+// 显式 WHERE 1
+$ds['select_all3'] = db()->selectAll('*', ['1'], 'test', 'id desc', [5]);
 
-// value 使用原生 sql 时，应放在数组里 e.g. 'order' => ['`order`+1']
-// update(), delete() 中的 $where 都支持使用参数绑定方式 e.g. ['id=?', [$ds['insert_kv']]]
-$ds['update_kv2'] = db()->update(['name' => 'update_kv', 'order' => ['`order`+1']], ['id=?', [$ds['insert_kv']]], 'test');
-$ds['one5'] = db()->getOne($sqlOne, ['id' => $ds['insert_kv']]);
+/**
+ * UPDATE
+ */
+$ds['update_sql'] = db()->query('update test set `order`=`order`+1 where id=:id', ['id' => $ds['insert_sql']]);
+// WHERE 参数绑定
+$ds['update_kv'] = db()->update(['name' => 'sparrow_u1'], ['id=?', $ds['insert_sql']], 'test');
+// SET 参数绑定；WHERE KV
+$ds['update_kv2'] = db()->update(['order' => ['`order`+?', 1], 'name' => ['?', 'update_kv']], ['id' => $ds['insert_sql']], 'test');
+$ds['update_kv3'] = db()->update(['order' => ['UNIX_TIMESTAMP()']], ['id' => $ds['insert_kv']], 'test');
+$ds['select_all4'] = db()->selectAll('*', ['id in(?,?)', $ds['insert_sql'], $ds['insert_kv']], 'test');
+
+/**
+ * DELETE
+ */
+$ds['delete_sql'] = db()->query('delete from test where id=?', [$ds['insert_sql']]);
 $ds['delete_kv'] = db()->delete(['id' => $ds['insert_kv']], 'test');
+$ids = implode(',', array_column($ds['select_all3'], 'id'));
+// 不参数绑定
+$ds['delete_all'] = db()->delete(["id in({$ids})"], 'test');
+$ds['select_all5'] = db()->selectAll('*', ["id in({$ids})"], 'test');
 var_dump($ds);
 
 /**
- * 默认分区事务
+ * 事务
  */
 $transaction = db()->beginTransaction();
-$ds2['trans_id'] = $transaction->query('insert into test(name, `order`) values (?,?)', ['trans', 99]);
-$ds2['trans'] = $transaction->getOne($sqlOne, ['id' => $ds2['trans_id']]);
-$ds2['trans_rollback'] = $transaction->rollBack();
-$ds2['trans2'] = $transaction->getOne($sqlOne, ['id' => $ds2['trans_id']]);
-
-$transaction = db()->beginTransaction();
-// 插入多条记录
-$ds2['trans_insert_kv_many'] = $transaction->insert([['name' => 'kv1', 'order' => 5], ['name' => 'kv2', 'order' => 6]], 'test', true);
+$ds2['trans_insert'] = $transaction->insert(['name' => 'trans', 'order' => 99], 'test');
+$ds2['trans_select'] = $transaction->selectOne('*', ['id=?', $ds2['trans_insert']], 'test');
 $ds2['trans_commit'] = $transaction->commit();
-$ds2['trans3'] = $transaction->getAll('select * from test order by id desc limit 2');
-$ids = array_column($ds2['trans3'], 'id');
-$ds2['trans_delete'] = $transaction->delete(['id IN(?,?)', $ids], 'test');
-$ds2['trans4'] = $transaction->getAll('select * from test where id IN(?,?)', $ids);
+$ds2['trans_delete'] = $transaction->delete(['id=?', $ds2['trans_insert']], 'test');
+$ds2['trans_select2'] = $transaction->selectOne('*', ['id=?', $ds2['trans_insert']], 'test');
 var_dump($ds2);
 
 /**
  * 分表
+ * 自动切换 table, section; 不需显式指定
  */
 $sharding = db()->shard('test', 123);
-$ds3['sharding_insert_ky_many'] = $sharding->insert([['name' => 'Hello', 'order' => ['UNIX_TIMESTAMP()']], ['name' => 'Sparrow', 'order' => 10]]);
+$ds3['sharding_insert'] = $sharding->insert([['name' => 'Hello', 'order' => ['UNIX_TIMESTAMP()']], ['name' => 'Sparrow', 'order' => 10]]);
 // 使用 $sharding->selectAll(), 不用指定分表 table, section; 其它非纯 SQL 方法同理
-$ds3['sharding2'] = $sharding->selectAll('*', ['1=1'], '', 'id DESC', [2]);
-$ids = array_column($ds3['sharding2'], 'id');
+$ds3['sharding_select'] = $sharding->selectAll('*', ['1'], '', 'id DESC', [2]);
+$ids = array_column($ds3['sharding_select'], 'id');
 $ds3['sharding_update'] = $sharding->update(['order' => 1], ['id IN(?,?)', $ids]);
 // 使用 $sharding->getAll(), 只需指定分表 table
-$ds3['sharding3'] = $sharding->getAll("select * from {$sharding->table} where id IN(?,?)", $ids);
+$ds3['sharding_select2'] = $sharding->getAll("select * from {$sharding->table} where id IN(?,?)", $ids);
 $ds3['sharding_delete'] = $sharding->delete(['id IN(?,?)', $ids]);
 // 也可以使用 db()->getAll(), 但需要指定分表 table, section
-$ds3['sharding4'] = db()->getAll("select * from {$sharding->table} where id IN(?,?)", $ids, false, $sharding->section);
+$ds3['sharding_select3'] = db()->getAll("select * from {$sharding->table} where id IN(?,?)", $ids, false, $sharding->section);
 var_dump($ds3);
 
 /**
  * 分表事务
+ * 自动切换 section, table; 不需显式指定
  */
 $shardingTransaction = $sharding->beginTransaction();
 // 分表事务对象，非纯 SQL 方法同理可以不指定 table, section
-$ds4['sharding_trans'] = $shardingTransaction->selectOne('*', ['1=1'], '', 'id DESC');
-$ds4['sharding_update'] = $shardingTransaction->update(['order' => ['`order`+1']], ['id' => $ds4['sharding_trans']['id']]);
-$ds4['sharding_trans2'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']]);
+$ds4['sharding_trans_insert'] = $shardingTransaction->insert(['name' => 'sharding_trans']);
+$ds4['sharding_trans_select'] = $shardingTransaction->selectOne('*', ['1'], '', 'id DESC');
+$ds4['sharding_trans_update'] = $shardingTransaction->update(['order' => ['`order`+1']], ['id' => $ds4['sharding_trans_select']['id']]);
+$ds4['sharding_trans_select2'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans_select']['id']]);
 $ds4['sharding_trans_rollback'] = $shardingTransaction->rollBack();
-$ds4['sharding_trans3'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans']['id']]);
+$ds4['sharding_trans_select3'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans_select']['id']]);
 var_dump($ds4);
