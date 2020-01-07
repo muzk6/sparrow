@@ -136,6 +136,26 @@ class PDOEngine
     }
 
     /**
+     * 解析 WHERE 语句，转为如下格式
+     * <p>有条件: ['col0=?', [1]]</p>
+     * <p>无条件: ['', []]</p>
+     * @param array|string $where
+     * <p>$where = ['name' => 'sparrow', 'order' => 1]</p>
+     * <p>$where = 'id=1'</p>
+     * <p>$where = ''</p>
+     * <p>$where = ['id=?', 1]</p>
+     * <p>或者 $where = ['id=?', [1]]</p>
+     * <p>$where = [ ['and id=?', 1], ['or `order`=?', 2] ]</p>
+     * <p>$where = [ ['and name=?', 's'] ]</p>
+     * <p>或者指定 key(用于覆盖同 key 条件) $where = [ 'name' => ['and name=?', 's'] ]</p>
+     * @return array
+     */
+    public function parseWhere($where)
+    {
+        return (new AppPDO(null, false))->parseWhere($where);
+    }
+
+    /**
      * 查询一行记录
      * @param string $sql 原生 sql 语句
      * @param array $binds 防注入的参数绑定
@@ -177,16 +197,14 @@ class PDOEngine
     /**
      * 查询一行记录
      * @param string $columns 查询字段
-     * @param array $where WHERE 条件
-     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
-     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param array|string $where 用法参考 \Core\AppPDO::parseWhere
      * @param string $table 表名
      * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
      * @param bool $useMaster 是否使用主库
      * @param string $section 数据库区域，为空时自动切换为 default
      * @return array|false 无记录时返回 false
      */
-    public function selectOne(string $columns, array $where, string $table, string $orderBy = '', bool $useMaster = false, string $section = '')
+    public function selectOne(string $columns, $where, string $table, string $orderBy = '', bool $useMaster = false, string $section = '')
     {
         return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectOne($columns, $where, $table, $orderBy);
     }
@@ -194,9 +212,7 @@ class PDOEngine
     /**
      * 查询多行记录
      * @param string $columns 查询字段
-     * @param array $where WHERE 条件
-     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
-     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param array|string $where 用法参考 \Core\AppPDO::parseWhere
      * @param string $table 表名
      * @param string $orderBy ORDER BY 语法 e.g. 'id DESC'
      * @param array $limit LIMIT 语法 e.g. LIMIT 25 即 [25]; LIMIT 0, 25 即 [0, 25]
@@ -204,7 +220,7 @@ class PDOEngine
      * @param string $section 数据库区域，为空时自动切换为 default
      * @return array 无记录时返回空数组 []
      */
-    public function selectAll(string $columns, array $where, string $table, string $orderBy = '', array $limit = [], bool $useMaster = false, string $section = '')
+    public function selectAll(string $columns, $where, string $table, string $orderBy = '', array $limit = [], bool $useMaster = false, string $section = '')
     {
         return (new AppPDO($this->getConnection($useMaster, $section), $this->conf['log']))->selectAll($columns, $where, $table, $orderBy, $limit);
     }
@@ -212,7 +228,7 @@ class PDOEngine
     /**
      * 插入记录
      * @param array $data 要插入的数据 ['col0' => 1]
-     * <p>value 使用原生 sql 时，应放在数组里 e.g. ['col0' => ['UNIX_TIMESTAMP()']]</p>
+     * <p>支持参数绑定的方式 ['col0' => ['UNIX_TIMESTAMP()']]</p>
      * <p>支持单条 [...]; 或多条 [[...], [...]]</p>
      * @param string $table 表名
      * @param bool $ignore 是否使用 INSERT IGNORE 语法
@@ -227,29 +243,25 @@ class PDOEngine
     /**
      * 更新记录
      * @param array $data 要更新的字段 ['col0' => 1]
-     * <p>value 使用原生 sql 时，应放在数组里 e.g. ['col0' => ['col0+1']]</p>
-     * @param array $where WHERE 条件
-     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
-     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * <p>支持参数绑定的方式 ['col0' => ['n+?', 1]]</p>
+     * @param array|string $where 用法参考 \Core\AppPDO::parseWhere
      * @param string $table 表名
      * @param string $section 数据库区域，为空时自动切换为 default
      * @return int 被更新的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function update(array $data, array $where, string $table, string $section = '')
+    public function update(array $data, $where, string $table, string $section = '')
     {
         return (new AppPDO($this->getConnection(true, $section), $this->conf['log']))->update($data, $where, $table);
     }
 
     /**
      * 删除记录
-     * @param array $where WHERE 条件
-     * <p>KV: $where = ['col0' => 'foo']; 仅支持 AND 逻辑</p>
-     * <p>参数绑定: $where = ['col0=?', ['foo']]; $where = ['col0=:c', ['c' => 'foo']]</p>
+     * @param array|string $where 用法参考 \Core\AppPDO::parseWhere
      * @param string $table 表名
      * @param string $section 数据库区域，为空时自动切换为 default
      * @return int 被删除的行数，否则返回0(<b>注意：不要随便用来当判断条件</b>)
      */
-    public function delete(array $where, string $table, string $section = '')
+    public function delete($where, string $table, string $section = '')
     {
         return (new AppPDO($this->getConnection(true, $section), $this->conf['log']))->delete($where, $table);
     }

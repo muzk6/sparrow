@@ -28,12 +28,29 @@ $ds['select_one'] = db()->selectOne('*', ['id=?', $ds['insert_sql']], 'test');
 $ds['select_one2'] = db()->selectOne('*', ['id=?', [$ds['insert_sql']]], 'test');
 // WHERE and KV
 $ds['select_one3'] = db()->selectOne('*', ['name' => 'sparrow_2', 'order' => 2], 'test');
-// WHERE 二维参数绑定
-$ds['select_all'] = db()->selectAll('*', [['and name like ?', '%sparrow%'], ['or `order`=?', 1]], 'test');
-// KV 与 参数绑定 混合
-$ds['select_all2'] = db()->selectAll('*', ['order' => 2, ['and name like ?', '%sparrow%']], 'test');
-// 显式 WHERE 1
-$ds['select_all3'] = db()->selectAll('*', ['1'], 'test', 'id desc', [5]);
+// 固定字符串条件
+$ds['select_one4'] = db()->selectOne('*', '`order`=2', 'test');
+// 无条件
+$ds['select_all3'] = db()->selectAll('*', '', 'test', 'id desc', [5]);
+
+// 查询业务示例
+$name = 'sparrow';
+$order = 2;
+$where = [];
+
+if ($name) {
+    $where[] = ['and name like ?', "%{$name}%"]; // 或者带上key $where['name'] 也可以，可用于覆盖同 key 的条件
+}
+
+if ($order) {
+    $where['order'] = $order;
+}
+// 直接使用 WHERE 组合条件
+$ds['select_where'] = db()->selectAll('*', $where, 'test');
+
+// 纯 SQL 时，需先 parseWhere() 转换成 holder, binds 形式
+$hBinds = db()->parseWhere($where);
+$ds['select_where2'] = db()->getAll("select * from test {$hBinds[0]}", $hBinds[1]);
 
 /**
  * UPDATE
@@ -75,7 +92,7 @@ var_dump($ds2);
 $sharding = db()->shard('test', 123);
 $ds3['sharding_insert'] = $sharding->insert([['name' => 'Hello', 'order' => ['UNIX_TIMESTAMP()']], ['name' => 'Sparrow', 'order' => 10]]);
 // 使用 $sharding->selectAll(), 不用指定分表 table, section; 其它非纯 SQL 方法同理
-$ds3['sharding_select'] = $sharding->selectAll('*', ['1'], '', 'id DESC', [2]);
+$ds3['sharding_select'] = $sharding->selectAll('*', '', '', 'id DESC', [2]);
 $ids = array_column($ds3['sharding_select'], 'id');
 $ds3['sharding_update'] = $sharding->update(['order' => 1], ['id IN(?,?)', $ids]);
 // 使用 $sharding->getAll(), 只需指定分表 table
@@ -92,7 +109,7 @@ var_dump($ds3);
 $shardingTransaction = $sharding->beginTransaction();
 // 分表事务对象，非纯 SQL 方法同理可以不指定 table, section
 $ds4['sharding_trans_insert'] = $shardingTransaction->insert(['name' => 'sharding_trans']);
-$ds4['sharding_trans_select'] = $shardingTransaction->selectOne('*', ['1'], '', 'id DESC');
+$ds4['sharding_trans_select'] = $shardingTransaction->selectOne('*', '', '', 'id DESC');
 $ds4['sharding_trans_update'] = $shardingTransaction->update(['order' => ['`order`+1']], ['id' => $ds4['sharding_trans_select']['id']]);
 $ds4['sharding_trans_select2'] = $shardingTransaction->selectOne('*', ['id' => $ds4['sharding_trans_select']['id']]);
 $ds4['sharding_trans_rollback'] = $shardingTransaction->rollBack();
