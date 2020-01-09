@@ -48,7 +48,7 @@ class PDOEngine
         $charsetDsn = $charset ? "charset={$charset}" : '';
 
         $pdo = new PDO("mysql:{$dbnameDsn}host={$host['host']};port={$host['port']};{$charsetDsn}", $user, $passwd,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false]
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
 
         return $pdo;
