@@ -1447,7 +1447,7 @@ function displayXHProfReport($xhprof_runs_impl, $url_params, $source,
             $run2);
 
     } else {
-        echo "No XHProf runs specified in the URL.";
+        echo 'XHProf. 点击下面的记录查看详情';
         if (method_exists($xhprof_runs_impl, 'list_runs')) {
             $xhprof_runs_impl->list_runs();
         }

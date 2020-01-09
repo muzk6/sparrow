@@ -155,19 +155,32 @@ class XHProfRuns_Default implements iXHProfRuns
     function list_runs()
     {
         if (is_dir($this->dir)) {
-            echo "<hr/>Existing runs:\n<ul>\n";
+            echo "<hr/>\n<ul>\n";
+
             $files = glob("{$this->dir}/*.{$this->suffix}");
-            usort($files, function ($a, $b) {
-                return filemtime($b) - filemtime($a);
-            });
+            $li = [];
+            $expire_days = config('xhprof.expire_days');
+            $expire = strtotime("-{$expire_days} days");
+
             foreach ($files as $file) {
+                $mtime = filemtime($file);
+                if ($mtime < $expire) {
+                    unlink($file); // 删除过期文件
+                    continue;
+                }
+
                 list($run, $source) = explode('.', basename($file));
-                echo '<li><a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
+                list($url, $cost_time) = explode(';', xhprof_decode_run_name($run)); // 格式: [url, cost_time]
+
+                $li[intval($cost_time * 1e6)] = '<li>' . round($cost_time * 1e3, 3) . 'ms <a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
                     . '?run=' . htmlentities($run) . '&source='
                     . htmlentities($source) . '">'
-                    . htmlentities(xhprof_decode_run_name($run)) . "</a><small> "
-                    . date("Y-m-d H:i:s", filemtime($file)) . "</small></li>\n";
+                    . htmlentities($url) . "</a><small> "
+                    . date("Y-m-d H:i:s", $mtime) . "</small></li>\n";
             }
+
+            krsort($li, SORT_NUMERIC);
+            echo implode("\n", $li);
             echo "</ul>\n";
         }
     }

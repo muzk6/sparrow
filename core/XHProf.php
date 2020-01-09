@@ -84,11 +84,13 @@ class XHProf
         } else {
             $url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         }
-        $url = rtrim(str_replace(['+', '/'], ['-', '_'], base64_encode($url)), '=');
+
+        $name = "{$url};{$costTime}";
+        $name = rtrim(str_replace(['+', '/'], ['-', '_'], base64_encode($name)), '=');
 
         $data = tideways_xhprof_disable();
         file_put_contents(
-            sprintf('%s/%s.%s.xhprof', $path, $url, uniqid()),
+            sprintf('%s/%s.%s.xhprof', $path, $name, uniqid()),
             serialize($data)
         );
     }
