@@ -1,0 +1,123 @@
+label {
+    cursor: pointer;
+}
+
+div.d {
+    padding-left: 2em;
+    border-left: 1px solid #ccc;
+    cursor: pointer;
+}
+
+div.d.hide {
+    height: 5px;
+    margin-top: 1px;
+    background-color: #ccc;
+}
+
+div.d.hide * {
+    display: none;
+}
+
+div.f.hide {
+    height: 5px;
+    margin-top: 1px;
+    background-color: #a1b7cc;
+    cursor: pointer;
+}
+
+div.f {
+    cursor: auto;
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+div.f.hide * {
+    display: none;
+}
+
+div.f.mark {
+    background-color: #ffeced;
+}
+
+div.f div {
+    padding: 5px 0;
+
+}
+
+div.f div.func {
+    flex-grow: 1;
+}
+
+div.f div.data {
+    flex-grow: 0;
+    width: 600px;
+    min-width: 600px;
+    max-width: 600px;
+}
+
+span {
+    display: inline-block;
+    line-height: 1.1em;
+    vertical-align: bottom;
+}
+
+span.short {
+    max-height: 1.1em;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+span.name {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+span.params {
+    color: #468b5e;
+    cursor: pointer;
+}
+
+span.return {
+    color: #8a2200;
+    cursor: pointer;
+}
+
+span.file,
+span.time,
+span.memorydiff,
+span.timediff {
+    overflow: hidden;
+    width: 150px;
+    text-align: right;
+    white-space: nowrap;
+}
+
+span.time {
+    cursor: pointer;
+}
+
+div.header {
+    width: 100%;
+    font-weight: bold;
+    background-color: antiquewhite;
+}
+
+form.load {
+    width: 50%;
+    float: left;
+}
+
+select {
+    width: 80%;
+}
+
+ul.help {
+    margin: 0;
+    width: 45%;
+    float: left;
+}
+
+form.options {
+    clear: both;
+}

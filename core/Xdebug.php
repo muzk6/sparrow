@@ -135,30 +135,27 @@ class Xdebug
         ini_set('xdebug.var_display_max_children', $this->maxChildren);
         $this->initDisplaySetting();
 
-        ini_set('xdebug.trace_format', 0);
+        ini_set('xdebug.trace_format', 1);
         ini_set('xdebug.collect_return', 1);
         ini_set('xdebug.collect_params', 4);
         ini_set('xdebug.collect_assignments', 1);
         ini_set('xdebug.show_mem_delta', 1);
         ini_set('xdebug.collect_includes', 1);
 
-        /** @var Auth $auth */
-        $auth = app(Auth::class);
-
         if (PHP_SAPI == 'cli') {
             $cmd = basename($_SERVER['argv'][0]);
-            $url = $cmd . '_' . implode('_', array_slice($_SERVER['argv'], 1));
+            $url = $cmd . ' ' . implode(' ', array_slice($_SERVER['argv'], 1));
         } else {
-            $url = isset($_SERVER['REQUEST_URI']) ? str_replace('/', '_', $_SERVER['REQUEST_URI']) : '';
+            $url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         }
 
-        $traceFilename = sprintf('%s.time:%s.xt:%s.uid:%s.url:%s',
+        $traceFilename = sprintf('%s.tag:%s uid:%s url:%s',
             uniqid(), // 目的是排序用，和保证文件名唯一
-            date('ymd_His'),
             $traceName,
-            $auth->getUserId(),
+            app(Auth::class)->getUserId(),
             $url
         );
+        $traceFilename = rtrim(str_replace(['+', '/'], ['-', '_'], base64_encode($traceFilename)), '=');
 
         register_shutdown_function(function () {
             xdebug_stop_trace();

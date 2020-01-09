@@ -57,11 +57,16 @@ PATH_PUBLIC | 网站入口路径
 PATH_DATA | 数据目录，需要有写权限
 PATH_LOG | 日志目录
 
+## 测试文件
+
+- `cli/test.php` 为 `php-cli` 测试脚本
+- `public/test.php` 为 `php-cgi` 测试入口
+
 ## 路由
 
 ### 默认值规则
 
-URI | Controller | Action
+URL | Controller | Action
 --- | --- | ---
 `/` | `IndexController` | `index()`
 `/foo` | `FooController` | `index()`
@@ -398,31 +403,6 @@ app(\Core\Auth::class)->logout(); // 退出登录
 - 队列名与 worker名 一致，便于定位队列名对应的 worker 文件；
 - 队列名与 worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
 
-## XDebug Trace
-> 跟踪调试日志
-
-以下任意方式可开启跟踪，日志位于`data/trace/`
-
-*注意：请确保对 `data/` 目录有写权限*
-
-### 跟踪 fpm
-
-- 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
-- 当前URI 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
-- Cookie 主动开启: `_xt=name0;`
-
-*注意：`URI`, `Cookie` 方式的前提必须先设置 `config/dev/whitelist.php` 白名单 `IP`*
-
-### 跟踪 rpc
-
-在调用 `->request()` 前先调用 `->trace()` 即可
-
-`app(\Core\Yar::class)->trace('rpc')->request('sparrow', 'bar', [1, 2, 3])`
-
-### 跟踪 cli
-
-`php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
-
 ## 邮件 email
 
 ### 依赖
@@ -447,10 +427,34 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 https://github.com/elastic/elasticsearch-php
 
-## 测试文件
+## XDebug Trace
+> 跟踪调试日志
 
-- `cli/test.php` 为 `php-cli` 测试脚本
-- `public/test.php` 为 `php-cgi` 测试入口
+以下任意方式可开启跟踪，日志位于`data/trace/`
+
+*注意：请确保对 `data/` 目录有写权限*
+
+### 跟踪 fpm
+
+- 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
+- 当前URL 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
+- Cookie 主动开启: `_xt=name0;`
+
+*注意：`URL`, `Cookie` 方式的前提必须先设置 `config/dev/whitelist.php` 白名单 `IP`*
+
+### 跟踪 rpc
+
+在调用 `->request()` 前先调用 `->trace()` 即可
+
+`app(\Core\Yar::class)->trace('rpc')->request('sparrow', 'bar', [1, 2, 3])`
+
+### 跟踪 cli
+
+`php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
+
+### 分析控制台 GUI
+
+配置独立域名(入口为 `private/xdebug/`)，直接访问
 
 ## XHProf
 
@@ -465,7 +469,7 @@ https://github.com/elastic/elasticsearch-php
 
 - 配置文件 `config/dev/xhprof.php`
     - `enable` 设置为 `true`, 即可记录大于指定耗时的请求
-- GUI 分析器，配置独立域名(入口为 `private/xhprof/xhprof_html`)，直接访问
+- GUI 分析器，配置独立域名(入口为 `private/xhprof/xhprof_html/`)，直接访问
 
 ## 维护模式
 > 开启维护模式，关闭网站访问入口
