@@ -59,24 +59,24 @@ class Crypto
         $keyb = md5(substr($key, 16, 16));
         $keyc = $safeLength ? ($operation == 'DECODE' ? substr($str, 0, $safeLength) : substr(md5(microtime()), -$safeLength)) : '';
 
-        $cryptkey = $keya . md5($keya . $keyc);
-        $keyLength = strlen($cryptkey);
+        $cryptKey = $keya . md5($keya . $keyc);
+        $keyLength = strlen($cryptKey);
 
         $str = $operation == 'DECODE' ? base64_decode(substr($str, $safeLength)) : sprintf('%010d', $expiry ? $expiry + time() : 0) . substr(md5($str . $keyb), 0, 16) . $str;
         $strLength = strlen($str);
 
         $result = '';
         $box = range(0, 255);
-        $rndkey = [];
+        $rndKey = [];
 
         for ($i = 0; $i <= 255; $i++)
         {
-            $rndkey[$i] = ord($cryptkey[$i % $keyLength]);
+            $rndKey[$i] = ord($cryptKey[$i % $keyLength]);
         }
 
         for ($j = $i = 0; $i < 256; $i++)
         {
-            $j = ($j + $box[$i] + $rndkey[$i]) % 256;
+            $j = ($j + $box[$i] + $rndKey[$i]) % 256;
             $tmp = $box[$i];
             $box[$i] = $box[$j];
             $box[$j] = $tmp;

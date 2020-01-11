@@ -8,6 +8,7 @@
 - `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架
 - `composer install` 安装基础依赖
 - `rm -rf .git` 删除原版本库
+- 为安全起见，重置对应环境文件 `config/dev/app.php` 的 `secret_key` 密钥 
 
 ## 网站入口
 
