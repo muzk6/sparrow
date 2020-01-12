@@ -260,6 +260,9 @@ f | float
 - 依次搜索`config/app.php, config/dev/app.php`, 存在时返回第一个结果文件的内容，都不存在时返回`''`
 - `config(['app.lang' => 'en'])`设置 run-time 的配置
 
+添加新环境配置：
+复制目录 `config/dev` 及其配置文件，在 `config/env.php` 中添加多一个新环境分支
+
 #### `trans()` 多语言文本
 
 - `trans(10001000)`
