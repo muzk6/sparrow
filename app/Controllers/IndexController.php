@@ -17,6 +17,6 @@ class IndexController extends BaseController
      */
     public function index()
     {
-        return 'Hello Sparrow.';
+        return 'Hello Sparrow.<br><a href="/demo">>>>查看示例</a>';
     }
 }

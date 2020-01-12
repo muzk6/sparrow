@@ -8,15 +8,9 @@
 - `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架
 - `composer install` 安装基础依赖
 - `rm -rf .git` 删除原版本库
-- 为安全起见，重置对应环境文件 `config/dev/app.php` 的 `secret_key` 密钥 
-
-## 网站入口
-
-- `public/index.php` 前台入口
-- `public/admin.php` 后台入口
-- 可以自定义入口
-
-*注意：每个入口必须使用独立域名*
+- 为安全起见，重置对应环境文件 `config/dev/app.php` 的 `secret_key` 密钥
+- 为项目目录下的 `data` 目录加上**写**权限
+- 配置 http 网站入口，入口文件为 `public/index.php`
 
 ## 目录结构
 
@@ -222,7 +216,7 @@ $request = request(true); // 以并联方式验证
 }
 ```
 
-### `\Core\BaseController::input` 参数说明
+### `input()` 参数说明
 
 `'get.foo:i'` 中的类型转换`i`为整型，其它类型为：
 
