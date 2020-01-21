@@ -208,7 +208,9 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
     headers_sent() || header('Content-Type: application/json; Charset=UTF-8');
 
     $body = api_format($state, $data, $message, $code);
-    $body['d'] = (object)$body['d'];
+    if (empty($body['d'])) {
+        $body['d'] = new stdClass();
+    }
 
     return json_encode($body);
 }
