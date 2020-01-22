@@ -28,12 +28,25 @@ return [
             'namespace' => 'App\Controllers\\',
         ],
     ],
-    // 后台路由组
+    // 后台
     'admin' => [
         [
             // url: /secret, /secret/, /secret/index, /secret/index/
             'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#',
             'controller' => 'App\Controllers\Admin\IndexController',
         ]
+    ],
+    // 运维与开发
+    'ops' => [
+        [
+            // url: /
+            'pattern' => '#^/$#',
+            'action' => 'App\Controllers\OPS\IndexController@index',
+        ],
+        [
+            // url: /foo, /foo/, /foo/bar, /foo/bar/
+            'pattern' => '#^/(?<ct>[a-zA-Z_\d]+)/?(?<ac>[a-zA-Z_\d]+)?/?$#',
+            'namespace' => 'App\Controllers\OPS\\',
+        ],
     ],
 ];
