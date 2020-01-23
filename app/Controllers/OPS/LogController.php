@@ -61,23 +61,27 @@ class LogController extends BaseOPSController
             return redirect('/index.php');
         }
 
-        $offset = input('get.offset:i', 0);
+        $offset = input('get.offset:i', -1); // -1 为最后一行
         $limit = input('get.limit:i', 10);
 
         $fo = new \SplFileObject(PATH_DATA . "/log/{$file}", 'rb');
-        $fo->seek(PHP_INT_MAX);
 
-        $start = $fo->key() - ($offset + $limit);
-        $end = $start + $limit;
-        $buf = [];
-        for ($i = $start; $i < $end; $i++) {
-            $fo->seek($i);
-            $buf[] = $fo->current();
-            $fo->next();
+        if ($offset == -1) {
+            $fo->seek(PHP_INT_MAX);
+            $offset = $fo->key() - 1;
         }
 
-        $isJson = strpos($file, 'unhandled_') === false;
-        if ($isJson) {
+        $buf = [];
+        $i = 0;
+        while ($i++ < $limit) {
+            $fo->seek($offset--);
+            $buf[] = $fo->current();
+        }
+
+        $data['offset'] = $offset;
+        $buf = array_reverse($buf);
+
+        if (strpos($file, 'unhandled_') === false) {
             $content = [];
             foreach ($buf as $v) {
                 $content[] = print_r(json_decode($v, true), true);

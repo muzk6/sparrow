@@ -35,7 +35,7 @@
             return {
                 preData: '',
                 preStyle: `height: ${screen.height - 320}px; overflow: auto`,
-                offset: 0,
+                offset: -1,
                 limit: 10,
             }
         },
@@ -47,13 +47,13 @@
                 $.getJSON('/log/more', {file, offset: this.offset, limit: this.limit}, data => {
                     if (data.s) {
                         this.preData = data.d.content + "\n" + this.preData;
-                        if (this.offset == 0) {
+                        if (this.offset == -1) {
                             setTimeout(() => {
                                 this.$refs['preData'].scrollTop = this.$refs['preData'].scrollHeight;
                             }, 500)
                         }
 
-                        this.offset += this.limit;
+                        this.offset = data.d.offset;
                     }
                 });
             }
