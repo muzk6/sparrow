@@ -4,6 +4,8 @@
 namespace App\Controllers\OPS;
 
 
+use Core\AppException;
+
 class LogController extends BaseOPSController
 {
     /**
@@ -53,6 +55,7 @@ class LogController extends BaseOPSController
 
     /**
      * 更多日志内容，分页
+     * @throws AppException
      */
     public function more()
     {
@@ -61,11 +64,14 @@ class LogController extends BaseOPSController
             return redirect('/index.php');
         }
 
-        $offset = input('get.offset:i', -1); // -1 为最后一行
+        $offset = input('get.offset:i', -1); // -1.最后一行; -2.已经超过文件顶部，即没有内容
         $limit = input('get.limit:i', 10);
 
-        $fo = new \SplFileObject(PATH_DATA . "/log/{$file}", 'rb');
+        if ($offset == -2) {
+            panic('已经到顶啦');
+        }
 
+        $fo = new \SplFileObject(PATH_DATA . "/log/{$file}", 'rb');
         if ($offset == -1) {
             $fo->seek(PHP_INT_MAX);
             $offset = $fo->key() - 1;
@@ -74,11 +80,17 @@ class LogController extends BaseOPSController
         $buf = [];
         $i = 0;
         while ($i++ < $limit) {
-            $fo->seek($offset--);
+            if ($offset < 0) {
+                break;
+            }
+
+            $fo->seek($offset);
             $buf[] = $fo->current();
+
+            $offset--;
         }
 
-        $data['offset'] = $offset;
+        $data['offset'] = $offset < 0 ? -2 : $offset;
         $buf = array_reverse($buf);
 
         if (strpos($file, 'unhandled_') === false) {

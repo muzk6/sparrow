@@ -17,8 +17,15 @@
             <el-row type="flex" class="row-bg" justify="center">
                 <el-col :span="6">
                     <div class="grid-content bg-purple">
-                        <el-button @click="load" title="往前加载" type="primary" icon="el-icon-arrow-up"
-                                   circle></el-button>
+                        <el-popover
+                                placement="bottom"
+                                trigger="manual"
+                                :content="errMsg"
+                                v-model="showErr">
+                            <el-button slot="reference" @click="load" title="往前加载" type="primary"
+                                       icon="el-icon-arrow-up"
+                                       circle></el-button>
+                        </el-popover>
                     </div>
                 </el-col>
             </el-row>
@@ -33,6 +40,8 @@
         el: '#app',
         data: function () {
             return {
+                showErr: false,
+                errMsg: '',
                 preData: '',
                 preStyle: `height: ${screen.height - 320}px; overflow: auto`,
                 offset: -1,
@@ -54,6 +63,13 @@
                         }
 
                         this.offset = data.d.offset;
+                    } else {
+                        this.errMsg = data.m;
+                        this.showErr = true;
+                        this.offset = -2;
+                        setTimeout(() => {
+                            this.showErr = false;
+                        }, 1000);
                     }
                 });
             }
