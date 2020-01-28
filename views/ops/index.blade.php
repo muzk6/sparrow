@@ -1,4 +1,5 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
     @include('ops/inc_header')
@@ -17,10 +18,14 @@
                     <i class="el-icon-notebook-2"></i>
                     <span slot="title">日志</span>
                 </el-menu-item>
-                <el-menu-item index="/xdebug/index">
-                    <i class="el-icon-search"></i>
-                    <span slot="title">XDebug</span>
-                </el-menu-item>
+                <el-submenu>
+                    <template slot="title">
+                        <i class="el-icon-search"></i>
+                        <span slot="title">XDebug</span>
+                    </template>
+                    <el-menu-item index="/xdebug/index">跟踪文件</el-menu-item>
+                    <el-menu-item index="/xdebug/listenPage">监听</el-menu-item>
+                </el-submenu>
                 <el-menu-item index="xhprof/index">
                     <i class="el-icon-stopwatch"></i>
                     <span slot="title">XHProf</span>
@@ -35,21 +40,23 @@
 </div>
 </body>
 <script>
-    new Vue({
-        el: '#app',
-        data: function () {
-            return {
-                isCollapse: true,
-                contentLink: '/log/index',
-                iframeStyle: `margin:0;padding:0;height:${screen.height-40}px;width:100%;border:0`
-                // iframeStyle: `margin:0;padding:0;height:100%;width:100%;border:0`
+    var V_INSTANCE;
+    (() => {
+        V_INSTANCE = new Vue({
+            el: '#app',
+            data: function () {
+                return {
+                    isCollapse: true,
+                    contentLink: '/log/index',
+                    iframeStyle: `margin:0;padding:0;height:${screen.height - 180}px;width:100%;border:0`
+                }
+            },
+            methods: {
+                handleSelect: function (index) {
+                    this.contentLink = index;
+                }
             }
-        },
-        methods: {
-            handleSelect: function (index) {
-                this.contentLink = index;
-            }
-        }
-    })
+        })
+    })();
 </script>
 </html>

@@ -35,7 +35,7 @@ class XDebugParser
         }
     }
 
-    function parseLine($line)
+    public function parseLine($line)
     {
         $parts = explode("\t", $line);
         if (count($parts) < 5) {
@@ -85,7 +85,7 @@ class XDebugParser
         }
     }
 
-    function getTrace()
+    public function getTrace()
     {
         return $this->functions;
     }

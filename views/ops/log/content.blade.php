@@ -35,45 +35,47 @@
 </div>
 </body>
 <script>
-    let file = '{{ $file }}';
-    new Vue({
-        el: '#app',
-        data: function () {
-            return {
-                showErr: false,
-                errMsg: '',
-                preData: '',
-                preStyle: `height: ${screen.height - 320}px; overflow: auto`,
-                offset: -1,
-                limit: 10,
-            }
-        },
-        mounted() {
-            this.load();
-        },
-        methods: {
-            load() {
-                $.getJSON('/log/more', {file, offset: this.offset, limit: this.limit}, data => {
-                    if (data.s) {
-                        this.preData = data.d.content + "\n" + this.preData;
-                        if (this.offset == -1) {
-                            setTimeout(() => {
-                                this.$refs['preData'].scrollTop = this.$refs['preData'].scrollHeight;
-                            }, 500)
-                        }
+    (() => {
+        let file = '{{ $file }}';
+        new Vue({
+            el: '#app',
+            data: function () {
+                return {
+                    showErr: false,
+                    errMsg: '',
+                    preData: '',
+                    preStyle: `height: ${screen.height - 320}px; overflow: auto`,
+                    offset: -1,
+                    limit: 10,
+                }
+            },
+            mounted() {
+                this.load();
+            },
+            methods: {
+                load() {
+                    $.getJSON('/log/more', {file, offset: this.offset, limit: this.limit}, data => {
+                        if (data.s) {
+                            this.preData = data.d.content + "\n" + this.preData;
+                            if (this.offset == -1) {
+                                setTimeout(() => {
+                                    this.$refs['preData'].scrollTop = this.$refs['preData'].scrollHeight;
+                                }, 500)
+                            }
 
-                        this.offset = data.d.offset;
-                    } else {
-                        this.errMsg = data.m;
-                        this.showErr = true;
-                        this.offset = -2;
-                        setTimeout(() => {
-                            this.showErr = false;
-                        }, 1000);
-                    }
-                });
+                            this.offset = data.d.offset;
+                        } else {
+                            this.errMsg = data.m;
+                            this.showErr = true;
+                            this.offset = -2;
+                            setTimeout(() => {
+                                this.showErr = false;
+                            }, 1000);
+                        }
+                    });
+                }
             }
-        }
-    });
+        });
+    })();
 </script>
 </html>

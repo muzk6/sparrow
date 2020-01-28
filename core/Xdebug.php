@@ -149,13 +149,13 @@ class Xdebug
             $url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
         }
 
-        $traceFilename = sprintf('%s.tag:%s uid:%s url:%s',
-            uniqid(), // 目的是排序用，和保证文件名唯一
-            $traceName,
-            app(Auth::class)->getUserId(),
-            $url
-        );
-        $traceFilename = rtrim(str_replace(['+', '/'], ['-', '_'], base64_encode($traceFilename)), '=');
+        $traceData = [
+            'uuid' => uniqid(),
+            'trace' => $traceName,
+            'user_id' => app(Auth::class)->getUserId(),
+            'url' => $url,
+        ];
+        $traceFilename = rtrim(str_replace(['+', '/'], ['-', '_'], base64_encode(json_encode($traceData))), '=');
 
         register_shutdown_function(function () {
             xdebug_stop_trace();

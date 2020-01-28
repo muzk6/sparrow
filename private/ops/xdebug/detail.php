@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../init.php';
+require_once __DIR__ . '/../../../init.php';
 ?>
 <!DOCTYPE html>
 <html>
@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../init.php';
     <script src="res/script.js"></script>
 </head>
 <body>
-<div style="float: left;">
+<div style="float: left;word-break: break-all; width: 550px">
     <?php
     $file = $_GET['file'] ?? '';
     if ($file) {
@@ -21,7 +21,7 @@ require_once __DIR__ . '/../../init.php';
     ?>
 </div>
 <div style="float: right">
-    <a style="margin-left: 20px;" href="/index.php">Home</a>
+    <a style="margin-left: 20px;" href="/xdebug/index">>>>返回跟踪列表</a>
     <hr>
     <ul>
         <li>load a trace file from the dropdown</li>
@@ -46,7 +46,7 @@ require_once __DIR__ . '/../../init.php';
 <?php
 
 if (!empty($_GET['file'])) {
-    require_once 'res/XDebugParser.php';
+    require_once __DIR__ . '/res/XDebugParser.php';
     $parser = new XDebugParser($_GET['file']);
     $parser->parse();
     echo $parser->getTraceHTML();

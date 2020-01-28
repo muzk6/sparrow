@@ -8,7 +8,7 @@
     <el-container>
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">
-                <el-breadcrumb-item><a style="cursor: pointer" @click="location.reload()">日志文件</a></el-breadcrumb-item>
+                <el-breadcrumb-item><a style="cursor: pointer" @click="location.reload()">跟踪文件</a></el-breadcrumb-item>
             </el-breadcrumb>
         </el-header>
         <el-main>
@@ -21,8 +21,16 @@
                             label="时间">
                     </el-table-column>
                     <el-table-column
-                            prop="name"
-                            label="日志名">
+                            prop="trace"
+                            label="标签">
+                    </el-table-column>
+                    <el-table-column
+                            prop="user_id"
+                            label="用户ID">
+                    </el-table-column>
+                    <el-table-column
+                            prop="url"
+                            label="URL">
                     </el-table-column>
                     <el-table-column
                             label="操作"
@@ -51,7 +59,7 @@
             methods: {
                 handleClick: function (row) {
                     let name = encodeURIComponent(row.name);
-                    location.href = `/log/content?file=${name}`;
+                    location.href = `/xdebug/detail.php?file=${name}`;
                 }
             }
         })
