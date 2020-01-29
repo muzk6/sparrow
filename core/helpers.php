@@ -216,6 +216,30 @@ function api_json($state, array $data = [], string $message = '', int $code = 0)
 }
 
 /**
+ * 成功状态的 api_json()
+ * @param string $message 消息体
+ * @param int $code 消息码
+ * @param array $data 对象体
+ * @return string
+ */
+function api_success(string $message = '', int $code = 0, array $data = [])
+{
+    return api_json(true, $data, $message, $code);
+}
+
+/**
+ * 失败状态的 api_json()
+ * @param string $message 消息体
+ * @param int $code 消息码
+ * @param array $data 对象体
+ * @return string
+ */
+function api_error(string $message = '', int $code = 0, array $data = [])
+{
+    return api_json(false, $data, $message, $code);
+}
+
+/**
  * PDOEngine 对象
  * @return PDOEngine
  */

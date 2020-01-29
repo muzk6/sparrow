@@ -328,9 +328,54 @@ old('name', $data['name']);
 
 #### `api_format()`, `api_json()` 格式化为接口输出的内容结构
 
-- `api_format(true, ['foo' => 1])` 格式化为成功的内容结构
-- `api_format($exception)` 格式化异常对象为失败的内容结构
-- `api_json()` 与 `api_format()` 用法一样，区别是返回 json 字符串
+- `api_format(true, ['foo' => 1])` 格式化为成功的内容结构 array
+- `api_format($exception)` 格式化异常对象为失败的内容结构 array
+- `api_json()`, `api_format()` 用法一样，区别是返回 string-json
+- `api_success()`, `api_error()` 是 `api_json()` 的简写
+
+*成功提示，在控制器 action 里的等价写法如下：*
+
+```json
+{
+    "s": true,
+    "c": 0,
+    "m": "",
+    "d": {
+        "foo": 1
+    }
+}
+```
+
+```php
+public function successAciton()
+{
+    return ['foo' => 1]; // 只能返回消息体 d
+    return api_success('', 0, ['foo' => 1]); // 支持返回 c, m ,d; 一般用于方便返回纯 m, 例如 api_success('我是成功消息');
+    return api_json(true, ['foo' => 1]); // 支持返回 s, c, m ,d
+}
+```
+
+*错误提示等价写法如下：*
+
+```json
+{
+    "s": false,
+    "c": 0,
+    "m": "我是失败消息",
+    "d": {
+        "foo": 1
+    }
+}
+```
+
+```php
+public function errorAciton()
+{
+    panic('我是失败消息', ['foo' => 1]); // 直接抛出异常，不用 return, 如果使用错误码，错误码必须存在于 `lang/` 配置里
+    return api_error('我是失败消息', 0, ['foo' => 1]); // 支持返回 c, m ,d; 可自由指定错误码
+    return api_json(false, ['foo' => 1]); // 支持返回 s, c, m ,d
+}
+```
 
 #### `assign()`, `view()` 模板与变量
 

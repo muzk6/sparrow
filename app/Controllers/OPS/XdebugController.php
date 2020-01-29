@@ -88,7 +88,7 @@ class XdebugController extends BaseOPSController
         $traceConfFile = PATH_DATA . '/.tracerc';
         if ($off) {
             file_exists($traceConfFile) && unlink($traceConfFile);
-            return api_json(1, [], '监听关闭');
+            return api_success('监听关闭');
         } else {
             $conf = [
                 'url' => $url,
@@ -103,7 +103,7 @@ class XdebugController extends BaseOPSController
             file_put_contents($traceConfFile,
                 "<?php\nreturn " . var_export($conf, true) . ";\n");
 
-            return api_json(1, [], '监听开启');
+            return api_success('监听开启');
         }
     }
 }
