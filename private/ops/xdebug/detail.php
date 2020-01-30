@@ -11,14 +11,20 @@ require_once __DIR__ . '/../../../init.php';
 </head>
 <body>
 <div style="float: left;word-break: break-all; width: 550px">
-    <?php
-    $file = $_GET['file'] ?? '';
-    if ($file) {
-        $filename = base64_decode(str_replace(['-', '_'], ['+', '/'], rtrim($file, '.xt')));
-        $traceFilename = preg_replace('/^.*?\./', '', $filename);
-        echo $traceFilename;
-    }
-    ?>
+    <ul>
+        <?php
+        $file = $_GET['file'] ?? '';
+        if ($file) {
+            $filename = base64_decode(str_replace(['-', '_'], ['+', '/'], rtrim($file, '.xt')));
+            $traceFilename = preg_replace('/^.*?\./', '', $filename);
+            $traceData = json_decode($traceFilename, true);
+
+            echo "<li>URL: {$traceData['url']}</li>";
+            echo "<li>标签名: {$traceData['trace']}</li>";
+            echo "<li>用户ID: {$traceData['user_id']}</li>";
+        }
+        ?>
+    </ul>
 </div>
 <div style="float: right">
     <a style="margin-left: 20px;" href="/xdebug/index">>>>返回跟踪列表</a>
@@ -47,7 +53,7 @@ require_once __DIR__ . '/../../../init.php';
 
 if (!empty($_GET['file'])) {
     require_once __DIR__ . '/res/XDebugParser.php';
-    $parser = new XDebugParser($_GET['file']);
+    $parser = new XDebugParser(PATH_TRACE . "/{$_GET['file']}");
     $parser->parse();
     echo $parser->getTraceHTML();
 }

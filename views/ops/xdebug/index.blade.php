@@ -22,7 +22,7 @@
                     </el-table-column>
                     <el-table-column
                             prop="trace"
-                            label="标签">
+                            label="标签名">
                     </el-table-column>
                     <el-table-column
                             prop="user_id"

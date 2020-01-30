@@ -52,7 +52,7 @@ class XdebugController extends BaseOPSController
             'url' => '',
             'name' => '',
             'user_id' => '',
-            'expire' => 120,
+            'expire_second' => 120,
             'max_depth' => 0,
             'max_data' => 0,
             'max_children' => 0,
@@ -61,7 +61,16 @@ class XdebugController extends BaseOPSController
         $traceConfFile = PATH_DATA . '/.tracerc';
         if (file_exists($traceConfFile)) {
             $traceConf = array_merge($traceConf, include($traceConfFile));
+
+            // 已过期
+            if ($traceConf['expire'] <= time()) {
+                unlink($traceConfFile);
+                return $this->listenPage();
+            }
+
+            $traceConf['en'] = 1;
         } else {
+            $traceConf['en'] = 0;
             $traceConf['max_depth'] = intval(ini_get('xdebug.var_display_max_depth'));
             $traceConf['max_data'] = intval(ini_get('xdebug.var_display_max_data'));
             $traceConf['max_children'] = intval(ini_get('xdebug.var_display_max_children'));
@@ -79,7 +88,7 @@ class XdebugController extends BaseOPSController
         $url = validate('post.url')->setTitle('URL')->get();
         $name = validate('post.name')->required()->setTitle('标签名')->get();
         $userId = input('post.user_id');
-        $expire = input('post.expire:i');
+        $expireSecond = input('post.expire_second:i');
         $off = input('post.off:b');
         $maxDepth = input('post.max_depth:i');
         $maxData = input('post.max_data:i');
@@ -94,7 +103,8 @@ class XdebugController extends BaseOPSController
                 'url' => $url,
                 'name' => $name,
                 'user_id' => $userId,
-                'expire' => $expire,
+                'expire' => $expireSecond + TIME,
+                'expire_second' => $expireSecond,
                 'max_depth' => $maxDepth,
                 'max_data' => $maxData,
                 'max_children' => $maxChildren,

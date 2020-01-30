@@ -8,7 +8,7 @@
     <el-container>
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">
-                <el-breadcrumb-item><a style="cursor: pointer" @click="location.reload()">监听设置</a></el-breadcrumb-item>
+                <el-breadcrumb-item><a style="cursor: pointer" @click="location.reload()">监听设置({{ $traceConf['en'] ? '监听中，' . date('Y-m-d H:i:s', $traceConf['expire']) . ' 关闭' : '已关闭' }})</a></el-breadcrumb-item>
             </el-breadcrumb>
         </el-header>
         <el-main>
@@ -23,7 +23,7 @@
                     <el-input v-model="form.user_id"></el-input>
                 </el-form-item>
                 <el-form-item label="过期秒数">
-                    <el-input v-model="form.expire"></el-input>
+                    <el-input v-model="form.expire_second"></el-input>
                 </el-form-item>
                 <el-form-item label="Max Depth">
                     <el-input v-model="form.max_depth"></el-input>
