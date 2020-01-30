@@ -57,14 +57,15 @@
                 onSubmit: function () {
                     $.post('/xdebug/listen', this.form, (data) => {
                         if (data.s) {
-                            parent.V_INSTANCE.$message({
+                            top.V_INSTANCE.$message({
                                 showClose: true,
                                 message: data.m,
                                 type: 'success'
                             });
+                            top.V_INSTANCE.$refs['menu'].activeIndex = '/xdebug/index';
                             location.href = '/xdebug/index';
                         } else {
-                            parent.V_INSTANCE.$message({
+                            top.V_INSTANCE.$message({
                                 showClose: true,
                                 message: data.m,
                                 type: 'error'
@@ -73,6 +74,7 @@
                     }, 'json');
                 },
                 onCancel: function () {
+                    top.V_INSTANCE.$refs['menu'].activeIndex = '/xdebug/index';
                     location.href = '/xdebug/index';
                 }
             }
