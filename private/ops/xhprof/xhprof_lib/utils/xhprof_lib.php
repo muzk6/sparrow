@@ -19,7 +19,7 @@
 // Do not add any display specific code here.
 //
 
-require_once __DIR__ . '/../../../../init.php';
+require_once __DIR__ . '/../../../../../init.php';
 
 function xhprof_error($message)
 {

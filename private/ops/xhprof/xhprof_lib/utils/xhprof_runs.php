@@ -154,10 +154,16 @@ class XHProfRuns_Default implements iXHProfRuns
 
     function list_runs()
     {
+        $files = glob("{$this->dir}/*.{$this->suffix}");
+        if (empty($files)) {
+            echo '<hr>';
+            echo '暂无数据';
+            return;
+        }
+
         if (is_dir($this->dir)) {
             echo "<hr/>\n<ul>\n";
 
-            $files = glob("{$this->dir}/*.{$this->suffix}");
             $li = [];
             $expire_days = config('xhprof.expire_days');
             $expire = strtotime("-{$expire_days} days");

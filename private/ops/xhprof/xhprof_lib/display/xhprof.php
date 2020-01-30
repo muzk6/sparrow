@@ -513,7 +513,7 @@ function profiler_report($url_params,
 
     // set up the action links for operations that can be done on this report
     $links = [];
-    $links[] = '<a href="/">Home</a>';
+    $links[] = '<a href="/xhprof/xhprof_html/index.php">Home</a>';
     $links [] = xhprof_render_link("View Top Level $diff_text Report",
         $top_link_query_string);
 
@@ -539,7 +539,7 @@ function profiler_report($url_params,
 
     echo
         '<dl class=phprof_report_info>' .
-        '  <dt>' . $diff_text . ' Report</dt>' .
+        '  <dd>' . $diff_text . ' Report</dd>' .
         '  <dd>' . ($diff_mode ?
             $run1_txt . '<br><b>vs.</b><br>' . $run2_txt :
             $run1_txt) .

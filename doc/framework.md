@@ -12,6 +12,8 @@
 - 为项目目录下的 `data` 目录加上**写**权限
 - 配置 http 网站入口，入口文件为 `public/index.php`
 
+![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
+
 ## 目录结构
 
 Dir | Desc
@@ -30,7 +32,6 @@ lang | 国际化多语言
 private | 私有 Web 入口目录，配置的域名不应该被外网访问
 private/admin | Admin 后台入口
 private/rpc | RPC 入口目录
-private/xhprof | XHProf 的 Web GUI
 public | 公有 Web 入口目录
 tests | 单元测试
 vendor | Composer库
@@ -470,14 +471,21 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 https://github.com/elastic/elasticsearch-php
 
-## XDebug Trace
+## 运维与开发
+
+![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/ops.png)
+
+- 用于运维监控与开发调试，包括 日志、调试、性能分析
+- 配置时使用独立域名(例如 `ops.sparrow/`, 注意域名不要对外开放)，入口文件为 `private/ops/index.php`
+
+### XDebug Trace
 > 跟踪调试日志
 
 以下任意方式可开启跟踪，日志位于`data/trace/`
 
 *注意：请确保对 `data/` 目录有写权限*
 
-### 跟踪 fpm
+#### 跟踪 fpm
 
 - 预先配置监听: `php cli/trace.php --help`，`--help` 查看帮助
 - 当前URL 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
@@ -485,34 +493,29 @@ https://github.com/elastic/elasticsearch-php
 
 *注意：`URL`, `Cookie` 方式的前提必须先设置 `config/dev/whitelist.php` 白名单 `IP`*
 
-### 跟踪 rpc
+#### 跟踪 rpc
 
 在调用 `->request()` 前先调用 `->trace()` 即可
 
 `app(\Core\Yar::class)->trace('rpc')->request('sparrow', 'bar', [1, 2, 3])`
 
-### 跟踪 cli
+#### 跟踪 cli
 
 `php demo.php --trace` 在任何脚本命令后面加上参数 `--trace` 即可
 
-### 分析控制台 GUI
+### XHProf
 
-配置独立域名(入口为 `private/xdebug/`)，直接访问
-
-## XHProf
-
-### 依赖
+#### 依赖
 
 - [扩展 tideways_xhprof](https://github.com/tideways/php-xhprof-extension/releases)
 - GUI - View Full Callgraph 功能，需要安装 `graphviz`
     - Ubuntu: `sudo apt install graphviz`
     - CentOS: `yum install graphviz`
 
-### 使用
+#### 使用
 
 - 配置文件 `config/dev/xhprof.php`
-    - `enable` 设置为 `true`, 即可记录大于指定耗时的请求
-- GUI 分析器，配置独立域名(入口为 `private/xhprof/xhprof_html/`)，直接访问
+- `enable` 设置为 `true`, 即可记录大于指定耗时的请求
 
 ## 维护模式
 > 开启维护模式，关闭网站访问入口

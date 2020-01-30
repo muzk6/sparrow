@@ -26,7 +26,7 @@
                     <el-menu-item index="/xdebug/index">跟踪文件</el-menu-item>
                     <el-menu-item index="/xdebug/listenPage">监听</el-menu-item>
                 </el-submenu>
-                <el-menu-item index="xhprof/index">
+                <el-menu-item index="xhprof/xhprof_html/index.php">
                     <i class="el-icon-stopwatch"></i>
                     <span slot="title">XHProf</span>
                 </el-menu-item>
