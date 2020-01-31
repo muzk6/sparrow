@@ -44,7 +44,6 @@
         </el-main>
     </el-container>
 </div>
-</body>
 <script>
     (() => {
         let tableData = {!! json_encode($data) !!}
@@ -65,4 +64,5 @@
         })
     })();
 </script>
+</body>
 </html>

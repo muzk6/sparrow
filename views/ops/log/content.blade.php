@@ -33,7 +33,6 @@
         </el-main>
     </el-container>
 </div>
-</body>
 <script>
     (() => {
         let file = '{{ $file }}';
@@ -78,4 +77,5 @@
         });
     })();
 </script>
+</body>
 </html>

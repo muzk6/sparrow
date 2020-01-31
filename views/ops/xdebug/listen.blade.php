@@ -8,7 +8,9 @@
     <el-container>
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">
-                <el-breadcrumb-item><a style="cursor: pointer" @click="location.reload()">监听设置({{ $traceConf['en'] ? '监听中，' . date('Y-m-d H:i:s', $traceConf['expire']) . ' 关闭' : '已关闭' }})</a></el-breadcrumb-item>
+                <el-breadcrumb-item><a style="cursor: pointer"
+                                       @click="location.reload()">监听设置({{ $traceConf['en'] ? '监听中，' . date('Y-m-d H:i:s', $traceConf['expire']) . ' 关闭' : '已关闭' }}
+                        )</a></el-breadcrumb-item>
             </el-breadcrumb>
         </el-header>
         <el-main>
@@ -42,7 +44,6 @@
         </el-main>
     </el-container>
 </div>
-</body>
 <script>
     (() => {
         let form = {!! json_encode($traceConf) !!}
@@ -81,4 +82,5 @@
         })
     })();
 </script>
+</body>
 </html>

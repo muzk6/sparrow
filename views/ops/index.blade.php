@@ -38,7 +38,6 @@
         </el-main>
     </el-container>
 </div>
-</body>
 <script>
     var V_INSTANCE;
     (() => {
@@ -59,4 +58,5 @@
         })
     })();
 </script>
+</body>
 </html>
