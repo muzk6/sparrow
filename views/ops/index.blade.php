@@ -8,12 +8,7 @@
 <div id="app">
     <el-container>
         <el-aside width="200px">
-            <el-radio-group v-model="isCollapse" style="margin-bottom: 20px;">
-                <el-radio-button :label="false">展开</el-radio-button>
-                <el-radio-button :label="true">收起</el-radio-button>
-            </el-radio-group>
-            <el-menu ref="menu" default-active="/log/index" @select="handleSelect"
-                     :collapse="isCollapse">
+            <el-menu ref="menu" default-active="/log/index" @select="handleSelect">
                 <el-menu-item index="/log/index">
                     <i class="el-icon-notebook-2"></i>
                     <span slot="title">日志</span>
@@ -45,7 +40,6 @@
             el: '#app',
             data: function () {
                 return {
-                    isCollapse: true,
                     contentLink: '/log/index',
                     iframeStyle: `margin:0;padding:0;height:${screen.height - 180}px;width:100%;border:0`
                 }

@@ -14,11 +14,11 @@
             </el-breadcrumb>
         </el-header>
         <el-main>
-            <el-form ref="form" label-position="right" label-width="120px" :model="form">
-                <el-form-item label="URL">
+            <el-form @keyup.enter.native="onSubmit" ref="form" label-position="right" label-width="120px" :model="form">
+                <el-form-item label="URL" required>
                     <el-input v-model="form.url"></el-input>
                 </el-form-item>
-                <el-form-item label="标签名">
+                <el-form-item label="标签名" required>
                     <el-input v-model="form.name"></el-input>
                 </el-form-item>
                 <el-form-item label="用户ID" title="要监听的用户ID">
