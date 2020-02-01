@@ -162,7 +162,7 @@ class Request
         // 是否为空，取默认值
         if (isset($bucket[$fieldName]) && strlen(strval($bucket[$fieldName]))) {
             // 类型转换
-            $fieldValue = $this->convert(trim(strval($bucket[$fieldName])), $fieldType);
+            $fieldValue = trim(strval($bucket[$fieldName]));
         } else {
             $fieldValue = $default;
         }
@@ -172,7 +172,7 @@ class Request
             $fieldValue = $after($fieldValue, $fieldName);
         }
 
-        return [$fieldName, $fieldValue];
+        return [$fieldName, $fieldValue, $fieldType];
     }
 
     /**
@@ -193,9 +193,10 @@ class Request
      */
     public function input(string $field, $default = '', callable $after = null)
     {
-        list($fieldName, $fieldValue) = $this->getValue($field, $default, $after);
+        list($fieldName, $fieldValue, $fieldType) = $this->getValue($field, $default, $after);
+
         $this->request[$fieldName] = [
-            'value' => $fieldValue,
+            'value' => $this->convert($fieldValue, $fieldType),
         ];
 
         return $fieldValue;
@@ -210,11 +211,12 @@ class Request
      */
     public function validate(string $field, $default = '', callable $after = null)
     {
-        list($fieldName, $fieldValue) = $this->getValue($field, $default, $after);
+        list($fieldName, $fieldValue, $fieldType) = $this->getValue($field, $default, $after);
+        $newValue = $this->convert($fieldValue, $fieldType);
+        $validator = new Validator($fieldValue, $newValue);
 
-        $validator = new Validator($fieldValue);
         $this->request[$fieldName] = [
-            'value' => $fieldValue,
+            'value' => $newValue,
             'validator' => $validator,
         ];
 

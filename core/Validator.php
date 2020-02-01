@@ -16,32 +16,43 @@ class Validator
     protected $title;
 
     /**
-     * @var mixed 字段值
+     * @var mixed 字段原值
      */
-    protected $value;
+    protected $rawValue;
+
+    /**
+     * @var mixed 字段新值
+     */
+    protected $newValue;
 
     /**
      * @var array 规则回调集合
      */
     protected $rules = [];
 
-    public function __construct($value)
+    public function __construct($rawValue, $newValue)
     {
-        $this->value = $value;
+        $this->rawValue = $rawValue;
+        $this->newValue = $newValue;
     }
 
     /**
      * 验证并返回参数值
+     * @param string $title 用户角度的字段名
      * @return bool
      * @throws AppException
      */
-    public function get()
+    public function get(string $title = '')
     {
+        if ($title) {
+            $this->title = $title;
+        }
+
         foreach ($this->rules as $k => $v) {
             $v();
         }
 
-        return $this->getValue();
+        return $this->newValue;
     }
 
     /**
@@ -68,9 +79,9 @@ class Validator
      * 字段值
      * @return mixed
      */
-    protected function getValue()
+    protected function getRawValue()
     {
-        return $this->value;
+        return $this->rawValue;
     }
 
     /**
@@ -114,7 +125,7 @@ class Validator
     public function required(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            strlen(strval($this->getValue()))
+            strlen(strval($this->getRawValue()))
             || panic($message
                 ? $this->trans($message)
                 : [10001100, 'name' => $this->getTitle()]
@@ -130,7 +141,7 @@ class Validator
     public function numeric(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            is_numeric($this->getValue())
+            is_numeric($this->getRawValue())
             || panic($message
                 ? $this->trans($message)
                 : [10001101, 'name' => $this->getTitle()]
@@ -146,7 +157,7 @@ class Validator
     public function arr(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            is_array($this->getValue())
+            is_array($this->getRawValue())
             || panic($message
                 ? $this->trans($message)
                 : [10001102, 'name' => $this->getTitle()]
@@ -162,7 +173,7 @@ class Validator
     public function email(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            !!filter_var($this->getValue(), FILTER_VALIDATE_EMAIL)
+            !!filter_var($this->getRawValue(), FILTER_VALIDATE_EMAIL)
             || panic($message
                 ? $this->trans($message)
                 : [10001105, 'name' => $this->getTitle()]
@@ -178,7 +189,7 @@ class Validator
     public function url(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            !!filter_var($this->getValue(), FILTER_SANITIZE_URL)
+            !!filter_var($this->getRawValue(), FILTER_SANITIZE_URL)
             || panic($message
                 ? $this->trans($message)
                 : [10001106, 'name' => $this->getTitle()]
@@ -194,7 +205,7 @@ class Validator
     public function ip(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            !!filter_var($this->getValue(), FILTER_VALIDATE_IP)
+            !!filter_var($this->getRawValue(), FILTER_VALIDATE_IP)
             || panic($message
                 ? $this->trans($message)
                 : [10001107, 'name' => $this->getTitle()]
@@ -210,7 +221,7 @@ class Validator
     public function timestamp(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            strtotime(date('Y-m-d H:i:s', $this->getValue())) == $this->getValue()
+            strtotime(date('Y-m-d H:i:s', $this->getRawValue())) == $this->getRawValue()
             || panic($message
                 ? $this->trans($message)
                 : [10001108, 'name' => $this->getTitle()]
@@ -226,7 +237,7 @@ class Validator
     public function date(string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($message) {
-            !!strtotime($this->getValue())
+            !!strtotime($this->getRawValue())
             || panic($message
                 ? $this->trans($message)
                 : [10001109, 'name' => $this->getTitle()]
@@ -242,7 +253,7 @@ class Validator
     public function regex(string $pattern, string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($pattern, $message) {
-            !!preg_match($pattern, $this->getValue())
+            !!preg_match($pattern, $this->getRawValue())
             || panic($message
                 ? $this->trans($message)
                 : [10001110, 'name' => $this->getTitle()]
@@ -259,7 +270,7 @@ class Validator
     public function in(array $range, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($range, $message) {
-            in_array($this->getValue(), $range)
+            in_array($this->getRawValue(), $range)
             || panic($message
                 ? $this->trans($message)
                 : [10001111, 'name' => $this->getTitle(), 'range' => implode(',', $range)]
@@ -276,7 +287,7 @@ class Validator
     public function notIn(array $range, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($range, $message) {
-            !in_array($this->getValue(), $range)
+            !in_array($this->getRawValue(), $range)
             || panic($message
                 ? $this->trans($message)
                 : [10001112, 'name' => $this->getTitle(),
@@ -296,7 +307,7 @@ class Validator
     public function between(int $left, int $right, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($left, $right, $message) {
-            (($this->getValue() >= $left) && ($this->getValue() <= $right))
+            (($this->getRawValue() >= $left) && ($this->getRawValue() <= $right))
             || panic($message
                 ? $this->trans($message)
                 : [10001113, 'name' => $this->getTitle(),
@@ -317,7 +328,7 @@ class Validator
     public function notBetween(int $left, int $right, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($left, $right, $message) {
-            (($this->getValue() >= $left) && ($this->getValue() <= $right))
+            (($this->getRawValue() >= $left) && ($this->getRawValue() <= $right))
             && panic($message
                 ? $this->trans($message)
                 : [10001114, 'name' => $this->getTitle(),
@@ -337,7 +348,7 @@ class Validator
     public function max(int $max, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($max, $message) {
-            $this->getValue() <= $max
+            $this->getRawValue() <= $max
             || panic($message
                 ? $this->trans($message)
                 : [10001115, 'name' => $this->getTitle(), 'max' => $max]
@@ -354,7 +365,7 @@ class Validator
     public function min(int $min, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($min, $message) {
-            $this->getValue() >= $min
+            $this->getRawValue() >= $min
             || panic($message
                 ? $this->trans($message)
                 : [10001116, 'name' => $this->getTitle(), 'min' => $min]
@@ -371,7 +382,7 @@ class Validator
     public function length(int $len, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($len, $message) {
-            strlen($this->getValue()) == $len
+            strlen($this->getRawValue()) == $len
             || panic($message
                 ? $this->trans($message)
                 : [10001117, 'name' => $this->getTitle(), 'len' => $len]
@@ -388,7 +399,7 @@ class Validator
     public function confirm(string $fieldName, string $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($fieldName, $message) {
-            $this->getValue() == (isset($_REQUEST[$fieldName]) ? trim($_REQUEST[$fieldName]) : '')
+            $this->getRawValue() == (isset($_REQUEST[$fieldName]) ? trim($_REQUEST[$fieldName]) : '')
             || panic($message
                 ? $this->trans($message)
                 : [10001118, 'name' => $this->getTitle()]
@@ -405,7 +416,7 @@ class Validator
     public function gt(int $num, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($num, $message) {
-            $this->getValue() > $num
+            $this->getRawValue() > $num
             || panic($message
                 ? $this->trans($message)
                 : [10001119, 'name' => $this->getTitle(), 'num' => $num]
@@ -422,7 +433,7 @@ class Validator
     public function lt(int $num, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($num, $message) {
-            $this->getValue() < $num
+            $this->getRawValue() < $num
             || panic($message
                 ? $this->trans($message)
                 : [10001120, 'name' => $this->getTitle(), 'num' => $num]
@@ -439,7 +450,7 @@ class Validator
     public function gte(int $num, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($num, $message) {
-            $this->getValue() >= $num
+            $this->getRawValue() >= $num
             || panic($message
                 ? $this->trans($message)
                 : [10001121, 'name' => $this->getTitle(), 'num' => $num]
@@ -456,7 +467,7 @@ class Validator
     public function lte(int $num, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($num, $message) {
-            $this->getValue() <= $num
+            $this->getRawValue() <= $num
             || panic($message
                 ? $this->trans($message)
                 : [10001122, 'name' => $this->getTitle(), 'num' => $num]
@@ -473,7 +484,7 @@ class Validator
     public function eq(string $val, $message = '')
     {
         return $this->addRule(__FUNCTION__, function () use ($val, $message) {
-            $this->getValue() == $val
+            $this->getRawValue() == $val
             || panic($message
                 ? $this->trans($message)
                 : [10001123, 'name' => $this->getTitle(), 'val' => $val]
@@ -489,7 +500,7 @@ class Validator
     public function custom(callable $fn)
     {
         return $this->addRule(__FUNCTION__, function () use ($fn) {
-            $fn($this->getValue());
+            $fn($this->getRawValue());
         });
     }
 
