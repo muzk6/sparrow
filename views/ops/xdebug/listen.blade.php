@@ -9,12 +9,11 @@
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">
                 <el-breadcrumb-item><a style="cursor: pointer"
-                                       @click="location.reload()">监听设置({{ $traceConf['en'] ? '监听中，' . date('Y-m-d H:i:s', $traceConf['expire']) . ' 关闭' : '已关闭' }}
-                        )</a></el-breadcrumb-item>
+                                       @click="location.reload()">监听设置({{ $traceConf['en'] ? '监听中，' . date('Y-m-d H:i:s', $traceConf['expire']) . ' 关闭' : '已关闭' }})</a></el-breadcrumb-item>
             </el-breadcrumb>
         </el-header>
         <el-main>
-            <el-form @keyup.enter.native="onSubmit" ref="form" label-position="right" label-width="120px" :model="form">
+            <el-form @keyup.enter.native="onSubmit" ref="form" label-position="right" label-width="130px" :model="form">
                 <el-form-item label="URL" required>
                     <el-input v-model="form.url"></el-input>
                 </el-form-item>
@@ -24,7 +23,7 @@
                 <el-form-item label="用户ID" title="要监听的用户ID">
                     <el-input v-model="form.user_id"></el-input>
                 </el-form-item>
-                <el-form-item label="过期秒数">
+                <el-form-item label="过期秒数(0即关闭)">
                     <el-input v-model="form.expire_second"></el-input>
                 </el-form-item>
                 <el-form-item label="Max Depth">

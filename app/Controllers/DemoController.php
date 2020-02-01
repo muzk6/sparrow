@@ -51,7 +51,7 @@ class DemoController extends BaseController
 
             // 部分验证，一个一个获取
             $firstName = input('post.first_name');
-            $lastName = validate('last_name')->required()->setTitle('名字')->get();
+            $lastName = validate('last_name')->required()->get('名字');
 
             // 部分验证，全部获取
             $request = request();
@@ -95,7 +95,7 @@ class DemoController extends BaseController
         try {
             csrf_check();
 
-            $userId = validate('user_id:i')->gt(0)->setTitle('用户ID ')->get();
+            $userId = validate('user_id:i')->gt(0)->get('用户ID ');
 
             app(Auth::class)->login($userId);
             flash_set('msg', '登录成功');

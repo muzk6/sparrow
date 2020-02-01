@@ -85,35 +85,30 @@ class XdebugController extends BaseOPSController
      */
     public function listen()
     {
-        $url = validate('post.url')->setTitle('URL')->get();
-        $name = validate('post.name')->required()->setTitle('标签名')->get();
+        $url = validate('post.url')->required()->get('URL');
+        $name = validate('post.name')->required()->get('标签名');
         $userId = input('post.user_id');
-        $expireSecond = input('post.expire_second:i');
-        $off = input('post.off:b');
-        $maxDepth = input('post.max_depth:i');
-        $maxData = input('post.max_data:i');
-        $maxChildren = input('post.max_children:i');
+        $expireSecond = validate('post.expire_second:i')->numeric()->lte(600)->get('过期秒数');
+        $maxDepth = validate('post.max_depth:i')->numeric()->get('Max Depth ');
+        $maxData = validate('post.max_data:i')->numeric()->get('Max Data ');
+        $maxChildren = validate('post.max_children:i')->numeric()->get('Max Children ');
 
         $traceConfFile = PATH_DATA . '/.tracerc';
-        if ($off) {
-            file_exists($traceConfFile) && unlink($traceConfFile);
-            return api_success('监听关闭');
-        } else {
-            $conf = [
-                'url' => $url,
-                'name' => $name,
-                'user_id' => $userId,
-                'expire' => $expireSecond + TIME,
-                'expire_second' => $expireSecond,
-                'max_depth' => $maxDepth,
-                'max_data' => $maxData,
-                'max_children' => $maxChildren,
-            ];
 
-            file_put_contents($traceConfFile,
-                "<?php\nreturn " . var_export($conf, true) . ";\n");
+        $conf = [
+            'url' => $url,
+            'name' => $name,
+            'user_id' => $userId,
+            'expire' => $expireSecond + TIME,
+            'expire_second' => $expireSecond,
+            'max_depth' => $maxDepth,
+            'max_data' => $maxData,
+            'max_children' => $maxChildren,
+        ];
 
-            return api_success('监听开启');
-        }
+        file_put_contents($traceConfFile,
+            "<?php\nreturn " . var_export($conf, true) . ";\n");
+
+        return api_success('监听开启');
     }
 }
