@@ -19,6 +19,11 @@ class IndexController extends BaseOPSController
      */
     public function index()
     {
+        if (!$this->isLogin) {
+            redirect('/index/login');
+            return false;
+        }
+
         return view('ops/index');
     }
 
