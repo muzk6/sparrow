@@ -471,12 +471,13 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 https://github.com/elastic/elasticsearch-php
 
-## 运维与开发
+## OPS 运维与开发
+> 用于运维监控与开发调试，包括 日志、调试、性能分析
 
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/ops.png)
 
-- 用于运维监控与开发调试，包括 日志、调试、性能分析
 - 配置时使用独立域名(例如 `ops.sparrow/`, 注意域名不要对外开放)，入口文件为 `private/ops/index.php`
+- 登录密码为 `ops.sparrow`, 建议开发者修改这个默认密码(位于 `\App\Controllers\OPS\IndexController::LOGIN_PASSWD`)
 
 ### XDebug Trace
 > 跟踪调试日志

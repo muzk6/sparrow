@@ -8,6 +8,14 @@ use Core\AppException;
 
 class LogController extends BaseOPSController
 {
+    public function beforeAction()
+    {
+        if (!$this->isLogin) {
+            redirect('/index/login');
+            return false;
+        }
+    }
+
     /**
      * 日志文件列表
      * @return string

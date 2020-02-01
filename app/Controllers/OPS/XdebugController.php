@@ -8,6 +8,14 @@ use Core\AppException;
 
 class XdebugController extends BaseOPSController
 {
+    public function beforeAction()
+    {
+        if (!$this->isLogin) {
+            redirect('/index/login');
+            return false;
+        }
+    }
+
     public function index()
     {
         $files = glob(PATH_TRACE . '/*.xt');
