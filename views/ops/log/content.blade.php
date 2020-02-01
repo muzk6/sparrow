@@ -9,7 +9,7 @@
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">
                 <el-breadcrumb-item><a href="/log/index">日志文件</a></el-breadcrumb-item>
-                <el-breadcrumb-item><a style="cursor: pointer;" @click="location.reload()">{{ $file }}</a>
+                <el-breadcrumb-item><a style="cursor: pointer;" @click="location.reload()">{{ $file }}<i class="el-icon-refresh"></i></a>
                 </el-breadcrumb-item>
             </el-breadcrumb>
         </el-header>

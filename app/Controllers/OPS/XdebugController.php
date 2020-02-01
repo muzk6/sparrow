@@ -38,7 +38,7 @@ class XdebugController extends BaseOPSController
                 'mtime_ts' => $mtime,
                 'mtime' => date('Y-m-d H:i:s', $mtime),
                 'trace' => $traceData['trace'],
-                'user_id' => $traceData['user_id'],
+                'user_id' => $traceData['user_id'] ?: '',
                 'url' => $traceData['url'],
             ];
         }
@@ -93,8 +93,8 @@ class XdebugController extends BaseOPSController
      */
     public function listen()
     {
-        $url = validate('post.url')->required()->get('URL');
-        $name = validate('post.name')->required()->get('标签名');
+        $url = validate('post.url')->required()->get('URL ');
+        $name = input('post.name');
         $userId = input('post.user_id');
         $expireSecond = validate('post.expire_second:i')->numeric()->lte(600)->get('过期秒数');
         $maxDepth = validate('post.max_depth:i')->numeric()->get('Max Depth ');

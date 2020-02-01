@@ -100,8 +100,9 @@ class Xdebug
             /** @var Auth $auth */
             $auth = app(Auth::class);
 
+            $url = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
             if ($traceConf['expire'] > time() // 检查过期
-                && strpos(strval($_SERVER['REQUEST_URI']), $traceConf['url']) !== false // 检查 url path 是否匹配
+                && preg_match("#^{$traceConf['url']}#i", $url) // 检查 url path 是否匹配
                 && (!$traceConf['user_id'] || ($auth->isLogin() && $traceConf['user_id'] == $auth->getUserId())) // 有指定用户时，检查特定用户
             ) {
                 $traceStart = true;
@@ -142,11 +143,18 @@ class Xdebug
         ini_set('xdebug.show_mem_delta', 1);
         ini_set('xdebug.collect_includes', 1);
 
+        $url = '';
         if (PHP_SAPI == 'cli') {
             $cmd = basename($_SERVER['argv'][0]);
             $url = $cmd . ' ' . implode(' ', array_slice($_SERVER['argv'], 1));
         } else {
-            $url = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+            if (isset($_SERVER['HTTP_HOST'])) {
+                $url .= $_SERVER['HTTP_HOST'];
+            }
+
+            if (isset($_SERVER['REQUEST_URI'])) {
+                $url .= $_SERVER['REQUEST_URI'];
+            }
         }
 
         $traceData = [
