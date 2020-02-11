@@ -36,56 +36,76 @@
 $GLOBALS['XHPROF_LIB_ROOT'] = dirname(__FILE__) . '/../xhprof_lib';
 
 require_once $GLOBALS['XHPROF_LIB_ROOT'] . '/display/xhprof.php';
-
-// param name, its type, and default value
-$params = [
-    'run' => [XHPROF_STRING_PARAM, ''],
-    'wts' => [XHPROF_STRING_PARAM, ''],
-    'symbol' => [XHPROF_STRING_PARAM, ''],
-    'sort' => [XHPROF_STRING_PARAM, 'wt'], // wall time
-    'run1' => [XHPROF_STRING_PARAM, ''],
-    'run2' => [XHPROF_STRING_PARAM, ''],
-    'source' => [XHPROF_STRING_PARAM, ''],
-    'all' => [XHPROF_UINT_PARAM, 0],
-];
-
-// pull values of these params, and create named globals for each param
-xhprof_param_init($params);
-
-/* reset params to be a array of variable names to values
-   by the end of this page, param should only contain values that need
-   to be preserved for the next page. unset all unwanted keys in $params.
- */
-foreach ($params as $k => $v) {
-    $params[$k] = $$k;
-
-    // unset key from params that are using default values. So URLs aren't
-    // ridiculously long.
-    if ($params[$k] == $v[1]) {
-        unset($params[$k]);
-    }
-}
-
-echo "<html>";
-
-echo "<head><title>XHProf: Hierarchical Profiler Report</title>";
-xhprof_include_js_css();
-echo "</head>";
-
-echo "<body>";
-
-$vbar = ' class="vbar"';
-$vwbar = ' class="vwbar"';
-$vwlbar = ' class="vwlbar"';
-$vbbar = ' class="vbbar"';
-$vrbar = ' class="vrbar"';
-$vgbar = ' class="vgbar"';
-
-$xhprof_runs_impl = new XHProfRuns_Default();
-
-displayXHProfReport($xhprof_runs_impl, $params, $source, $run, $wts,
-    $symbol, $sort, $run1, $run2);
-
-
-echo "</body>";
-echo "</html>";
+?>
+<html>
+<head>
+    <?php
+    echo view('ops/inc_header');
+    ?>
+</head>
+<div id="app">
+    <el-container>
+        <el-header>
+            <el-breadcrumb separator-class="el-icon-arrow-right">
+                <el-breadcrumb-item><a style="cursor: pointer" @click="location.reload()">性能记录<i
+                                class="el-icon-refresh"></i></a>
+                </el-breadcrumb-item>
+            </el-breadcrumb>
+        </el-header>
+        <el-main>
+            <template>
+                <el-table
+                        :data="tableData"
+                        :style="tableStyle">
+                    <el-table-column
+                            prop="ms"
+                            label="耗时(ms)">
+                    </el-table-column>
+                    <el-table-column
+                            prop="url"
+                            label="URL">
+                    </el-table-column>
+                    <el-table-column
+                            prop="date"
+                            label="时间">
+                    </el-table-column>
+                    <el-table-column
+                            label="操作"
+                            width="100">
+                        <template slot-scope="scope">
+                            <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </template>
+        </el-main>
+    </el-container>
+</div>
+<script>
+    (() => {
+        let tableData = [];
+        <?php
+        $xhprof_runs_impl = new XHProfRuns_Default();
+        $data = $xhprof_runs_impl->list_runs();
+        if ($data) {
+            echo 'tableData = ' . json_encode($data) . ';';
+        }
+        ?>
+        new Vue({
+            el: '#app',
+            data: function () {
+                return {
+                    tableData,
+                    tableStyle: `height: ${screen.height - 300}px; overflow: auto`
+                }
+            },
+            methods: {
+                handleClick: function (row) {
+                    location.href = row['href'];
+                }
+            }
+        })
+    })();
+</script>
+</body>
+</html>

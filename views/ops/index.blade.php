@@ -12,18 +12,18 @@
                     <i class="el-icon-notebook-2"></i>
                     <span slot="title">日志</span>
                 </el-menu-item>
+                <el-menu-item index="/xhprof/xhprof_html/index.php">
+                    <i class="el-icon-stopwatch"></i>
+                    <span slot="title">XHProf</span>
+                </el-menu-item>
                 <el-submenu>
                     <template slot="title">
                         <i class="el-icon-search"></i>
                         <span slot="title">XDebug</span>
                     </template>
                     <el-menu-item index="/xdebug/index">跟踪文件</el-menu-item>
-                    <el-menu-item index="/xdebug/listenPage">监听</el-menu-item>
+                    <el-menu-item index="/xdebug/listenPage">监听设置</el-menu-item>
                 </el-submenu>
-                <el-menu-item index="/xhprof/xhprof_html/index.php">
-                    <i class="el-icon-stopwatch"></i>
-                    <span slot="title">XHProf</span>
-                </el-menu-item>
                 <el-menu-item index="/index/logout">
                     <i class="el-icon-lock"></i>
                     <span slot="title">退出登录</span>

@@ -483,27 +483,27 @@ function profiler_report($url_params,
         $symbol_tab = xhprof_compute_flat_info($run1_data, $totals);
     }
 
-    $run1_txt = sprintf('URL: %s', xhprof_decode_run_name($run1));
+//    $run1_txt = sprintf('URL: %s', xhprof_decode_run_name($run1));
 
     $base_url_params = xhprof_array_unset(xhprof_array_unset($url_params,
         'symbol'),
         'all');
 
-    $top_link_query_string = "$base_path/?" . http_build_query($base_url_params);
+    $top_link_query_string = "{$base_path}/detail.php?" . http_build_query($base_url_params);
 
     if ($diff_mode) {
         $diff_text = "Diff";
         $base_url_params = xhprof_array_unset($base_url_params, 'run1');
         $base_url_params = xhprof_array_unset($base_url_params, 'run2');
         $run1_link = xhprof_render_link('View Run #' . $run1,
-            "$base_path/?" .
+            "{$base_path}/detail.php?" .
             http_build_query(xhprof_array_set($base_url_params,
                 'run',
                 $run1)));
-        $run2_txt = sprintf('URL: %s', xhprof_decode_run_name($run2));
+//        $run2_txt = sprintf('URL: %s', xhprof_decode_run_name($run2));
 
         $run2_link = xhprof_render_link('View Run #' . $run2,
-            "$base_path/?" .
+            "{$base_path}/detail.php?" .
             http_build_query(xhprof_array_set($base_url_params,
                 'run',
                 $run2)));
@@ -526,7 +526,7 @@ function profiler_report($url_params,
         $links [] = $run1_link;
         $links [] = $run2_link;
         $links [] = xhprof_render_link('Invert ' . $diff_text . ' Report',
-            "$base_path/?" .
+            "{$base_path}/detail.php?" .
             http_build_query($inverted_params));
     }
 
@@ -534,18 +534,18 @@ function profiler_report($url_params,
     $links [] = '<input class="function_typeahead" ' .
         ' type="input" size="40" maxlength="100" />';
 
-    echo xhprof_render_actions($links);
+//    echo xhprof_render_actions($links);
 
 
-    echo
-        '<dl class=phprof_report_info>' .
-        '  <dd>' . $diff_text . ' Report</dd>' .
-        '  <dd>' . ($diff_mode ?
-            $run1_txt . '<br><b>vs.</b><br>' . $run2_txt :
-            $run1_txt) .
-        '  </dd>' .
-        '</dl>' .
-        '<div style="clear: both; margin: 3em 0em;"></div>';
+//    echo
+//        '<dl class=phprof_report_info>' .
+//        '  <dd>' . $diff_text . ' Report</dd>' .
+//        '  <dd>' . ($diff_mode ?
+//            $run1_txt . '<br><b>vs.</b><br>' . $run2_txt :
+//            $run1_txt) .
+//        '  </dd>' .
+//        '</dl>' .
+//        '<div style="clear: both; margin: 3em 0em;"></div>';
 
     // data tables
     if (!empty($rep_symbol)) {
@@ -680,7 +680,7 @@ function print_function_info($url_params, $info, $sort, $run1, $run2)
         print('<tr bgcolor="#e5e5e5">');
     }
 
-    $href = "$base_path/?" .
+    $href = "{$base_path}/detail.php?" .
         http_build_query(xhprof_array_set($url_params,
             'symbol', $info["fn"]));
 
@@ -734,7 +734,7 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
         $display_link = "";
     } else {
         $display_link = xhprof_render_link(" [ <b class=bubble>display all </b>]",
-            "$base_path/?" .
+            "{$base_path}/detail.php?" .
             http_build_query(xhprof_array_set($url_params,
                 'all', 1)));
     }
@@ -748,7 +748,7 @@ function print_flat_data($url_params, $title, $flat_data, $sort, $run1, $run2, $
     foreach ($stats as $stat) {
         $desc = stat_description($stat);
         if (array_key_exists($stat, $sortable_columns)) {
-            $href = "$base_path/?"
+            $href = "{$base_path}/detail.php?"
                 . http_build_query(xhprof_array_set($url_params, 'sort', $stat));
             $header = xhprof_render_link($desc, $href);
         } else {
@@ -809,10 +809,10 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2)
         $base_url_params = xhprof_array_unset(xhprof_array_unset($url_params,
             'run1'),
             'run2');
-        $href1 = "$base_path/?" .
+        $href1 = "{$base_path}/detail.php?" .
             http_build_query(xhprof_array_set($base_url_params,
                 'run', $run1));
-        $href2 = "$base_path/?" .
+        $href2 = "{$base_path}/detail.php?" .
             http_build_query(xhprof_array_set($base_url_params,
                 'run', $run2));
 
@@ -885,7 +885,7 @@ function full_report($url_params, $symbol_tab, $sort, $run1, $run2)
 
     print("<center><br><h3>" .
         xhprof_render_link($callgraph_report_title,
-            "$base_path/callgraph.php" . "?" . http_build_query($url_params))
+            "$base_path/callgraph.php" . "?" . http_build_query($url_params), '', '', '', '_blank')
         . "</h3></center>");
 
 
@@ -992,7 +992,7 @@ function print_pc_array($url_params, $results, $base_ct, $base_info, $parent,
 
     $odd_even = 0;
     foreach ($results as $info) {
-        $href = "$base_path/?" .
+        $href = "{$base_path}/detail.php?" .
             http_build_query(xhprof_array_set($url_params,
                 'symbol', $info["fn"]));
 
@@ -1159,7 +1159,7 @@ function symbol_report($url_params,
     $callgraph_href = "$base_path/callgraph.php?"
         . http_build_query(xhprof_array_set($url_params, 'func', $rep_symbol));
 
-    print(" <a href='$callgraph_href'>[View Callgraph $diff_text]</a><br>");
+    print(" <a href='$callgraph_href' target='_blank'>[View Callgraph $diff_text]</a><br>");
 
     print("</center></h4><br>");
 
@@ -1171,7 +1171,7 @@ function symbol_report($url_params,
         $desc = stat_description($stat);
         if (array_key_exists($stat, $sortable_columns)) {
 
-            $href = "$base_path/?" .
+            $href = "{$base_path}/detail.php?" .
                 http_build_query(xhprof_array_set($url_params,
                     'sort', $stat));
             $header = xhprof_render_link($desc, $href);

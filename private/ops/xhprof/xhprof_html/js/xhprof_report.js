@@ -200,4 +200,10 @@ $(document).ready(function () {
             cur_params['symbol'] = item;
             location.search = '?' + jQuery.param(cur_params);
         });
+    $('#search')
+        .autocomplete('typeahead.php', {extraParams: cur_params})
+        .result(function (event, item) {
+            cur_params['symbol'] = item;
+            location.search = '?' + jQuery.param(cur_params);
+        });
 });

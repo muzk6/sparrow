@@ -156,15 +156,11 @@ class XHProfRuns_Default implements iXHProfRuns
     {
         $files = glob("{$this->dir}/*.{$this->suffix}");
         if (empty($files)) {
-            echo '<hr>';
-            echo '暂无数据';
-            return;
+            return [];
         }
 
         if (is_dir($this->dir)) {
-            echo "<hr/>\n<ul>\n";
-
-            $li = [];
+            $data = [];
             $expire_days = config('xhprof.expire_days');
             $expire = strtotime("-{$expire_days} days");
 
@@ -178,16 +174,19 @@ class XHProfRuns_Default implements iXHProfRuns
                 list($run, $source) = explode('.', basename($file));
                 list($url, $cost_time) = explode(';', xhprof_decode_run_name($run)); // 格式: [url, cost_time]
 
-                $li[intval($cost_time * 1e6)] = '<li>' . round($cost_time * 1e3, 3) . 'ms <a href="' . htmlentities($_SERVER['SCRIPT_NAME'])
-                    . '?run=' . htmlentities($run) . '&source='
-                    . htmlentities($source) . '">'
-                    . htmlentities($url) . "</a><small> "
-                    . date("Y-m-d H:i:s", $mtime) . "</small></li>\n";
+                $data[] = [
+                    'cost_time' => intval($cost_time * 1e9),
+                    'ms' => round($cost_time * 1e3, 3),
+                    'href' => 'detail.php?run=' . htmlentities($run) . '&source=' . htmlentities($source),
+                    'url' => $url,
+                    'date' => date("Y-m-d H:i:s", $mtime),
+                ];
             }
 
-            krsort($li, SORT_NUMERIC);
-            echo implode("\n", $li);
-            echo "</ul>\n";
+            usort($data, function ($a, $b) {
+                return $b['cost_time'] - $a['cost_time'];
+            });
+            return $data;
         }
     }
 }
