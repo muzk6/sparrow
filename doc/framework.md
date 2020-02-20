@@ -5,14 +5,25 @@
 
 ## 安装
 
-- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架
-- `composer install` 安装基础依赖
-- `rm -rf .git` 删除原版本库
-- 为安全起见，重置对应环境文件 `config/dev/app.php` 的 `secret_key` 密钥
-- 为项目目录下的 `data` 目录加上**写**权限
-- 配置 http 网站入口，入口文件为 `public/index.php`
-
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
+
+- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架
+    - `rm -rf .git` 删除原版本库
+- `composer install` 安装基础依赖
+- 为安全起见，修改对应环境文件 `config/dev/app.php` 的 `secret_key` 密钥
+- 为项目目录下的 `data` 目录加上**写**权限
+- 配置 http 网站入口，入口文件为 `public/index.php`(如果使用下面的 docker 环境可忽略此步骤)
+
+### docker-compose 一键部署开发环境(可选)
+
+- `docker-compose up -d nginx php-fpm mysql` 部署基础环境
+    - `docker-compose up -d` 或者部署完整环境，支持缓存、队列等服务
+- 在宿主机绑定以下 host
+
+```host
+127.0.0.1 sparrow
+127.0.0.1 ops.sparrow
+```
 
 ## 目录结构
 
