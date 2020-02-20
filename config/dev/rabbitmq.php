@@ -5,7 +5,7 @@
  */
 
 return [
-    'host' => 'localhost',
+    'host' => 'rabbitmq',
     'port' => 5672,
     'user' => 'guest',
     'passwd' => 'guest',
