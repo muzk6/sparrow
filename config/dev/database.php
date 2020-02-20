@@ -9,12 +9,12 @@ return [
     'sections' => [
         // 默认区
         'default' => [
-            'user' => 'dev',
-            'passwd' => 'itH*@$xv@Y49PjDY',
+            'user' => 'root',
+            'passwd' => 'xxxx',
             'dbname' => 'test',
             'charset' => 'utf8mb4',
             'hosts' => [
-                'master' => ['host' => 'localhost', 'port' => 3306],
+                'master' => ['host' => 'mysql', 'port' => 3306],
                 'slaves' => [
 //                    ['host' => 'localhost', 'port' => 3306],
                 ]
