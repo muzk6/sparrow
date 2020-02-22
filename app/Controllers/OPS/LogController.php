@@ -101,15 +101,16 @@ class LogController extends BaseOPSController
         $data['offset'] = $offset < 0 ? -2 : $offset;
         $buf = array_reverse($buf);
 
-        if (strpos($file, 'unhandled_') === false) {
-            $content = [];
-            foreach ($buf as $v) {
-                $content[] = print_r(json_decode($v, true), true);
+        $content = [];
+        foreach ($buf as $v) {
+            $json = json_decode($v, true);
+            if (is_null($json)) {
+                $content[] = $v;
+            } else {
+                $content[] = print_r($json, true);
             }
-            $data['content'] = implode("\n", $content);
-        } else {
-            $data['content'] = implode("\n", $buf);
         }
+        $data['content'] = implode("\n", $content);
 
         return $data;
     }
