@@ -12,7 +12,9 @@ services:
         build: ./docker/php-fpm
         volumes:
             - ./:/www/sparrow
+            - ./docker/php-fpm/supervisor_conf.d:/etc/supervisor/conf.d
         working_dir: /www/sparrow
+        entrypoint: sh -c "supervisord & docker-php-entrypoint php-fpm"
     mysql:
         build: ./docker/mysql
         volumes:

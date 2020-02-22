@@ -451,7 +451,10 @@ app(\Core\Auth::class)->logout(); // 退出登录
 ### 用例
 
 - `app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);` 发布消息
-- 消费的 worker, 参考 `workers/SPARROW_QUEUE_DEMO.php` 
+- 消费的 worker, 参考 `workers/SPARROW_QUEUE_DEMO.php`
+- docker 容器 php-fpm 里面已经有 supervisor, 使 worker 变为长驻进程
+    - 示例配置文件为 `docker/php-fpm/supervisor_conf.d/SPARROW_QUEUE_DEMO.conf`
+    - 日志可通过 `http://ops.sparrow/` 查看，或者在 supervisorctl 里面使用 tail 命令查看
 
 建议规则：
 - 每个 worker 只消费一个队列；
