@@ -46,7 +46,7 @@ class Crypto
      * <p>当此值为 0 时，则不产生随机密钥</p>
      * @param string $str 待处理的字符串
      * @param string $key 密钥
-     * @param string $operation [DECODE、ENCODE] 操作
+     * @param string $operation DECODE, ENCODE
      * @param int $expiry 过期秒数，0表示不过期
      * @param int $safeLength 随机密钥长度 取值 0-32
      *
