@@ -4,7 +4,9 @@
 namespace App\Controllers\OPS;
 
 
+use Core\AppException;
 use Core\Auth;
+use Core\Whitelist;
 
 class IndexController extends BaseOPSController
 {
@@ -12,6 +14,12 @@ class IndexController extends BaseOPSController
      * 登录登录
      */
     const LOGIN_PASSWD = 'ops.sparrow';
+
+    public function beforeAction()
+    {
+        // 白名单以外的 IP 直接 404
+        app(Whitelist::class)->checkSafeIpOrExit();
+    }
 
     /**
      * 主页
@@ -48,7 +56,9 @@ class IndexController extends BaseOPSController
 
     /**
      * 登录
-     * @throws \Core\AppException
+     * @param Auth $auth
+     * @return string
+     * @throws AppException
      */
     public function postLogin(Auth $auth)
     {

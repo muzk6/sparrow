@@ -1,7 +1,7 @@
 <?php
 
 /**
- * 路由配置
+ * 路由配置 完整用例请看文档 framework.md
  *
  * 规则里必须定义以下任意一个类型：
  *
@@ -31,10 +31,15 @@ return [
     // 后台
     'admin' => [
         [
-            // url: /secret, /secret/, /secret/index, /secret/index/
-            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#',
-            'controller' => 'App\Controllers\Admin\IndexController',
-        ]
+            // url: /
+            'pattern' => '#^/$#',
+            'action' => 'App\Controllers\Admin\IndexController@index',
+        ],
+        [
+            // url: /foo, /foo/, /foo/bar, /foo/bar/
+            'pattern' => '#^/(?<ct>[a-zA-Z_\d]+)/?(?<ac>[a-zA-Z_\d]+)?/?$#',
+            'namespace' => 'App\Controllers\Admin\\',
+        ],
     ],
     // 运维与开发
     'ops' => [

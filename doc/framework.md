@@ -7,23 +7,20 @@
 
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
 
-- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架
-    - `rm -rf .git` 删除原版本库
+- `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架并命名新项目
+    - `cd <project_name>`, `rm -rf .git` 删除原版本库
 - `composer install` 安装基础依赖
+- `docker-compose up -d nginx php-fpm` 部署基础环境
+    - `docker-compose up -d` 或者部署完整环境，支持数据库、缓存、队列等服务
+- http://localhost/ 开启主页
+    - http://localhost:37062/ 运维后台
+    - http://localhost:37063/ 业务后台
+
+### 注意事项
+
+- 确保项目目录 `data` 有**写**权限
 - 为安全起见，修改对应环境文件 `config/dev/app.php` 的 `secret_key` 密钥
-- 为项目目录下的 `data` 目录加上**写**权限
-- 配置 http 网站入口，入口文件为 `public/index.php`(如果使用下面的 docker 环境可忽略此步骤)
-
-### docker-compose 一键部署开发环境(可选)
-
-- `docker-compose up -d nginx php-fpm mysql` 部署基础环境
-    - `docker-compose up -d` 或者部署完整环境，支持缓存、队列等服务
-- 在宿主机绑定以下 host
-
-```host
-127.0.0.1 sparrow
-127.0.0.1 ops.sparrow
-```
+- 所有后台访问都有 IP 白名单，配置位于 `config/.../whitelist.php`
 
 ## 目录结构
 
@@ -113,19 +110,19 @@ return [
             'namespace' => 'App\Controllers\\',
         ],
     ],
-    // 后台路由组
-    'admin' => [
+    // 其它路由组
+    'secret' => [
         [
             // url: /secret, /secret/, /secret/index, /secret/index/
             'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#',
-            'controller' => 'App\Controllers\Admin\IndexController',
+            'controller' => 'App\Controllers\Secret\IndexController',
         ]
     ],
 ];
 ```
 
 - `app(\Core\Router::class)->dispatch();` 使用默认路由组 default
-- `app(\Core\Router::class)->dispatch('admin');` 使用后台路由组 admin
+- `app(\Core\Router::class)->dispatch('secret');` 使用路由组 secret
 
 ### 路由相关信息
 
@@ -255,7 +252,7 @@ f | float
 
 ## 数据库查询
 
-- 配置文件 `config/dev/database.php`
+- 配置文件 `config/.../database.php`
 - 用例参考 `tests/feature/db.php`
 
 ## `helpers` 其它辅助函数用例
@@ -446,7 +443,7 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 ### 配置
 
-`config/dev/rabbitmq.php`
+`config/.../rabbitmq.php`
 
 ### 用例
 
@@ -454,7 +451,7 @@ app(\Core\Auth::class)->logout(); // 退出登录
 - 消费的 worker, 参考 `workers/SPARROW_QUEUE_DEMO.php`
 - docker 容器 php-fpm 里面已经有 supervisor, 使 worker 变为长驻进程
     - 示例配置文件为 `docker/php-fpm/supervisor_conf.d/SPARROW_QUEUE_DEMO.conf`
-    - 日志可通过 `http://ops.sparrow/` 查看，或者在 supervisorctl 里面使用 tail 命令查看
+    - 日志可通过"运维与开发"后台查看，或者在 supervisorctl 里面使用 tail 命令查看
 
 建议规则：
 - 每个 worker 只消费一个队列；
@@ -469,7 +466,7 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 ### 配置
 
-`config/dev/email.php`
+`config/.../email.php`
 
 ### 用例
 
@@ -490,7 +487,9 @@ https://github.com/elastic/elasticsearch-php
 
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/ops.png)
 
-- 配置时使用独立域名(例如 `ops.sparrow/`, 注意域名不要对外开放)，入口文件为 `private/ops/index.php`
+- 默认地址为 http://localhost:37062/
+    - 可自行修改 nginx 配置：`docker/nginx/conf.d/ops.sparrow.conf`
+    - 注意安全性，端口和域名不要对外开放
 - 登录密码为 `ops.sparrow`, 建议开发者修改这个默认密码(位于 `\App\Controllers\OPS\IndexController::LOGIN_PASSWD`)
 
 ### XDebug Trace
@@ -506,7 +505,7 @@ https://github.com/elastic/elasticsearch-php
 - 当前URL 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
 - Cookie 主动开启: `_xt=name0;`
 
-*注意：`URL`, `Cookie` 方式的前提必须先设置 `config/dev/whitelist.php` 白名单 `IP`*
+*注意：`URL`, `Cookie` 方式的前提必须先设置 `config/.../whitelist.php` 白名单 `IP`*
 
 #### 跟踪 rpc
 
@@ -529,7 +528,7 @@ https://github.com/elastic/elasticsearch-php
 
 #### 使用
 
-- 配置文件 `config/dev/xhprof.php`
+- 配置文件 `config/.../xhprof.php`
 - `enable` 设置为 `true`, 即可记录大于指定耗时的请求
 
 ## 维护模式

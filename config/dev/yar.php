@@ -5,5 +5,5 @@
  */
 
 return [
-    'sparrow' => 'http://nginx:8001/rpc_server_demo.php',
+    'sparrow' => 'http://nginx:8000/rpc_server_demo.php',
 ];
