@@ -5,16 +5,16 @@
 
 ## 安装
 
-![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
-
 - `git clone --depth=1 https://github.com/muzk6/sparrow.git <project_name>` 下载项目框架并命名新项目
     - `cd <project_name>`, `rm -rf .git` 删除原版本库
 - `composer install` 安装基础依赖
 - `docker-compose up -d nginx php-fpm` 部署基础环境
     - `docker-compose up -d` 或者部署完整环境，支持数据库、缓存、队列等服务
 - http://localhost/ 开启主页
-    - http://localhost:37062/ 运维后台
+    - http://localhost:37062/ 运维后台，详情查看后面章节 `OPS 运维与开发`
     - http://localhost:37063/ 业务后台
+
+![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
 
 ### 注意事项
 
