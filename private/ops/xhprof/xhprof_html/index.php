@@ -42,7 +42,13 @@ require_once $GLOBALS['XHPROF_LIB_ROOT'] . '/display/xhprof.php';
     <?php
     echo view('ops/inc_header');
     ?>
+    <style>
+        .el-table__header {
+            font-size: 14px;
+        }
+    </style>
 </head>
+<body>
 <div id="app">
     <el-container>
         <el-header>
