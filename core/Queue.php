@@ -97,6 +97,8 @@ class Queue
             return;
         }
 
+        ini_set('memory_limit', -1);
+
         $channel = $this->init($queue);
         $channel->basic_qos(null, 1, null);
 
@@ -121,7 +123,7 @@ class Queue
                         $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
                     } elseif ($fileStats[$includedFile]['mtime'] != $mtime
                         || $fileStats[$includedFile]['size'] != $size) {
-                        echo PHP_EOL . PHP_EOL;
+                        echo PHP_EOL;
                         echo sprintf('Exit at %s, Files Updated.', date('Y-m-d H:i:s')) . PHP_EOL;
                         exit;
                     }
@@ -144,6 +146,7 @@ class Queue
                     $result = $callback($params);
                     $channel->basic_ack($msg->delivery_info['delivery_tag']);
 
+                    echo PHP_EOL;
                     echo 'Result: ' . PHP_EOL;
                     var_export($result);
                 } catch (Exception $exception) {
@@ -157,7 +160,8 @@ class Queue
                 $endTime = microtime(true);
                 echo 'StartTime: ' . date('Y-m-d H:i:s', $startTime) . PHP_EOL;
                 echo 'EndTime: ' . date('Y-m-d H:i:s', $endTime) . PHP_EOL;
-                echo 'Elapse(s): ' . ($endTime - $startTime) . PHP_EOL;
+                echo 'Elapse(sec): ' . ($endTime - $startTime) . PHP_EOL;
+                echo 'PeakMemory(MB): ' . (memory_get_peak_usage(true) / 1024 / 1024) . PHP_EOL;
             }
         );
 
