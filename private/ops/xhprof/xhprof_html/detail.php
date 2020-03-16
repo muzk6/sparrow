@@ -74,7 +74,7 @@ foreach ($params as $k => $v) {
     xhprof_include_js_css();
     ?>
 </head>
-<div id="app">
+<div id="app" v-cloak>
     <el-container>
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">

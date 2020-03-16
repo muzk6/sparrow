@@ -46,6 +46,11 @@ require_once $GLOBALS['XHPROF_LIB_ROOT'] . '/display/xhprof.php';
         .el-table__header {
             font-size: 14px;
         }
+
+        .el-table__body {
+            font-size: 14px;
+            color: #606266;
+        }
     </style>
 </head>
 <body>
