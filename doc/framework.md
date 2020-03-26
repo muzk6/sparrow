@@ -167,7 +167,7 @@ var_dump($request);exit;
 
 ```php
 $firstName = input('post.first_name');
-$lastName = validate('last_name')->required()->setTitle('名字')->get();
+$lastName = validate('last_name')->required()->get('名字');
 var_dump($firstName, $lastName);exit;
 ```
 
@@ -324,9 +324,9 @@ old('name', $data['name']);
 
 请求时带上 `Token`, 使用以下任意一种方法
 
-- `POST`请求通过表单参数`_token`，后端将从`$_POST['_token']`读取
-- `GET`请求通过`?_token=`，后端将从`$_GET['_token']`读取
-- 通过指定请求头`X-CSRF-Token`，后端将从`$_SERVER['HTTP_X_CSRF_TOKEN']`读取2
+- `POST` 请求通过表单参数 `_token`, 后端将从 `$_POST['_token']` 读取
+- `GET` 请求通过 `?_token=`, 后端将从 `$_GET['_token']` 读取
+- 通过指定请求头 `X-CSRF-Token`, 后端将从 `$_SERVER['HTTP_X_CSRF_TOKEN']` 读取
 
 #### `flash_*()` 闪存，一性次缓存
 
