@@ -44,12 +44,12 @@ if ($name) {
 }
 
 if ($order) {
-    $where['order'] = $order;
+    $where['order'] = $order; // 或者 $where[] = ['and `order`=?', $order];
 }
 // 直接使用 WHERE 组合条件
 $ds['select_where'] = db()->selectAll('*', $where, 'test');
 
-// 纯 SQL 时，需先 parseWhere() 转换成 holder, binds 形式
+// 纯 SQL 时，需先 parseWhere() 转换成 placeholder, binds 形式
 $hBinds = db()->parseWhere($where);
 $ds['select_where2'] = db()->getAll("select * from test {$hBinds[0]}", $hBinds[1]);
 
@@ -59,7 +59,7 @@ $ds['select_where2'] = db()->getAll("select * from test {$hBinds[0]}", $hBinds[1
 $ds['update_sql'] = db()->query('update test set `order`=`order`+1 where id=:id', ['id' => $ds['insert_sql']]);
 // WHERE 参数绑定
 $ds['update_kv'] = db()->update(['name' => 'sparrow_u1'], ['id=?', $ds['insert_sql']], 'test');
-// SET 参数绑定；WHERE KV
+// SET 参数绑定(其 value 写在数组里面，若用到数据库的原生函数亦复如是)；WHERE KV
 $ds['update_kv2'] = db()->update(['order' => ['`order`+?', 1], 'name' => ['?', 'update_kv']], ['id' => $ds['insert_sql']], 'test');
 $ds['update_kv3'] = db()->update(['order' => ['UNIX_TIMESTAMP()']], ['id' => $ds['insert_kv']], 'test');
 $ds['select_all4'] = db()->selectAll('*', ['id in(?,?)', $ds['insert_sql'], $ds['insert_kv']], 'test');
