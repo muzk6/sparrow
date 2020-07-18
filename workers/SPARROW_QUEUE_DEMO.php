@@ -10,7 +10,7 @@
 
 use Core\Queue;
 
-require_once dirname(__DIR__) . '/init.php';
+require dirname(__DIR__) . '/init.php';
 
 app(Queue::class)->consume('SPARROW_QUEUE_DEMO', function ($params) {
     return $params;

@@ -15,7 +15,7 @@ define('PATH_LANG', PATH_ROOT . '/lang');
 define('TIME', $_SERVER['REQUEST_TIME']); // 注意：不能在 worker 里使用，否则不会变化
 
 // 环境配置
-require_once PATH_CONFIG . '/env.php';
+require PATH_CONFIG . '/env.php';
 
 if (!file_exists(PATH_CONFIG_ENV)) {
     trigger_error(PATH_CONFIG_ENV  . ' 配置目录不存在');
@@ -35,10 +35,10 @@ if (!file_exists(PATH_LOG)) {
 }
 
 // 优先加载自己的 helpers
-require_once PATH_ROOT . '/core/helpers.php';
+require PATH_ROOT . '/core/helpers.php';
 
 // composer
-require_once PATH_ROOT . '/vendor/autoload.php';
+require PATH_ROOT . '/vendor/autoload.php';
 
 // 详细错误日志
 set_error_handler([app(ErrorHandler::class), 'errorHandler']);

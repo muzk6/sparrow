@@ -8,7 +8,7 @@
  * 不需要登录的网页就由开发者自己用 url 的 ?_xt=name0 方式来调试
  */
 
-require_once dirname(__DIR__) . '/init.php';
+require dirname(__DIR__) . '/init.php';
 
 $opt = getopt('', ['help::', 'url::', 'uid::', 'name::', 'expire::', 'off::',
     'max-depth::', 'max-data::', 'max-children::'], $ind);

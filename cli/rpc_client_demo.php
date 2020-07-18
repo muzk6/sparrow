@@ -6,7 +6,7 @@
 
 use Core\Yar;
 
-require_once dirname(__DIR__) . '/init.php';
+require dirname(__DIR__) . '/init.php';
 
 // 串行调用；
 // 开启 Xdebug Trace 跟踪: app(Yar::class)->trace('demo_bar');

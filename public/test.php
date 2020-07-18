@@ -7,7 +7,7 @@
 
 use Core\Whitelist;
 
-require_once dirname(__DIR__) . '/init.php';
+require dirname(__DIR__) . '/init.php';
 
 app(Whitelist::class)->checkSafeIpOrExit();
 

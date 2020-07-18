@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../../init.php';
+require __DIR__ . '/../../init.php';
 
 defined('TEST_ENV') || define('TEST_ENV', true);
 
