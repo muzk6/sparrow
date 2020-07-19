@@ -15,6 +15,7 @@ services:
         volumes:
             - ./:/www/sparrow
             - ./docker/php-fpm/supervisor_conf.d:/etc/supervisor/conf.d
+            - ./docker/php-fpm/php_ini/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
         working_dir: /www/sparrow
         entrypoint: sh -c "supervisord & docker-php-entrypoint php-fpm"
     mysql:
