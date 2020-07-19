@@ -13,6 +13,8 @@ if (is_file('/www/.pub.env')) { // 生产环境 publish
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 
 } else { // 开发环境 develop
+    ini_set('opcache.enable', 0);
+
     define('APP_ENV', 'dev');
     define('PATH_CONFIG_ENV', PATH_ROOT . '/config/dev');
 

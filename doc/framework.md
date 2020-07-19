@@ -492,6 +492,11 @@ https://github.com/elastic/elasticsearch-php
     - 注意安全性，端口和域名不要对外开放
 - 登录密码为 `ops.sparrow`, 建议开发者修改这个默认密码(位于 `\App\Controllers\OPS\IndexController::LOGIN_PASSWD`)
 
+### XDebug
+> 断点调试
+
+配置文件位置 `docker/php-fpm/php_ini/xdebug.ini`
+
 ### XDebug Trace
 > 跟踪调试日志
 
