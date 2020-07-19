@@ -19,7 +19,7 @@
 // Do not add any display specific code here.
 //
 
-require_once __DIR__ . '/../../../../../init.php';
+require __DIR__ . '/../../../../../init.php';
 
 if (!app(\Core\Auth::class)->isLogin()) {
     redirect('/index/login');
