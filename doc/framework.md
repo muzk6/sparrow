@@ -10,7 +10,7 @@
 2. `composer install` 安装基础依赖
 3. `docker-compose up -d nginx php-fpm` 部署基础环境
     - `docker-compose up -d` 或者部署完整环境，支持数据库、缓存、队列等服务
-4. http://localhost/ 开启主页
+4. http://localhost:37061/ 开启主页
     - http://localhost:37062/ 运维后台，详情查看后面章节 `OPS 运维与开发`
     - http://localhost:37063/ 业务后台
 

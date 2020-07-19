@@ -7,7 +7,7 @@ services:
             - ./docker/nginx/conf.d:/etc/nginx/conf.d
             - ./:/www/sparrow
         ports:
-            - "80:80"
+            - "37061:37061"
             - "37062:37062"
             - "37063:37063"
     php-fpm:
