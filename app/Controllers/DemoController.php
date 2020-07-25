@@ -3,6 +3,10 @@
 
 namespace App\Controllers;
 
+if (!IS_DEV) {
+    http_response_code(404);
+    exit;
+}
 
 use App\Services\DemoService;
 use Core\AppException;
