@@ -452,6 +452,7 @@ app(\Core\Auth::class)->logout(); // 退出登录
 - docker 容器 php-fpm 里面已经有 supervisor, 使 worker 变为长驻进程
     - 示例配置文件为 `docker/php-fpm/supervisor_conf.d/SPARROW_QUEUE_DEMO.conf`
     - 日志可通过"运维与开发"后台查看，或者在 supervisorctl 里面使用 tail 命令查看
+    - 必须先启动 rabbitmq 服务，再启动 worker, 否则会报错。如果遇到 rabbitmq 容器比 php-fpm 容器先启动的情况，需要进去 php-fpm 容器手动启动一下 worker: `supervisorctl start all` 
 
 建议规则：
 - 每个 worker 只消费一个队列；
