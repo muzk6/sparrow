@@ -106,25 +106,18 @@ class Queue
         $fileStats = [];
         $channel->basic_consume($queue, '', false, false, false, false,
             function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
-                // 运行时间超时后销毁容器
+                // 每300秒退出 worker，原因：1.释放 mysql 之类的长连接，防止超时；2.弥补下面的监控文件 autoload 导致的缺陷；
                 if (time() - $scriptTime >= 300) {
-                    AppContainer::destroy();
+                    echo sprintf('[Exit at %s, Timeout.]', date('Y-m-d H:i:s')) . PHP_EOL;
+                    exit;
                 }
 
-                // worker 文件更新时退出
-                $includedFiles = get_included_files();
-                foreach ($includedFiles as $includedFile) {
-                    clearstatcache(true, $includedFile);
-                    $mtime = filemtime($includedFile);
-                    $size = filesize($includedFile); // 同时比较文件大小，防止开发机与运行环境时间不一致
-
-                    // 记录、检查文件最后修改时间、大小，不同就直接结束进程(使用 supervisor 进行重启)
-                    if (!isset($fileStats[$includedFile])) {
-                        $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
-                    } elseif ($fileStats[$includedFile]['mtime'] != $mtime
-                        || $fileStats[$includedFile]['size'] != $size) {
-                        echo PHP_EOL;
-                        echo sprintf('Exit at %s, Files Updated.', date('Y-m-d H:i:s')) . PHP_EOL;
+                foreach ($fileStats as $file => $fileStat) {
+                    // 检查文件最后修改时间、大小，不同就直接结束进程(使用 supervisor 进行重启)；同时比较文件大小，防止开发机与运行环境时间不一致
+                    clearstatcache(true, $file);
+                    if ($fileStat['mtime'] != filemtime($file)
+                        || $fileStat['size'] != filesize($file)) {
+                        echo sprintf('[Exit at %s, Files Updated.]', date('Y-m-d H:i:s')) . PHP_EOL;
                         exit;
                     }
                 }
@@ -135,9 +128,8 @@ class Queue
                 $params = json_decode($msg->body, true);
                 $startTime = microtime(true);
 
-                echo PHP_EOL . PHP_EOL;
-                echo $queue . PHP_EOL;
-                echo str_repeat('-', 30) . PHP_EOL;
+                $tempId = uniqid();
+                echo str_repeat('-', 30) . "<{$queue} id={$tempId}>" . str_repeat('-', 30) . PHP_EOL;
                 echo 'Params: ' . PHP_EOL;
                 var_export($params);
                 echo PHP_EOL;
@@ -146,22 +138,34 @@ class Queue
                     $result = $callback($params);
                     $channel->basic_ack($msg->delivery_info['delivery_tag']);
 
-                    echo PHP_EOL;
                     echo 'Result: ' . PHP_EOL;
                     var_export($result);
+                    echo PHP_EOL;
                 } catch (Exception $exception) {
                     $channel->basic_nack($msg->delivery_info['delivery_tag']);
 
                     echo 'Exception: ' . PHP_EOL;
                     var_export($exception->getMessage());
                 }
-                echo PHP_EOL;
 
                 $endTime = microtime(true);
-                echo 'StartTime: ' . date('Y-m-d H:i:s', $startTime) . PHP_EOL;
-                echo 'EndTime: ' . date('Y-m-d H:i:s', $endTime) . PHP_EOL;
-                echo 'Elapse(sec): ' . ($endTime - $startTime) . PHP_EOL;
-                echo 'PeakMemory(MB): ' . (memory_get_peak_usage(true) / 1024 / 1024) . PHP_EOL;
+                echo 'StartTime: ' . date('Y-m-d H:i:s', $startTime);
+                echo '; EndTime: ' . date('Y-m-d H:i:s', $endTime);
+                echo '; Elapse(sec): ' . ($endTime - $startTime);
+                echo '; PeakMemory(MB): ' . (memory_get_peak_usage(true) / 1024 / 1024) . PHP_EOL;
+                echo str_repeat('-', 29) . "</{$queue} id={$tempId}>" . str_repeat('-', 30) . PHP_EOL;
+
+                // 由于 autoload 懒加载原因，可能下一次消费运行了另一个支路逻辑，从而加载了新的文件，如果新的文件在加载前就发生改变，就监控不到，需要上面定时退出 worker 解决此问题
+                $includedFiles = get_included_files();
+                foreach ($includedFiles as $includedFile) {
+                    clearstatcache(true, $includedFile);
+                    $mtime = filemtime($includedFile);
+                    $size = filesize($includedFile);
+
+                    if (!isset($fileStats[$includedFile])) {
+                        $fileStats[$includedFile] = ['mtime' => $mtime, 'size' => $size];
+                    }
+                }
             }
         );
 
