@@ -169,6 +169,25 @@ class Queue
             }
         );
 
+        // 注册进程信号，防止 worker 中途被强制结束
+        $signalHandler = function ($signal) {
+            $map = array(
+                SIGTERM => 'SIGTERM',
+                SIGHUP => 'SIGHUP',
+                SIGINT => 'SIGINT',
+                SIGQUIT => 'SIGQUIT',
+            );
+            $signalName = $map[$signal] ?? $signal;
+
+            echo sprintf("[Exit at %s, By Signal: {$signalName}.]", date('Y-m-d H:i:s')) . PHP_EOL;
+            exit;
+        };
+
+        pcntl_signal(SIGTERM, $signalHandler);
+        pcntl_signal(SIGHUP, $signalHandler);
+        pcntl_signal(SIGINT, $signalHandler);
+        pcntl_signal(SIGQUIT, $signalHandler);
+
         while (count($channel->callbacks)) {
             $channel->wait();
         }

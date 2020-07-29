@@ -2,6 +2,7 @@
   "require": {
     "ext-json": "*",
     "ext-pdo": "*",
+    "ext-pcntl": "*",
     "pimple/pimple": "^3.2",
     "duncan3dc/blade": "^4.5",
     "php-amqplib/php-amqplib": "^2.9"
