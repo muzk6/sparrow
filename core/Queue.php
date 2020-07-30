@@ -155,7 +155,7 @@ class Queue
                 echo '; PeakMemory(MB): ' . (memory_get_peak_usage(true) / 1024 / 1024) . PHP_EOL;
                 echo str_repeat('-', 29) . "</{$queue} id={$tempId}>" . str_repeat('-', 30) . PHP_EOL;
 
-                // 由于 autoload 懒加载原因，可能下一次消费运行了另一个支路逻辑，从而加载了新的文件，如果新的文件在加载前就发生改变，就监控不到，需要上面定时退出 worker 解决此问题
+                // 执行完业务 $callback 后，get_included_files() 才能取到所有相关文件，并及时保存文件状态
                 $includedFiles = get_included_files();
                 foreach ($includedFiles as $includedFile) {
                     clearstatcache(true, $includedFile);
