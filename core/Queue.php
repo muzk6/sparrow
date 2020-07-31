@@ -108,7 +108,7 @@ class Queue
             function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
                 // 每300秒退出 worker，原因：1.释放 mysql 之类的长连接，防止超时；2.弥补下面的监控文件 autoload 导致的缺陷；
                 if (time() - $scriptTime >= 300) {
-                    echo sprintf('[Exit at %s, Timeout.]', date('Y-m-d H:i:s')) . PHP_EOL;
+                    echo sprintf('[Exit At %s, Timeout.]', date('Y-m-d H:i:s')) . PHP_EOL;
                     exit;
                 }
 
@@ -117,7 +117,7 @@ class Queue
                     clearstatcache(true, $file);
                     if ($fileStat['mtime'] != filemtime($file)
                         || $fileStat['size'] != filesize($file)) {
-                        echo sprintf('[Exit at %s, Files Updated.]', date('Y-m-d H:i:s')) . PHP_EOL;
+                        echo sprintf('[Exit At %s, Files Updated.]', date('Y-m-d H:i:s')) . PHP_EOL;
                         exit;
                     }
                 }
@@ -179,17 +179,18 @@ class Queue
             );
             $signalName = $map[$signal] ?? $signal;
 
-            echo sprintf("[Exit at %s, By Signal: {$signalName}.]", date('Y-m-d H:i:s')) . PHP_EOL;
+            echo sprintf("[Exit Softly At %s, By Signal: {$signalName}.]", date('Y-m-d H:i:s')) . PHP_EOL;
             exit;
         };
 
-        pcntl_signal(SIGTERM, $signalHandler);
+        pcntl_signal(SIGTERM, $signalHandler); // supervisor stop/restart 使用的信号
         pcntl_signal(SIGHUP, $signalHandler);
         pcntl_signal(SIGINT, $signalHandler);
         pcntl_signal(SIGQUIT, $signalHandler);
 
         while (count($channel->callbacks)) {
             $channel->wait();
+            pcntl_signal_dispatch();
         }
     }
 }

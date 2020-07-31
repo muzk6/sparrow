@@ -437,6 +437,9 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 ## 消息队列
 
+worker 遇到信号 `SIGTERM`, `SIGHUP`, `SIGINT`, `SIGQUIT` 会平滑结束进程。
+如果要强行结束可使用信号 `SIGKILL`, 命令为 `kill -s KILL <PID>`
+
 ### 依赖
 
 `composer require php-amqplib/php-amqplib`
