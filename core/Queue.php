@@ -106,7 +106,7 @@ class Queue
         $fileStats = [];
         $channel->basic_consume($queue, '', false, false, false, false,
             function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
-                // 每300秒退出 worker，原因：1.释放 mysql 之类的长连接，防止超时；2.弥补下面的监控文件 autoload 导致的缺陷；
+                // 每300秒退出 worker, 比销毁容器更安全(考虑到开发者可能用静态类)，释放 mysql 之类的长连接
                 if (time() - $scriptTime >= 300) {
                     echo sprintf('[Exit At %s, Timeout.]', date('Y-m-d H:i:s')) . PHP_EOL;
                     exit;
