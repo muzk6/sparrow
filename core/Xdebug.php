@@ -101,6 +101,7 @@ class Xdebug
             $auth = app(Auth::class);
 
             $url = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            $traceConf['url'] = preg_replace('#https?://#', '', $traceConf['url']);
             if ($traceConf['expire'] > time() // 检查过期
                 && preg_match("#^{$traceConf['url']}#i", $url) // 检查 url path 是否匹配
                 && (!$traceConf['user_id'] || ($auth->isLogin() && $traceConf['user_id'] == $auth->getUserId())) // 有指定用户时，检查特定用户
