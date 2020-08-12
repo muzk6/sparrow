@@ -1,4 +1,15 @@
 {
+  "name": "muzk6/sparrow",
+  "description": "Sparrow Framework",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "muzk6",
+      "email": "muzk6x@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
   "scripts": {
     "post-create-project-cmd": [
       "php create_project.php",
