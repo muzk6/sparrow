@@ -1,4 +1,10 @@
 {
+  "scripts": {
+    "post-create-project-cmd": [
+      "php create_project.php",
+      "php -r 'unlink(\\'create_project.php\\');'"
+    ]
+  },
   "require": {
     "ext-json": "*",
     "ext-pdo": "*",
