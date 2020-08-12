@@ -8,17 +8,17 @@
  */
 return function (string $table, string $index) {
     $sharding = [
-        'section' => '', // 对应 config/dev/database.php sections 里的分区名，为空时自动切换为 default
+        'section' => '', // 对应 config/.../database.php sections 里的分区名，为空时自动切换为 default
         'dbname' => '', // 为空时取配置文件里的 dbname
         'table' => $table,
     ];
 
     switch ($table) {
         case 'test':
-//            $suffix = str_pad(base_convert(
-//                    substr(md5(strtolower($index)), -2),
-//                    16, 10) % 64,
-//                2, '0', STR_PAD_LEFT);
+            // 例如下面注释的代码，传入的 $index 是数字 1234，以后两位为分表逻辑分100张表，计算出的分表名为: test_34
+            // db()->shard('test', 1234); 为分表对象，详情查看 tests/feature/db.php
+//            $suffix = str_pad(substr($index, -2), 2, '0', STR_PAD_LEFT);
+//            $sharding['table'] = "{$table}_{$suffix}";
 
             $sharding['section'] = 'default';
             $sharding['dbname'] = 'test';
