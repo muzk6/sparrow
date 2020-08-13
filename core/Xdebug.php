@@ -76,7 +76,7 @@ class Xdebug
         $whitelist = app(Whitelist::class);
 
         // 从 cgi 开启
-        if ($whitelist->isSafeIp()) {
+        if ($whitelist->isSafeIp() || $whitelist->isSafeCookie()) {
             if (isset($_REQUEST['_xt'])) {
                 $name = $_REQUEST['_xt'];
             } elseif (isset($_COOKIE['_xt'])) {

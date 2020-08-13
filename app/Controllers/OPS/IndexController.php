@@ -17,8 +17,11 @@ class IndexController extends BaseOPSController
 
     public function beforeAction()
     {
-        // 白名单以外的 IP 直接 404
-        app(Whitelist::class)->checkSafeIpOrExit();
+        // 白名单以外直接 404
+        if (!(app(Whitelist::class)->isSafeIp() || app(Whitelist::class)->isSafeCookie())) {
+            http_response_code(404);
+            exit;
+        }
     }
 
     /**

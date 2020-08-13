@@ -25,10 +25,11 @@ class Whitelist
      */
     public function isSafeIp()
     {
-        /** @var Request $request */
-        $request = app(Request::class);
+        if (IS_DEV) {
+            return true;
+        }
 
-        $clientIpStr = $request->getIp();
+        $clientIpStr = app(Request::class)->getIp();
         $clientIp = ip2long($clientIpStr);
 
         foreach ($this->conf['ip'] as $v) {
@@ -57,7 +58,7 @@ class Whitelist
     }
 
     /**
-     * 检查安全IP否则404
+     * 检查安全 IP 否则404
      */
     public function checkSafeIpOrExit()
     {
@@ -73,14 +74,15 @@ class Whitelist
      */
     public function isSafeUserId()
     {
-        /** @var Auth $auth */
-        $auth = app(Auth::class);
+        if (IS_DEV) {
+            return true;
+        }
 
-        if (!$auth->isLogin()) {
+        if (!app(Auth::class)->isLogin()) {
             return false;
         }
 
-        return in_array($auth->getUserId(), $this->conf['user_id']);
+        return in_array(app(Auth::class)->getUserId(), $this->conf['user_id']);
     }
 
     /**
@@ -89,6 +91,31 @@ class Whitelist
     public function checkSafeUserIdOrExit()
     {
         if (!$this->isSafeUserId()) {
+            http_response_code(404);
+            exit;
+        }
+    }
+
+    /**
+     * 是否包含白名单安全 cookie
+     * @return bool
+     */
+    public function isSafeCookie()
+    {
+        if (IS_DEV) {
+            return true;
+        }
+
+        $cookies = is_array($_COOKIE) ? $_COOKIE : [];
+        return array_intersect(array_keys($cookies), $this->conf['cookie']) ? true : false;
+    }
+
+    /**
+     * 检查安全 cookie 否则404
+     */
+    public function checkSafeCookieOrExit()
+    {
+        if (!$this->isSafeCookie()) {
             http_response_code(404);
             exit;
         }

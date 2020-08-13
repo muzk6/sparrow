@@ -24,7 +24,7 @@
     - 详情查看后面章节 `OPS 运维与开发`
 - http://localhost:37063/ 业务后台
 
-*所有后台访问都有 IP 白名单，配置位于 `config/.../whitelist.php`*
+*所有后台访问都有 IP, Cookie 白名单，配置位于 `config/.../whitelist.php`*
 
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
 
@@ -522,7 +522,7 @@ https://github.com/elastic/elasticsearch-php
 - 当前URL 主动开启: `/?_xt=name0`，`name0`是当前日志的标识名
 - Cookie 主动开启: `_xt=name0;`
 
-*注意：`URL`, `Cookie` 方式的前提必须先设置 `config/.../whitelist.php` 白名单 `IP`*
+*注意：`URL`, `Cookie` 方式的前提必须先设置 `config/.../whitelist.php` 白名单 `IP` 或 白名单 `Cookie`*
 
 #### 跟踪 rpc
 
