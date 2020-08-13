@@ -15,6 +15,10 @@ class Xdebug
 
     public function __construct()
     {
+        if (!function_exists('xdebug_start_trace')) {
+            trigger_error('请安装扩展: xdebug');
+        }
+
         $this->initDisplaySetting();
     }
 
@@ -125,9 +129,14 @@ class Xdebug
      * 手动跟踪
      * @param string $traceName 日志名，即日志文件名的 xt: 的值
      * <p>建议把 uniqid() 作为 $name</p>
+     * @return bool
      */
     public function start($traceName)
     {
+        if (!function_exists('xdebug_start_trace')) {
+            return false;
+        }
+
         if (!file_exists(PATH_TRACE)) {
             mkdir(PATH_TRACE, 0777, true);
         }
