@@ -58,7 +58,7 @@ class Whitelist
     }
 
     /**
-     * 检查安全 IP 否则404
+     * 检查安全 IP 否则 404
      */
     public function checkSafeIpOrExit()
     {
@@ -86,7 +86,7 @@ class Whitelist
     }
 
     /**
-     * 检查安全用户否则404
+     * 检查安全用户否则 404
      */
     public function checkSafeUserIdOrExit()
     {
@@ -97,7 +97,7 @@ class Whitelist
     }
 
     /**
-     * 是否包含白名单安全 cookie
+     * 是否包含白名单安全 Cookie
      * @return bool
      */
     public function isSafeCookie()
@@ -111,7 +111,7 @@ class Whitelist
     }
 
     /**
-     * 检查安全 cookie 否则404
+     * 检查安全 Cookie 否则 404
      */
     public function checkSafeCookieOrExit()
     {
