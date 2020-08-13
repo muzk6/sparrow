@@ -93,6 +93,13 @@ require_once $GLOBALS['XHPROF_LIB_ROOT'] . '/display/xhprof.php';
     </el-container>
 </div>
 <script>
+    <?php if (!extension_loaded('tideways_xhprof')): ?>
+    top.V_INSTANCE.$message({
+        showClose: true,
+        message: '请安装扩展: tideways_xhprof',
+        type: 'error'
+    });
+    <?php endif ?>
     (() => {
         let tableData = [];
         <?php

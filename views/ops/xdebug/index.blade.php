@@ -44,6 +44,7 @@
         </el-main>
     </el-container>
 </div>
+@include('ops/xdebug/check_xdebug')
 <script>
     (() => {
         let tableData = {!! json_encode($data) !!}
