@@ -7,7 +7,7 @@
 
 ### 创建项目
 
-`composer create-project muzk6/sparrow your-projectname`
+`composer create-project --prefer-dist muzk6/sparrow your-projectname`
 
 *请确保项目目录 `data` 有**写**权限*
 
