@@ -15,10 +15,6 @@ class Xdebug
 
     public function __construct()
     {
-        if (!function_exists('xdebug_start_trace')) {
-            trigger_error('请安装扩展: xdebug');
-        }
-
         $this->initDisplaySetting();
     }
 
@@ -133,7 +129,8 @@ class Xdebug
      */
     public function start($traceName)
     {
-        if (!function_exists('xdebug_start_trace')) {
+        if (!extension_loaded('xdebug')) {
+            trigger_error('请安装扩展: xdebug');
             return false;
         }
 
