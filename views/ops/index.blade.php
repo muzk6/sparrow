@@ -22,7 +22,7 @@
                         <span slot="title">XDebug</span>
                     </template>
                     <el-menu-item index="/xdebug/index">跟踪文件</el-menu-item>
-                    <el-menu-item index="/xdebug/listenPage">监听设置</el-menu-item>
+                    <el-menu-item index="/xdebug/listen">监听设置</el-menu-item>
                 </el-submenu>
                 <el-menu-item index="/index/logout">
                     <i class="el-icon-lock"></i>

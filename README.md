@@ -16,6 +16,8 @@
 - `docker-compose up -d nginx php-fpm` 部署基础环境
 - 或者部署完整环境 `docker-compose up -d`，支持数据库、缓存、队列等服务
 
+*不建议生产环境使用 docker 部署*
+
 ### 访问链接
 
 - http://localhost:37061/ 项目主页
@@ -24,7 +26,8 @@
     - 详情查看后面章节 `OPS 运维与开发`
 - http://localhost:37063/ 业务后台
 
-*所有后台访问都有 IP, Cookie 白名单，配置位于 `config/.../whitelist.php`*
+*所有后台访问都有 IP, Cookie 白名单，配置位于 `config/.../whitelist.php`*<br>
+*上面的访问链接，在生产环境下应该配置成不同的域名*
 
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
 

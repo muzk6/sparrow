@@ -36,7 +36,7 @@
             },
             methods: {
                 onSubmit: function () {
-                    $.post('/index/postLogin', this.form, (data) => {
+                    $.post('/index/login', this.form, (data) => {
                         if (data.s) {
                             location.href = '/';
                         } else {

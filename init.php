@@ -5,6 +5,7 @@ use Core\Xdebug;
 
 define('PATH_ROOT', __DIR__);
 define('PATH_APP', PATH_ROOT . '/app');
+define('PATH_ROUTES', PATH_APP . '/Routes');
 define('PATH_VIEW', PATH_ROOT . '/views');
 define('PATH_PUBLIC', PATH_ROOT . '/public');
 define('PATH_DATA', PATH_ROOT . '/data');
@@ -23,9 +24,9 @@ if (!file_exists(PATH_CONFIG_ENV)) {
 }
 
 define('IS_DEV', APP_ENV == 'dev');
-define('IS_POST', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'POST');
-define('IS_GET', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'GET');
-define('IS_OPTIONS', isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS');
+define('IS_POST', isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) == 'POST');
+define('IS_GET', isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) == 'GET');
+define('IS_OPTIONS', isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) == 'OPTIONS');
 
 // 精简错误日志，能记录 Fatal Error, Parse Error
 ini_set('log_errors', 1);

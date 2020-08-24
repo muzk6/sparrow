@@ -5,5 +5,10 @@
  * 必须使用另一个域名指向此文件
  */
 
+use Core\Router;
+
 require dirname(__DIR__) . '/../init.php';
-app(\Core\Router::class)->dispatch('admin');
+
+include PATH_ROUTES . '/admin.php';
+
+app(Router::class)->dispatch();

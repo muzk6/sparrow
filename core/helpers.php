@@ -8,7 +8,9 @@ use Core\Config;
 use Core\CSRF;
 use Core\Flash;
 use Core\PDOEngine;
+use Core\RegExp;
 use Core\Request;
+use Core\Router;
 use Core\Translator;
 use Core\Validator;
 
@@ -326,11 +328,11 @@ function request(bool $inParallel = false)
 /**
  * 网页后退
  * <p>`back()` 网页跳转回上一步</p>
- * <p>不要 `exit`</p>
  */
 function back()
 {
     header('Location: ' . getenv('HTTP_REFERER'));
+    exit;
 }
 
 /**
@@ -342,6 +344,7 @@ function back()
 function redirect(string $url)
 {
     header('Location: ' . $url);
+    exit;
 }
 
 /**
@@ -471,4 +474,82 @@ function csrf_token()
 function csrf_check()
 {
     return app(CSRF::class)->check();
+}
+
+/**
+ * 注册回调 GET 请求
+ * @param string $url url全匹配
+ * @param callable $action
+ */
+function route_get($url, callable $action)
+{
+    app(Router::class)->addRoute('GET', $url, $action);
+}
+
+/**
+ * 注册回调 POST 请求
+ * @param string $url url全匹配
+ * @param callable $action
+ */
+function route_post($url, callable $action)
+{
+    app(Router::class)->addRoute('POST', $url, $action);
+}
+
+/**
+ * 注册回调任何请求
+ * @param string $url url全匹配
+ * @param callable $action
+ */
+function route_any($url, callable $action)
+{
+    app(Router::class)->addRoute('ANY', $url, $action);
+}
+
+/**
+ * 注册回调 GET 请求
+ * @param string $url url正则匹配
+ * @param callable $action
+ */
+function route_get_re($url, callable $action)
+{
+    app(Router::class)->addRoute('GET', $url, $action, ['url_type' => 'regexp']);
+}
+
+/**
+ * 注册回调 POST 请求
+ * @param string $url url正则匹配
+ * @param callable $action
+ */
+function route_post_re($url, callable $action)
+{
+    app(Router::class)->addRoute('POST', $url, $action, ['url_type' => 'regexp']);
+}
+
+/**
+ * 注册回调任何请求
+ * @param string $url url正则匹配
+ * @param callable $action
+ */
+function route_any_re($url, callable $action)
+{
+    app(Router::class)->addRoute('ANY', $url, $action, ['url_type' => 'regexp']);
+}
+
+/**
+ * 注册路由中间件
+ * @param callable $fn
+ */
+function route_middleware(callable $fn)
+{
+    app(Router::class)->addMiddleware($fn);
+}
+
+/**
+ * 路由分组
+ * @param callable $fn
+ */
+function route_group(callable $fn)
+{
+    app(Router::class)->addGroup($fn);
 }

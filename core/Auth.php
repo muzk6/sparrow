@@ -42,11 +42,19 @@ class Auth
 
     /**
      * 用户ID
-     * @return int
+     * @return int|string
      */
     public function getUserId()
     {
-        return intval($_SESSION[$this->prefix . 'user_id'] ?? 0);
+        if (isset($_SESSION[$this->prefix . 'user_id'])) {
+            if (is_numeric($_SESSION[$this->prefix . 'user_id'])) {
+                return intval($_SESSION[$this->prefix . 'user_id']);
+            } else {
+                return $_SESSION[$this->prefix . 'user_id'];
+            }
+        } else {
+            return 0;
+        }
     }
 
     /**

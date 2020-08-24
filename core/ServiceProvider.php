@@ -81,10 +81,6 @@ class ServiceProvider implements ServiceProviderInterface
             return $redis;
         };
 
-        $pimple[Router::class] = function () {
-            return new Router(config('routes'));
-        };
-
         $pimple[Blade::class] = function () {
             return new Blade(PATH_VIEW, PATH_DATA . '/view_cache');
         };
