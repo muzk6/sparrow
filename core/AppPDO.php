@@ -46,13 +46,44 @@ class AppPDO
     /**
      * 解析 SQL 语句
      * @param string $sql
+     * @param array $binds
      * @return string
      */
-    protected function parseSql(string $sql)
+    protected function parseSql(string $sql, array $binds = [])
     {
         $sql = trim($sql);
         if ($this->openLog) {
-            logfile('sql', $sql, 'sql');
+            $sqlLog = $sql;
+
+            if (!empty($binds)) {
+                $indexed = $binds == array_values($binds);
+                foreach ($binds as $k => $v) {
+                    if (is_object($v)) {
+                        if ($v instanceof \DateTime) {
+                            $v = $v->format('Y-m-d H:i:s');
+                        } else {
+                            continue;
+                        }
+                    } elseif (is_string($v)) {
+                        $v = "'$v'";
+                    } elseif ($v === null) {
+                        $v = 'NULL';
+                    } elseif (is_array($v)) {
+                        $v = implode(',', $v);
+                    }
+
+                    if ($indexed) {
+                        $sqlLog = preg_replace('/\?/', $v, $sqlLog, 1);
+                    } else {
+                        if ($k[0] != ':') { // add leading colon if it was left out
+                            $k = ':' . $k;
+                        }
+                        $sqlLog = str_replace($k, $v, $sqlLog);
+                    }
+                }
+            }
+
+            logfile('sql', $sqlLog, 'sql');
         }
 
         return $sql;
@@ -202,7 +233,7 @@ class AppPDO
      */
     public function getOne(string $sql, array $binds = [])
     {
-        $sql = $this->parseSql($sql);
+        $sql = $this->parseSql($sql, $binds);
 
         try {
             if (!preg_match('/limit\s+(?:\d+|\d+\,\d)\s*;?$/i', $sql)) {
@@ -226,7 +257,7 @@ class AppPDO
      */
     public function getAll(string $sql, array $binds = [])
     {
-        $sql = $this->parseSql($sql);
+        $sql = $this->parseSql($sql, $binds);
 
         try {
             $statement = $this->connection->prepare($sql);
@@ -247,7 +278,7 @@ class AppPDO
      */
     public function query(string $sql, array $binds = [])
     {
-        $sql = $this->parseSql($sql);
+        $sql = $this->parseSql($sql, $binds);
 
         try {
             $statement = $this->connection->prepare($sql);

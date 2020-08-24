@@ -5,7 +5,7 @@
  * 测试表备份文件: db_backup.sql
  */
 
-require __DIR__ . '/../../init.php';
+require_once __DIR__ . '/../../init.php';
 
 /**
  * INSERT

@@ -5,7 +5,7 @@
  */
 
 return [
-    'log' => true, // 日志位于 data/log/sql_<ym>.log
+    'log' => true, // 生产环境建议关掉；日志位于 data/log/sql_<ym>.log
     'sections' => [
         // 默认区
         'default' => [
