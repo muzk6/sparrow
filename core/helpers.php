@@ -8,7 +8,6 @@ use Core\Config;
 use Core\CSRF;
 use Core\Flash;
 use Core\PDOEngine;
-use Core\RegExp;
 use Core\Request;
 use Core\Router;
 use Core\Translator;
