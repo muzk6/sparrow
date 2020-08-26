@@ -338,7 +338,8 @@ old('name', $data['name']);
 #### `flash_*()` 闪存，一性次缓存
 
 - `flash_set(string $key, $value)` 闪存设置
-- `flash_has(string $key)` 闪存是否存在
+- `flash_has(string $key)` 闪存是否有值
+- `flash_exists(string $key)` 闪存是否存在
 - `flash_get(string $key)` 闪存获取并删除
 - `flash_del(string $key)` 闪存删除
 

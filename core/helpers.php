@@ -416,14 +416,23 @@ function flash_set(string $key, $value)
 }
 
 /**
+ * 闪存是否有值
+ * @param string $key
+ * @return bool true: 存在且非 null
+ */
+function flash_has(string $key)
+{
+    return app(Flash::class)->has($key);
+}
+
+/**
  * 闪存是否存在
  * @param string $key
- * @param bool $strict 是否严格模式；<br>true: 使用 isset() 判断；<br>false: 使用 !empty() 判断
- * @return bool
+ * @return bool true: 存在，即使值为 null
  */
-function flash_has(string $key, bool $strict = false)
+function flash_exists(string $key)
 {
-    return app(Flash::class)->has($key, $strict);
+    return app(Flash::class)->exists($key);
 }
 
 /**
