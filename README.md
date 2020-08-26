@@ -27,7 +27,6 @@
 - http://localhost:37063/ 业务后台
 
 *所有后台访问都有 IP, Cookie 白名单，配置位于 `config/.../whitelist.php`*<br>
-*上面的访问链接，在生产环境下应该配置成不同的域名*
 
 ![](https://raw.githubusercontent.com/muzk6/sparrow-res/master/img/home.png)
 

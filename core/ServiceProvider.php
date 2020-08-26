@@ -26,7 +26,13 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         $pimple[Auth::class] = function () {
-            return new Auth(['prefix' => 'AUTH:']);
+            $httpHost = isset($_SERVER['HTTP_HOST']) ? md5($_SERVER['HTTP_HOST']) : '';
+            return new Auth(['prefix' => "AUTH:{$httpHost}:"]);
+        };
+
+        $pimple[Flash::class] = function () {
+            $httpHost = isset($_SERVER['HTTP_HOST']) ? md5($_SERVER['HTTP_HOST']) : '';
+            return new Flash(['prefix' => "FLASH:{$httpHost}:"]);
         };
 
         $pimple[Queue::class] = function () {

@@ -9,7 +9,19 @@ namespace Core;
  */
 class Flash
 {
-    protected $prefix = 'FLASH:';
+    /**
+     * @var string 缓存键前缀
+     */
+    protected $prefix;
+
+    /**
+     * Flash constructor.
+     * @param array $config
+     */
+    public function __construct(array $config)
+    {
+        $this->prefix = $config['prefix'];
+    }
 
     /**
      * 设置
