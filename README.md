@@ -35,8 +35,8 @@
 Dir | Desc
 --- | ---
 app | 业务逻辑
-app/Controllers | 控制器层，负责输入(请求参数，中间件)、处理(Service)、输出
 app/Providers | 容器服务提供层
+app/Routes | 路由层(控制器层)
 app/Services | 业务服务层
 cli | 命令行脚本
 config | 配置文件，通用配置放在当前目录下
@@ -64,6 +64,8 @@ IS_DEV | 是否为开发环境
 APP_LANG | 当前语言 `eg. zh_CN`
 APP_ENV | 服务器环境 `eg. dev`
 TEST_ENV | 是否为单元测试的环境
+PATH_APP | 项目业务目录
+PATH_ROUTES | 路由目录
 PATH_PUBLIC | 网站入口路径
 PATH_DATA | 数据目录，需要有写权限
 PATH_LOG | 日志目录
@@ -75,76 +77,30 @@ PATH_LOG | 日志目录
 
 ## 路由
 
-### 默认值规则
+### 注册路由
 
-URL | Controller | Action
---- | --- | ---
-`/` | `IndexController` | `index()`
-`/foo` | `FooController` | `index()`
-`/foo/` | `FooController` | `index()`
-`/foo/bar` | `FooController` | `bar()`
-`/foo/bar/` | `FooController` | `bar()`
+- `route_get()` 注册回调 GET 请求
+    - `route_get_re()` 正则匹配
+- `route_post()` 注册回调 POST 请求
+    - `route_post_re()` 正则匹配 
+- `route_any()` 注册回调任何请求
+    - `route_any_re()` 正则匹配
+- `route_middleware()` 注册路由中间件
+- `route_group()` 路由分组
 
-### 自定义路由
+### 例子
 
-*config/routes.php*
-```php
-/**
- * 路由配置
- *
- * 规则里必须定义以下任意一个类型：
- *
- * namespace: 全自动分发，指定命名空间，
- *  根据正则捕获命名分组 ct, ac (没指定命名分组时两者默认值均为 index)来自动分发到相应的控制器和方法
- *
- * controller: 半自动分发，指定控制器，
- *  根据正则捕获命名分组 ac (没指定命名分组时默认值为 index)来自动分发到相应的方法
- *
- * action: 手动分发，同时指定控制器和方法
- */
-
-return [
-    // 默认路由组
-    'default' => [
-        [
-            // url: /
-            'pattern' => '#^/$#',
-            'action' => 'App\Controllers\IndexController@index',
-        ],
-        [
-            // url: /foo, /foo/, /foo/bar, /foo/bar/
-            'pattern' => '#^/(?<ct>[a-zA-Z_\d]+)/?(?<ac>[a-zA-Z_\d]+)?/?$#',
-            'namespace' => 'App\Controllers\\',
-        ],
-    ],
-    // 其它路由组
-    'secret' => [
-        [
-            // url: /secret, /secret/, /secret/index, /secret/index/
-            'pattern' => '#^/secret/?(?<ac>[a-zA-Z_\d]+)?/?$#',
-            'controller' => 'App\Controllers\Secret\IndexController',
-        ]
-    ],
-];
-```
-
-- `app(\Core\Router::class)->dispatch();` 使用默认路由组 default
-- `app(\Core\Router::class)->dispatch('secret');` 使用路由组 secret
-
-### 路由相关信息
-
-- `\Core\Router::getUrl` 返回请求的 url 路径
-- `\Core\Router::getMatchGroups` 返回路由规则正则匹配项
-- `\Core\Router::getMatchRule` 返回命中的路由规则
+- 基本用法参考 `app/Routes/index.php`
+- 高级用法参考测试用例: `tests/feature/router_advanced.php`
+- 如果要实现 MVC 的 Controller::action 模式，可参考 `tests/feature/router_mvc.php`* 
 
 ### 自定义404
 
-在调用 `\Core\Router::dispatch` 之前调用 `\Core\Router::setStatus404Handler`
-
 ```php
-app(\Core\Router::class)->setStatus404Handler(function () {
+app(Router::class)->setStatus404Handler(function () {
+    echo '自定义404';
     http_response_code(404);
-})->dispatch();
+});
 ```
 
 ## 请求参数
@@ -161,7 +117,7 @@ $lastName = input('last_name');
 var_dump($firstName, $lastName);exit;
 ```
 
-### 不验证，全部获取
+### 不验证，统一获取
 
 ```php
 input('post.first_name');
@@ -178,7 +134,7 @@ $lastName = validate('last_name')->required()->get('名字');
 var_dump($firstName, $lastName);exit;
 ```
 
-### 部分验证，全部获取
+### 部分验证，统一获取
 
 ```php
 input('post.first_name');
@@ -244,19 +200,6 @@ b | bool
 a | array
 f | float
 
-## 控制器方法 action 用例
-
-- 支持自动依赖注入
-
-参考 `app/Controllers/DemoController.php`
-
-### 自定义勾子
-
-覆盖控制器基类勾子方法即可
-
-- `\Core\BaseController::beforeAction` 当且仅当返回 false 时，将终止后面的 action 调用(afterAction 不受影响)
-- `\Core\BaseController::afterAction`
-
 ## 数据库查询
 
 - 配置文件 `config/.../database.php`
@@ -318,11 +261,6 @@ inject(function (\Core\Queue $queue) {
 - `request_flash()` 把本次请求的参数缓存起来
 - `old(string $name = null, string $default = '')` 上次请求的字段值
 
-```php
-request_flash();
-old('name', $data['name']);
-```
-
 #### `csrf_*()` CSRF, XSRF
 
 - `csrf_field()`直接生成 HTML
@@ -338,8 +276,8 @@ old('name', $data['name']);
 #### `flash_*()` 闪存，一性次缓存
 
 - `flash_set(string $key, $value)` 闪存设置
-- `flash_has(string $key)` 闪存是否有值
-- `flash_exists(string $key)` 闪存是否存在
+- `flash_has(string $key)` 闪存是否有值，存在且非 null
+- `flash_exists(string $key)` 闪存是否存在，即使值为 null
 - `flash_get(string $key)` 闪存获取并删除
 - `flash_del(string $key)` 闪存删除
 
@@ -367,7 +305,7 @@ old('name', $data['name']);
 public function successAciton()
 {
     return ['foo' => 1]; // 只能返回消息体 d
-    return api_success('', 0, ['foo' => 1]); // 支持返回 c, m ,d; 一般用于方便返回纯 m, 例如 api_success('我是成功消息');
+    return api_success('我是成功消息', 0, ['foo' => 1]); // 支持返回 c, m ,d; 一般用于方便返回纯 m, 例如 api_success('我是成功消息');
     return api_json(true, ['foo' => 1]); // 支持返回 s, c, m ,d
 }
 ```

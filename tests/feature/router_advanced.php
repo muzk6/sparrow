@@ -1,8 +1,8 @@
 <?php
 
 /**
- * 路由测试
- * cgi 入口 include PATH_ROOT . '/tests/feature/router.php';
+ * 路由测试，中间件与路由
+ * public/index.php 入口 include PATH_ROOT . '/tests/feature/router_advanced.php';
  * 测试路径：/, /index, /foo, /bar
  */
 
