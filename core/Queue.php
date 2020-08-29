@@ -59,7 +59,7 @@ class Queue
      * @param string $exchangeName 交换器名称
      * @param string $exchangeType 交换器类型
      */
-    public function publish(string $queue, array $data, string $exchangeName = 'default.direct', string $exchangeType = 'direct')
+    public function publish(string $queue, array $data, string $exchangeName = 'sparrow.direct', string $exchangeType = 'direct')
     {
         $channelKey = md5("publish_{$exchangeName}_{$exchangeType}_{$queue}");
         if (!isset($this->channels[$channelKey])) {
