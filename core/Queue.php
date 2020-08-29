@@ -14,12 +14,6 @@ use PhpAmqpLib\Message\AMQPMessage;
 class Queue
 {
     /**
-     * 配置
-     * @var array
-     */
-    protected $conf;
-
-    /**
      * @var AMQPStreamConnection
      */
     protected $connection;
@@ -35,59 +29,56 @@ class Queue
             trigger_error('"composer require php-amqplib/php-amqplib" at first');
         }
 
-        $this->conf = $conf;
+        if (!$this->connection) {
+            shuffle($conf);
+            foreach ($conf as $host) {
+                try {
+                    $this->connection = new AMQPStreamConnection($host['host'], $host['port'], $host['user'], $host['passwd']);
+                } catch (\Exception $exception) {
+                    trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES));
+                }
+            }
+        }
     }
 
     public function __destruct()
     {
-        if ($this->connection) {
-            $this->connection->close();
-        }
-
         foreach ($this->channels as $channel) {
             $channel->close();
         }
-    }
 
-    /**
-     * 初始化连接
-     * @param $queue
-     * @return AMQPChannel
-     */
-    protected function init($queue)
-    {
-        if (!$this->connection) {
-            $this->connection = new AMQPStreamConnection($this->conf['host'], $this->conf['port'], $this->conf['user'], $this->conf['passwd']);
+        if ($this->connection) {
+            $this->connection->close();
         }
-
-        if (!isset($this->channels[$queue])) {
-            $this->channels[$queue] = $this->connection->channel();
-            $this->channels[$queue]->exchange_declare(strval($this->conf['exchange_name']), strval($this->conf['exchange_type']), false, true, false);
-            $this->channels[$queue]->queue_declare($queue, false, true, false, false);
-        }
-
-        return $this->channels[$queue];
     }
 
     /**
      * 消息队列发布
-     * @param string $queue 队列名
+     * @param string $queue 队列名称
      * @param array $data
+     * @param string $exchangeName 交换器名称
+     * @param string $exchangeType 交换器类型
      */
-    public function publish(string $queue, array $data)
+    public function publish(string $queue, array $data, string $exchangeName = 'default.direct', string $exchangeType = 'direct')
     {
-        $channel = $this->init($queue);
+        $channelKey = md5("publish_{$exchangeName}_{$exchangeType}_{$queue}");
+        if (!isset($this->channels[$channelKey])) {
+            $this->channels[$channelKey] = $this->connection->channel();
+            $this->channels[$channelKey]->exchange_declare($exchangeName, $exchangeType, false, true, false);
+            $this->channels[$channelKey]->queue_declare($queue, false, true, false, false);
+        }
+
         $msg = new AMQPMessage(
             json_encode($data),
             ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]
         );
 
-        $channel->basic_publish($msg, '', $queue);
+        $this->channels[$channelKey]->basic_publish($msg, '', $queue);
     }
 
     /**
      * 消息队列消费
-     * @param string $queue 队列名
+     * @param string $queue 队列名称
      * @param callable $callback
      * @throws \ErrorException
      */
@@ -99,12 +90,17 @@ class Queue
 
         ini_set('memory_limit', -1);
 
-        $channel = $this->init($queue);
-        $channel->basic_qos(null, 1, null);
+        $channelKey = md5("consume_{$queue}");
+        if (!isset($this->channels[$channelKey])) {
+            $this->channels[$channelKey] = $this->connection->channel();
+            $this->channels[$channelKey]->queue_declare($queue, false, true, false, false);
+        }
+
+        $this->channels[$channelKey]->basic_qos(null, 1, null);
 
         $scriptTime = time();
         $fileStats = [];
-        $channel->basic_consume($queue, '', false, false, false, false,
+        $this->channels[$channelKey]->basic_consume($queue, '', false, false, false, false,
             function ($msg) use ($queue, $callback, $scriptTime, &$fileStats) {
                 // 每300秒退出 worker, 比销毁容器更安全(考虑到开发者可能用静态类)，释放 mysql 之类的长连接
                 if (time() - $scriptTime >= 300) {
@@ -188,8 +184,8 @@ class Queue
         pcntl_signal(SIGINT, $signalHandler);
         pcntl_signal(SIGQUIT, $signalHandler);
 
-        while (count($channel->callbacks)) {
-            $channel->wait();
+        while ($this->channels[$channelKey]->is_consuming()) {
+            $this->channels[$channelKey]->wait();
             pcntl_signal_dispatch();
         }
     }
