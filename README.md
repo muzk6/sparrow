@@ -22,7 +22,7 @@
 
 - http://localhost:37061/ 项目主页
 - http://localhost:37062/ 运维后台
-    - 登录密码位于 `\App\Controllers\OPS\IndexController::LOGIN_PASSWD`，可自行修改
+    - 登录密码位于 `app/Routes/OPS/index.php` 常量 `LOGIN_PASSWD`，可自行修改
     - 详情查看后面章节 `OPS 运维与开发`
 - http://localhost:37063/ 业务后台
 
@@ -107,7 +107,6 @@ app(Router::class)->setStatus404Handler(function () {
 ## 请求参数
 > 获取、过滤、表单验证、类型强转 请求参数 `$_GET,$_POST` 支持 `payload`
 
-- 以下 `$this` 指的是 `Controller` 对象
 - 以下的验证失败时会抛出异常 \Core\AppException
 
 ### 不验证，一个一个获取
