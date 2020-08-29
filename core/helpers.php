@@ -141,6 +141,7 @@ function logfile(string $index, $data, string $type = 'app')
         'sapi' => PHP_SAPI,
         'hostname' => php_uname('n'),
         'url' => $_SERVER['REQUEST_URI'] ?? '',
+        'method' => $_SERVER['REQUEST_METHOD'] ?? '',
         'ip' => app(Request::class)->getIp(),
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         'user_id' => app(Auth::class)->getUserId(),
