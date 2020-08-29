@@ -47,13 +47,6 @@ class Router
      */
     protected $status404Handler;
 
-    public function __construct()
-    {
-        $this->setStatus404Handler(function () {
-            http_response_code(404);
-        });
-    }
-
     /**
      * 添加路由
      * @param string $method
@@ -116,7 +109,7 @@ class Router
      * 当前分组与父分组
      * @return array [当前分组, 父分组]
      */
-    public function getLastGroup()
+    protected function getLastGroup()
     {
         if (empty($this->groupStack)) {
             return ['', ''];
@@ -143,9 +136,10 @@ class Router
             $requestUrl = rtrim($requestUrl, '/');
         }
 
-        $found = false;
-        $methodAllow = false;
         foreach ($this->routes as $routeIndex => $routeValue) {
+            $found = false;
+            $methodAllow = false;
+
             if ($routeValue['type'] !== self::TYPE_ROUTE) {
                 continue;
             }
@@ -201,11 +195,7 @@ class Router
             }
         }
 
-        if ($found && !$methodAllow) { // 405
-            http_response_code(405);
-        } elseif (!$found) { // 404
-            $this->fireStatus404();
-        }
+        $this->fireStatus404();
     }
 
     /**
@@ -259,7 +249,13 @@ class Router
      */
     public function fireStatus404()
     {
-        return call_user_func($this->status404Handler);
+        http_response_code(404);
+
+        if (is_callable($this->status404Handler)) {
+            echo inject($this->status404Handler);
+        }
+
+        exit;
     }
 
     /**

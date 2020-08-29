@@ -96,10 +96,11 @@ PATH_LOG | 日志目录
 
 ### 自定义404
 
+在调用 `app(Router::class)->dispatch()` 之前像下面例子设置 404 回调：
+
 ```php
 app(Router::class)->setStatus404Handler(function () {
-    echo '自定义404';
-    http_response_code(404);
+    return '自定义404页面'; // return view('...')
 });
 ```
 
