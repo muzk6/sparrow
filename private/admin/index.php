@@ -9,6 +9,6 @@ use Core\Router;
 
 require dirname(__DIR__) . '/../init.php';
 
-include PATH_ROUTES . '/admin.php';
+include PATH_ROUTES . '/Admin/index.php';
 
 app(Router::class)->dispatch();
