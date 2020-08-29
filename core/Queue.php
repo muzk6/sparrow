@@ -63,7 +63,7 @@ class Queue
     {
         $channelKey = md5("publish_{$exchangeName}_{$exchangeType}_{$queue}");
         if (!isset($this->channels[$channelKey])) {
-            $this->channels[$channelKey] = $this->connection->channel();
+            $this->channels[$channelKey] = $this->connection->channel(); // 这里每次返回都是新的 channel 对象
             $this->channels[$channelKey]->exchange_declare($exchangeName, $exchangeType, false, true, false);
             $this->channels[$channelKey]->queue_declare($queue, false, true, false, false);
         }
@@ -92,7 +92,7 @@ class Queue
 
         $channelKey = md5("consume_{$queue}");
         if (!isset($this->channels[$channelKey])) {
-            $this->channels[$channelKey] = $this->connection->channel();
+            $this->channels[$channelKey] = $this->connection->channel(); // 这里每次返回都是新的 channel 对象
             $this->channels[$channelKey]->queue_declare($queue, false, true, false, false);
         }
 
