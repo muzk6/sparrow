@@ -78,11 +78,21 @@ class ServiceProvider implements ServiceProviderInterface
             }
 
             $conf = config('redis');
+            shuffle($conf);
 
             $redis = new Redis();
-            $redis->pconnect($conf['host'], $conf['port'], $conf['timeout']);
-            $redis->setOption(Redis::OPT_PREFIX, $conf['prefix']);
-            $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+            foreach ($conf as $host) {
+                try {
+                    if ($redis->pconnect($host['host'], $host['port'], $host['timeout'])) {
+                        $redis->setOption(Redis::OPT_PREFIX, $host['prefix']);
+                        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
+
+                        break;
+                    }
+                } catch (\Exception $exception) {
+                    trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES));
+                }
+            }
 
             return $redis;
         };
