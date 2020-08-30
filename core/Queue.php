@@ -34,11 +34,9 @@ class Queue
             foreach ($conf as $host) {
                 try {
                     $this->connection = new AMQPStreamConnection($host['host'], $host['port'], $host['user'], $host['passwd']);
-                    if ($this->connection) {
-                        break;
-                    }
+                    break;
                 } catch (\Exception $exception) {
-                    trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES));
+                    trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
                 }
             }
         }

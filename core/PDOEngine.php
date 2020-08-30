@@ -86,12 +86,20 @@ class PDOEngine
         } else { // 从库
             $connection = &$this->sectionConn[$section]['slave'];
             if (empty($connection)) {
-                $connection = $this->initConnection($sectionConf['hosts']['slaves'][mt_rand(0, count($sectionConf['hosts']['slaves']) - 1)],
-                    $sectionConf['user'],
-                    $sectionConf['passwd'],
-                    $sectionConf['dbname'] ?? '',
-                    $sectionConf['charset'] ?? ''
-                );
+                shuffle($sectionConf['hosts']['slaves']);
+                foreach ($sectionConf['hosts']['slaves'] as $host) {
+                    try {
+                        $connection = $this->initConnection($host,
+                            $sectionConf['user'],
+                            $sectionConf['passwd'],
+                            $sectionConf['dbname'] ?? '',
+                            $sectionConf['charset'] ?? ''
+                        );
+                        break;
+                    } catch (\Exception $exception) {
+                        trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
+                    }
+                }
             }
         }
 
