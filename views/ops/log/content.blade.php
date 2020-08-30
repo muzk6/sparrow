@@ -5,7 +5,7 @@
 </head>
 <body style="overflow: hidden">
 <div id="app">
-    <el-container>
+    <el-container v-loading.fullscreen.lock="fullscreenLoading">
         <el-header>
             <el-breadcrumb separator-class="el-icon-arrow-right">
                 <el-breadcrumb-item><a href="/log/index">日志文件</a></el-breadcrumb-item>
@@ -40,12 +40,13 @@
             el: '#app',
             data: function () {
                 return {
+                    fullscreenLoading: false,
                     showErr: false,
                     errMsg: '',
                     preData: '',
                     preStyle: `height: ${screen.height - 320}px; overflow: auto`,
                     offset: -1,
-                    limit: 10,
+                    limit: 50,
                 }
             },
             mounted() {
@@ -53,7 +54,9 @@
             },
             methods: {
                 load() {
+                    this.fullscreenLoading = true;
                     $.getJSON('/log/more', {file, offset: this.offset, limit: this.limit}, data => {
+                        this.fullscreenLoading = false;
                         if (data.s) {
                             this.preData = data.d.content + "\n" + this.preData;
                             if (this.offset == -1) {
