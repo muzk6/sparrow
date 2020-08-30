@@ -140,7 +140,7 @@ class PDOEngine
      */
     public function shard(string $table, string $index)
     {
-        return new PDOSharding($table, $index, config('sharding'), $this->conf['log']);
+        return new PDOSharding($table, $index, $this->conf['sharding'], $this->conf['log']);
     }
 
     /**
