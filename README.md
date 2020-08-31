@@ -432,6 +432,10 @@ worker 遇到信号 `SIGTERM`, `SIGHUP`, `SIGINT`, `SIGQUIT` 会平滑结束进�
 
 https://github.com/elastic/elasticsearch-php
 
+### 用例
+
+`app(\Core\AppES::class)` 为实例对象，用法与原生一致
+
 ## OPS 运维与开发
 > 用于运维监控与开发调试，包括 日志、调试、性能分析
 

@@ -16,10 +16,6 @@ class AppRedis extends \Redis
      */
     public static function factory(array $conf)
     {
-        if (!extension_loaded('redis')) {
-            trigger_error('"pecl install redis" at first');
-        }
-
         shuffle($conf);
 
         $redis = new static();

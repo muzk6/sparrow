@@ -72,6 +72,10 @@ class ServiceProvider implements ServiceProviderInterface
         };
 
         $pimple[AppRedis::class] = $pimple['redis'] = function () {
+            if (!extension_loaded('redis')) {
+                trigger_error('"pecl install redis" at first', E_USER_ERROR);
+            }
+
             return AppRedis::factory(config('redis'));
         };
 
@@ -79,20 +83,14 @@ class ServiceProvider implements ServiceProviderInterface
             return new Blade(PATH_VIEW, PATH_DATA . '/view_cache');
         };
 
-        /**
-         * 文档 https://github.com/elastic/elasticsearch-php
-         */
-        $pimple[\Elasticsearch\Client::class] = function () {
+        $pimple[AppES::class] = function () {
             if (!class_exists('\Elasticsearch\ClientBuilder')) {
-                trigger_error('"composer require elasticsearch/elasticsearch" at first');
+                trigger_error('"composer require elasticsearch/elasticsearch" at first', E_USER_ERROR);
             }
 
             $conf = config('elasticsearch');
-            $hosts = $conf['hosts'];
-            shuffle($hosts);
-
             $es = \Elasticsearch\ClientBuilder::create()
-                ->setHosts($hosts)
+                ->setHosts($conf['hosts'])
                 ->build();
 
             return $es;
