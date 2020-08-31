@@ -14,6 +14,7 @@ if (is_file('/www/.pub.env')) { // 生产环境 publish
 
 } else { // 开发环境 develop
     ini_set('opcache.enable', 0);
+    ini_set('opcache.enable_cli', 0);
 
     define('APP_ENV', 'dev');
     define('PATH_CONFIG_ENV', PATH_ROOT . '/config/dev');

@@ -350,7 +350,7 @@ public function errorAciton()
 
 ### 用例
 
-`app(Redis::class)->setex('key', 3600, 'value')` 与原生一致
+`app(\Core\AppRedis::class)->setex('key', 3600, 'value')` 与原生一致
 
 ## 登录
 

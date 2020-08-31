@@ -3,8 +3,6 @@
 
 namespace Core;
 
-use Redis;
-
 /**
  * 节流阀
  * @package Core
@@ -22,9 +20,10 @@ class Throttle
      */
     public function pass(string $key, int $limit, int $ttl)
     {
-        /** @var Redis $redis */
-        $redis = app(Redis::class);
+        $redis = app(AppRedis::class);
         $now = time();
+        $len = 0;
+
         if ($redis->lLen($key) < $limit) {
             $len = $redis->lPush($key, $now);
         } else {
@@ -43,5 +42,5 @@ class Throttle
         $redis->expire($key, $ttl);
         return $limit - $len;
     }
-    
+
 }

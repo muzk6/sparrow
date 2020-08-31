@@ -6,7 +6,6 @@ namespace Core;
 
 use Pimple\Container;
 use Pimple\ServiceProviderInterface;
-use Redis;
 
 /**
  * 框架类容器提供器
@@ -72,29 +71,8 @@ class ServiceProvider implements ServiceProviderInterface
             return new XHProf(config('xhprof'));
         };
 
-        $pimple[Redis::class] = $pimple['redis'] = function () {
-            if (!extension_loaded('redis')) {
-                trigger_error('"pecl install redis" at first');
-            }
-
-            $conf = config('redis');
-            shuffle($conf);
-
-            $redis = new Redis();
-            foreach ($conf as $host) {
-                try {
-                    if ($redis->pconnect($host['host'], $host['port'], $host['timeout'])) {
-                        $redis->setOption(Redis::OPT_PREFIX, $host['prefix']);
-                        $redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
-
-                        break;
-                    }
-                } catch (\Exception $exception) {
-                    trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
-                }
-            }
-
-            return $redis;
+        $pimple[AppRedis::class] = $pimple['redis'] = function () {
+            return AppRedis::factory(config('redis'));
         };
 
         $pimple[Blade::class] = function () {
