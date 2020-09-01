@@ -10,6 +10,7 @@ services:
             - "37061:37061"
             - "37062:37062"
             - "37063:37063"
+            - "37064:37064"
     php-fpm:
         build: ./docker/php-fpm
         volumes:

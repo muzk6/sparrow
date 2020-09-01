@@ -1,9 +1,9 @@
 <?php
 
 /**
- * rpc
+ * Yar RPC
  */
 
 return [
-    'sparrow' => 'http://nginx:8000/rpc_server_demo.php',
+    'sparrow' => 'http://nginx:37064/demo', // 打开 http://localhost:37064/demo 可直接查看类文档
 ];

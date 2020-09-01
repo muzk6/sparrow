@@ -35,9 +35,7 @@ class Yar
      */
     protected function getUrl(string $index)
     {
-        $url = &$this->servers[$index];
-        isset($url) || trigger_error('请在 yar.php 配置相关地址');
-
+        $url = $this->servers[$index] ?? $index;
         if ($this->traceName) {
             $url .= (strpos($url, '?') === false ? '?' : '&') . "_xt={$this->traceName}";
             $this->traceName = '';
@@ -48,13 +46,14 @@ class Yar
 
     /**
      * 串行调用
-     * @param string $server 服务端接口名，yar.php 里的 servers项
+     * @param string $server 配置名(位于 yar.php)，或者 URL 地址
      * @param string $action 接口的动作名
      * @param array $params 请求参数
      * @param int $timeout 超时(ms)
      * @param int $retry 重试次数
      * @return mixed
-     * @see 例子参考 cli/rpc_client_demo.php
+     * @throws AppException
+     * @see 例子参考 tests/feature/yar_client.php
      */
     public function request(string $server, string $action, array $params, int $timeout = 5000, int $retry = 1)
     {
@@ -68,15 +67,24 @@ class Yar
                 if ($result !== null) {
                     return $result;
                 }
-            } catch (Exception $exception) {
-                logfile('Yar::request', [
-                    'message' => $exception->getMessage(),
-                    'server' => $server,
-                    'action' => $action,
-                    'params' => $params,
-                    'timeout' => $timeout,
-                    'retry' => "{$i}/{$retry}",
-                ], 'error');
+            } catch (\Exception $exception) {
+                if ($exception->getType() == 'Core\AppException') {
+                    throw new AppException($exception->getMessage(), $exception->getCode());
+                } else {
+                    $log = [
+                        'message' => $exception->getMessage(),
+                        'server' => $server,
+                        'action' => $action,
+                        'params' => $params,
+                        'timeout' => $timeout,
+                        'retry' => "{$i}/{$retry}",
+                    ];
+                    logfile('Yar::request', $log, 'error');
+
+                    if (IS_DEV) {
+                        trigger_error(json_encode($log, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
+                    }
+                }
             }
         }
 
@@ -85,12 +93,13 @@ class Yar
 
     /**
      * 并行调用
-     * @param string $server 服务端接口名，yar.php 里的 servers项
+     * @param string $server 配置名(位于 yar.php)，或者 URL 地址
      * @param string $action
      * @param array $params
      * @param callable $callback 回调函数
      * @param int $timeout 超时(ms)
-     * @see 例子参考 cli/rpc_client_demo.php
+     * @throws AppException
+     * @see 例子参考 tests/feature/yar_client.php
      */
     public function requestConcurrently(string $server, string $action, array $params, callable $callback, int $timeout = 5000)
     {
@@ -99,14 +108,23 @@ class Yar
             \Yar_Concurrent_Client::call($url, $action, [$params], $callback, null,
                 [YAR_OPT_TIMEOUT => $timeout]
             );
-        } catch (Exception $exception) {
-            logfile('Yar::requestConcurrently', [
-                'message' => $exception->getMessage(),
-                'server' => $server,
-                'action' => $action,
-                'params' => $params,
-                'timeout' => $timeout,
-            ], 'error');
+        } catch (\Exception $exception) {
+            if ($exception->getType() == 'Core\AppException') {
+                throw new AppException($exception->getMessage(), $exception->getCode());
+            } else {
+                $log = [
+                    'message' => $exception->getMessage(),
+                    'server' => $server,
+                    'action' => $action,
+                    'params' => $params,
+                    'timeout' => $timeout,
+                ];
+                logfile('Yar::requestConcurrently', $log, 'error');
+
+                if (IS_DEV) {
+                    trigger_error(json_encode($log, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
+                }
+            }
         }
     }
 
@@ -126,15 +144,12 @@ class Yar
 
     /**
      * RPC 服务端
-     * @param BaseYar $server Yar 类对象
-     * @see 例子参考 rpc/rpc_server_demo.php
+     * @param Object $service 实例对象
      */
-    public function server(BaseYar $server)
+    public function server($service)
     {
         try {
-            $server = new \Yar_Server($server);
-            app(Xdebug::class)->auto();
-
+            $server = new \Yar_Server($service);
             $server->handle();
         } catch (Exception $exception) {
             logfile('Yar::server', $exception->getMessage(), 'error');
