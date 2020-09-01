@@ -92,7 +92,7 @@ PATH_LOG | 日志目录
 
 - 基本用法参考 `app/Routes/index.php`
 - 高级用法参考测试用例: `tests/feature/router_advanced.php`
-- 如果要实现 MVC 的 Controller::action 模式，可参考 `tests/feature/router_mvc.php`* 
+- 如果要实现 MVC 的 Controller::action 模式，可参考 `tests/feature/router_mvc.php`
 
 ### 自定义404
 
@@ -355,7 +355,7 @@ public function errorAciton()
 ## 登录
 
 ```php
-app(\Core\Auth::class)->login(1010); // 使用 1010 ID 使用
+app(\Core\Auth::class)->login(1010); // 登录 ID 为 1010
 app(\Core\Auth::class)->getUserId(); // 1010
 app(\Core\Auth::class)->isLogin(); // true
 app(\Core\Auth::class)->logout(); // 退出登录
@@ -492,6 +492,8 @@ https://github.com/elastic/elasticsearch-php
 
 - 配置文件 `config/.../xhprof.php`
 - `enable` 设置为 `true`, 即可记录大于指定耗时的请求
+
+*注意：请确保对 `data/` 目录有写权限*
 
 ## 维护模式
 > 开启维护模式，关闭网站访问入口
