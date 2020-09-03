@@ -404,7 +404,7 @@ class AppPDO
     {
         list($placeholder, $binds) = $this->parseWhere($where);
         if (empty($placeholder)) {
-            trigger_error('WHERE 条件不能为空');
+            trigger_error('WHERE 条件不能为空', E_USER_WARNING);
             return 0;
         }
 
@@ -446,7 +446,7 @@ class AppPDO
     {
         list($placeholder, $binds) = $this->parseWhere($where);
         if (empty($placeholder)) {
-            trigger_error('WHERE 条件不能为空');
+            trigger_error('WHERE 条件不能为空', E_USER_WARNING);
             return 0;
         }
 

@@ -19,11 +19,6 @@ class ErrorHandler
      */
     public function errorHandler($errno, $errstr, $errfile, $errline)
     {
-        // 在回调中检查起到延后作用
-        if ($this->is_display_errors()) {
-            return false; // 打印交还给 display_errors
-        }
-
         $lineCode = '';
         $handle = @fopen($errfile, 'r');
         if ($handle) {
@@ -71,12 +66,14 @@ class ErrorHandler
         }
 
         logfile('error_handler', $data, 'error');
-        return true;
+
+        return false;
     }
 
     /**
      * set_exception_handler
      * @param \Throwable $exception
+     * @throws \Throwable
      */
     public function exceptionHandler(\Throwable $exception)
     {
@@ -96,6 +93,8 @@ class ErrorHandler
         }
 
         logfile('exception_handler', $data, 'error');
+
+        throw $exception;
     }
 
     /**
@@ -104,7 +103,7 @@ class ErrorHandler
      */
     public function is_display_errors()
     {
-        return in_array(strtolower(ini_get('display_errors')), ['1', 'on']);
+        return error_reporting() === 0 || in_array(strtolower(ini_get('display_errors')), ['1', 'on']);
     }
 
 }

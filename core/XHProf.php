@@ -46,8 +46,7 @@ class XHProf
         }
 
         if (!extension_loaded('tideways_xhprof')) {
-            trigger_error('请安装扩展: tideways_xhprof');
-            return false;
+            trigger_error('请安装扩展: tideways_xhprof', E_USER_ERROR);
         }
 
         $this->startTime = microtime(true);

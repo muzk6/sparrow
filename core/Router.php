@@ -66,7 +66,7 @@ class Router
         static $duplicate = [];
 
         if (isset($duplicate[$hash])) {
-            trigger_error('路由重复注册: ' . json_encode(['method' => $method, 'url' => $url, 'is_regexp' => $isRegexp], JSON_UNESCAPED_SLASHES));
+            trigger_error('路由重复注册: ' . json_encode(['method' => $method, 'url' => $url, 'is_regexp' => $isRegexp], JSON_UNESCAPED_SLASHES), E_USER_WARNING);
             return;
         }
 

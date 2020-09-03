@@ -25,7 +25,7 @@ class Mail extends Swift_Mailer
     public function __construct(array $conf)
     {
         if (!class_exists('\Swift_SmtpTransport')) {
-            trigger_error('"composer require swiftmailer/swiftmailer" at first');
+            trigger_error('"composer require swiftmailer/swiftmailer" at first', E_USER_ERROR);
         }
 
         $this->conf = $conf;

@@ -23,10 +23,14 @@ class Queue
      */
     protected $channels = [];
 
+    /**
+     * Queue constructor.
+     * @param array $conf
+     */
     public function __construct(array $conf)
     {
         if (!class_exists('\PhpAmqpLib\Connection\AMQPStreamConnection')) {
-            trigger_error('"composer require php-amqplib/php-amqplib" at first');
+            trigger_error('"composer require php-amqplib/php-amqplib" at first', E_USER_ERROR);
         }
 
         if (!$this->connection) {
@@ -42,6 +46,9 @@ class Queue
         }
     }
 
+    /**
+     * @throws Exception
+     */
     public function __destruct()
     {
         foreach ($this->channels as $channel) {

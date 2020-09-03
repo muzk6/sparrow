@@ -87,7 +87,7 @@ class AppContainer
 
             return $container[$name];
         } catch (\ReflectionException $e) {
-            trigger_error($e->getMessage());
+            trigger_error($e->getMessage(), E_USER_ERROR);
         }
     }
 

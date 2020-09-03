@@ -68,8 +68,7 @@ class PDOEngine
 
         $sectionConf = &$this->conf['sections'][$section];
         if (is_null($sectionConf)) {
-            trigger_error("database.php 配置错误，`sections -> {$section}` 不存在");
-            exit;
+            trigger_error("database.php 配置错误，`sections -> {$section}` 不存在", E_USER_ERROR);
         }
 
         if ($useMaster || empty($sectionConf['hosts']['slaves'])) { // 主库；在没有配置从库时也使用主库

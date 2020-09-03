@@ -19,8 +19,7 @@ define('TIME', $_SERVER['REQUEST_TIME']); // 注意：不能在 worker 里使用
 require PATH_CONFIG . '/env.php';
 
 if (!file_exists(PATH_CONFIG_ENV)) {
-    trigger_error(PATH_CONFIG_ENV  . ' 配置目录不存在');
-    exit;
+    trigger_error(PATH_CONFIG_ENV . ' 配置目录不存在', E_USER_ERROR);
 }
 
 define('IS_DEV', APP_ENV == 'dev');
@@ -28,9 +27,9 @@ define('IS_POST', isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQU
 define('IS_GET', isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) == 'GET');
 define('IS_OPTIONS', isset($_SERVER['REQUEST_METHOD']) && strtoupper($_SERVER['REQUEST_METHOD']) == 'OPTIONS');
 
-// 精简错误日志，能记录 Fatal Error, Parse Error
+// PHP 标准错误处理程序，能记录 Fatal Error, Parse Error
 ini_set('log_errors', 1);
-ini_set('error_log', sprintf('%s/unhandled_%s.log', PATH_LOG, date('ym')));
+ini_set('error_log', sprintf('%s/standard_%s.log', PATH_LOG, date('Ym')));
 if (!file_exists(PATH_LOG)) {
     mkdir(PATH_LOG, 0777, true);
 }
@@ -43,10 +42,8 @@ require PATH_ROOT . '/vendor/autoload.php';
 
 // 详细错误日志
 set_error_handler([app(ErrorHandler::class), 'errorHandler']);
-// 未捕获的异常日志
-if (!app(ErrorHandler::class)->is_display_errors()) {
-    set_exception_handler([app(ErrorHandler::class), 'exceptionHandler']);
-}
+// 未捕获的详情异常日志
+set_exception_handler([app(ErrorHandler::class), 'exceptionHandler']);
 
 // 配置文件里的默认配置
 $appConf = config('app');

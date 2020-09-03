@@ -40,17 +40,16 @@ function inject(callable $fn)
 {
     try {
         $ref = new ReflectionFunction($fn);
+
+        $actionParams = [];
+        foreach ($ref->getParameters() as $param) {
+            $actionParams[] = AppContainer::get($param->getClass()->getName());
+        }
+
+        return $ref->invokeArgs($actionParams);
     } catch (ReflectionException $e) {
-        trigger_error($e->getMessage());
-        return null;
+        trigger_error($e->getMessage(), E_USER_ERROR);
     }
-
-    $actionParams = [];
-    foreach ($ref->getParameters() as $param) {
-        $actionParams[] = AppContainer::get($param->getClass()->getName());
-    }
-
-    return $ref->invokeArgs($actionParams);
 }
 
 /**
@@ -119,19 +118,19 @@ function trans(int $code, array $params = [])
 
 /**
  * 文件日志
- * @param string $index 日志索引，用于正查和反查，建议传入 uniqid()
+ * @param string $index 日志名(索引)
  * @param array|string $data 日志内容
- * @param string $type 日志类型，用于区分日志文件，不要带下划线前缀(用于区分框架日志)
+ * @param string $filename 日志文件名前缀
  * @return int|null
  */
-function logfile(string $index, $data, string $type = 'app')
+function logfile(string $index, $data, string $filename = 'app')
 {
     if (defined('TEST_ENV')) {
         return null;
     }
 
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1)[0];
-    $type = trim(str_replace('/', '', $type));
+    $filename = trim(str_replace('/', '', $filename));
 
     $log = json_encode([
         'time' => date('Y-m-d H:i:s'),
@@ -149,7 +148,7 @@ function logfile(string $index, $data, string $type = 'app')
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_NUMERIC_CHECK);
 
     $path = sprintf('%s/%s_%s.log',
-        PATH_LOG, $type, date('ym'));
+        PATH_LOG, $filename, date('Ym'));
 
     return file_put_contents($path, $log . PHP_EOL, FILE_APPEND);
 }
@@ -362,8 +361,7 @@ function url($path, array $params = [], bool $secure = false)
 {
     if (is_array($path)) {
         if (count($path) !== 2) {
-            trigger_error("正确用法：url(['test', '/path/to'])");
-            return '';
+            trigger_error("正确用法：url(['test', '/path/to'])", E_USER_ERROR);
         }
 
         list($alias, $path) = $path;
