@@ -22,7 +22,6 @@
     "ext-pdo": "*",
     "ext-redis": "*",
     "ext-pcntl": "*",
-    "ext-openssl": "*",
     "ext-xdebug": "*",
     "pimple/pimple": "^3.2",
     "duncan3dc/blade": "^4.5",

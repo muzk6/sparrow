@@ -19,11 +19,6 @@ class ServiceProvider implements ServiceProviderInterface
             return new PDOEngine(config('database'));
         };
 
-        $pimple[Aes::class] = function () {
-            $conf = config('app');
-            return new Aes($conf['secret_key']);
-        };
-
         $pimple[Auth::class] = function () {
             $httpHost = isset($_SERVER['HTTP_HOST']) ? md5($_SERVER['HTTP_HOST']) : '';
             return new Auth(['prefix' => "AUTH:{$httpHost}:"]);
