@@ -60,13 +60,6 @@ class ServiceProvider implements ServiceProviderInterface
             return $csrf;
         };
 
-        $pimple[Crypto::class] = function () {
-            $conf = config('app');
-            $csrf = new Crypto($conf['secret_key']);
-
-            return $csrf;
-        };
-
         $pimple[XHProf::class] = function () {
             return new XHProf(config('xhprof'));
         };
