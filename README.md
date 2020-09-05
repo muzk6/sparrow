@@ -230,8 +230,14 @@ f | float
 
 #### `logfile()` 文件日志
 
-- `logfile(uniqid(), ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
-- 第1个参数为唯一值，可以通过这个值双向定位(定位代码位置、定位日志行位置)
+`logfile('test', ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
+
+各日志文件说明：
+
+- `standard_xxx.log` PHP 标准错误处理程序写的日志，比较精简，但只能它才能记录 Fatal Error, Parse Error
+- `error_xxx.log` 框架写的错误日志，比较详细
+- `access_xxx.log` 框架的写访问日志
+- `app_xx.log` 用户写的默认日志，文件名可以修改，由 `logfile()` 参数3控制 
 
 #### `url()` 带协议和域名的完整URL
 
