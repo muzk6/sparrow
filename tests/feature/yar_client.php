@@ -32,6 +32,26 @@ $fn = function ($ret, $info) {
 /**
  * 并行调用
  */
-app(Yar::class)->requestConcurrently('sparrow', 'foo', ['name' => 'tom'], $fn);
-app(Yar::class)->requestConcurrently('sparrow', 'foo', ['name' => 'tom'], $fn);
+
+// 只注册正常回调，遇到错误时由 \Yar_Concurrent_Client::loop() 抛出异常，不会中断代码
+app(Yar::class)->requestConcurrently('sparrow', 'foo', ['name' => 'tom1'],
+    function ($retVal, $callInfo) {
+        echo '正常回调1' . PHP_EOL;
+        var_dump($retVal, $callInfo);
+    }
+);
+
+// 同时注册正常、错误回调
+app(Yar::class)->requestConcurrently('sparrow', 'foo', ['name' => 'tom2'],
+    function ($retVal, $callInfo) {
+        echo '正常回调2' . PHP_EOL;
+        var_dump($retVal, $callInfo);
+    },
+    function ($type, $error, $callInfo) {
+        echo '错误回调2' . PHP_EOL;
+        var_dump($type, $error, $callInfo);
+    }
+);
+
+// 开始执行
 app(Yar::class)->loop();
