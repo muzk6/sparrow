@@ -33,7 +33,7 @@ class Yar
      * @param string $index
      * @return string
      */
-    protected function getUrl(string $index)
+    public function getUrl(string $index)
     {
         $url = $this->servers[$index] ?? $index;
         if ($this->traceName) {
