@@ -33,10 +33,6 @@ class ServiceProvider implements ServiceProviderInterface
             return new Queue(config('rabbitmq'));
         };
 
-        $pimple[Yar::class] = function () {
-            return new Yar(config('yar'));
-        };
-
         $pimple[Whitelist::class] = function () {
             return new Whitelist(config('whitelist'));
         };

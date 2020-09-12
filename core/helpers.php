@@ -1,6 +1,7 @@
 <?php
 
 use Core\AppContainer;
+use Core\AppCURL;
 use Core\AppException;
 use Core\Auth;
 use Core\Blade;
@@ -365,7 +366,12 @@ function url($path, array $params = [], bool $secure = false)
         }
 
         list($alias, $path) = $path;
-        $host = config("domain.{$alias}");
+        $conf = config('domain');
+        if (!isset($conf[$alias])) {
+            trigger_error("domain.php 不存在配置项: {$alias}", E_USER_ERROR);
+        }
+
+        $host = $conf[$alias];
     } else {
         $host = $_SERVER['HTTP_HOST'] ?? '';
     }
@@ -559,4 +565,34 @@ function route_middleware(callable $fn)
 function route_group(callable $fn)
 {
     app(Router::class)->addGroup($fn);
+}
+
+/**
+ * POST 请求
+ * @param string|array $url
+ * <p>string: 'http://sparrow.com/demo' 一般用于固定 url 的场景</p>
+ * <p>array: ['rpc.sparrow', '/demo'] 即读取配置 domain.php 里的域名再拼接上 /demo 一般用于不同环境不同 url 的场景</p>
+ * @param array $data POST 参数
+ * @param array $headers 请求头
+ * @param int $connectTimeout 请求超时(秒)
+ * @return array|string|null
+ */
+function curl_post($url, array $data = [], array $headers = [], int $connectTimeout = 3)
+{
+    return app(AppCURL::class)->post($url, $data, $headers, $connectTimeout);
+}
+
+/**
+ * GET 请求
+ * @param string|array $url
+ * <p>string: 'http://sparrow.com/demo' 一般用于固定 url 的场景</p>
+ * <p>array: ['rpc.sparrow', '/demo'] 即读取配置 domain.php 里的域名再拼接上 /demo 一般用于不同环境不同 url 的场景</p>
+ * @param array $data querystring 参数
+ * @param array $headers 请求头
+ * @param int $connectTimeout 请求超时(秒)
+ * @return bool|string|null
+ */
+function curl_get($url, array $data = [], array $headers = [], int $connectTimeout = 3)
+{
+    return app(AppCURL::class)->get($url, $data, $headers, $connectTimeout);
 }

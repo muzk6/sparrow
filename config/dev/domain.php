@@ -6,4 +6,5 @@
  */
 return [
     'test' => 'test.sparrow.com',
+    'rpc.sparrow' => 'nginx:37064',
 ];
