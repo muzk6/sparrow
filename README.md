@@ -88,6 +88,20 @@ PATH_LOG | 日志目录
 - `route_middleware()` 注册路由中间件
 - `route_group()` 路由分组
 
+```php
+route_get('/demo/xhr', function () {
+    // 返回 state:false 的 json
+    panic('失败消息'); // 这里抛出 AppException 异常，相当于 return api_json(true, [], '失败消息');
+
+    // 返回 state:true 的 json 内容
+    $data = ['key1' => 'val1'];
+    return $data; // 直接返回数组，相当于 return api_json(true, $data);
+    
+    // 原样输出文本
+    return 'hello world'; // 返回非数组，直接原样输出文本，一般用于返回 view() 来输出 html 网页
+});
+```
+
 ### 例子
 
 - 基本用法参考 `app/Routes/index.php`
