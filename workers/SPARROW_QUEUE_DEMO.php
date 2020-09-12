@@ -8,10 +8,8 @@
  * 3. 队列名/worker名 要有项目名前缀，防止在 Supervisor, RabbitMq 里与其它项目搞混
  */
 
-use Core\Queue;
-
 require dirname(__DIR__) . '/init.php';
 
-app(Queue::class)->consume('SPARROW_QUEUE_DEMO', function ($params) {
+queue_consume('SPARROW_QUEUE_DEMO', function ($params) {
     return $params;
 });

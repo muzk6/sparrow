@@ -9,6 +9,7 @@ use Core\Config;
 use Core\CSRF;
 use Core\Flash;
 use Core\PDOEngine;
+use Core\Queue;
 use Core\Request;
 use Core\Router;
 use Core\Translator;
@@ -487,6 +488,28 @@ function csrf_token()
 function csrf_check()
 {
     return app(CSRF::class)->check();
+}
+
+/**
+ * 消息队列发布
+ * @param string $queue 队列名称
+ * @param array $data
+ * @param string $exchangeName 交换器名称
+ * @param string $exchangeType 交换器类型
+ */
+function queue_publish(string $queue, array $data, string $exchangeName = 'sparrow.direct', string $exchangeType = 'direct')
+{
+    app(Queue::class)->publish($queue, $data, $exchangeName, $exchangeType);
+}
+
+/**
+ * 消息队列消费
+ * @param string $queue 队列名称
+ * @param callable $callback
+ */
+function queue_consume(string $queue, callable $callback)
+{
+    app(Queue::class)->consume($queue, $callback);
 }
 
 /**

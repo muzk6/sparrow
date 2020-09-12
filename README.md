@@ -402,7 +402,7 @@ worker 遇到信号 `SIGTERM`, `SIGHUP`, `SIGINT`, `SIGQUIT` 会平滑结束进�
 
 ### 用例
 
-- `app(\Core\Queue::class)->publish('SPARROW_QUEUE_DEMO', ['time' => microtime(true)]);` 发布消息
+- `queue_publish('SPARROW_QUEUE_DEMO', ['foo' => 1, 'bar' => 2]);` 发布消息
 - 消费的 worker, 参考 `workers/SPARROW_QUEUE_DEMO.php`
 - docker 容器 php-fpm 里面已经有 supervisor, 使 worker 变为长驻进程
     - 示例配置文件为 `docker/php-fpm/supervisor_conf.d/SPARROW_QUEUE_DEMO.conf`

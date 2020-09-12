@@ -88,7 +88,6 @@ class Queue
      * 消息队列消费
      * @param string $queue 队列名称
      * @param callable $callback
-     * @throws \ErrorException
      */
     public function consume(string $queue, callable $callback)
     {
@@ -193,7 +192,12 @@ class Queue
         pcntl_signal(SIGQUIT, $signalHandler);
 
         while ($this->channels[$channelKey]->is_consuming()) {
-            $this->channels[$channelKey]->wait();
+            try {
+                $this->channels[$channelKey]->wait();
+            } catch (\ErrorException $e) {
+                trigger_error($e->getMessage(), E_USER_ERROR);
+            }
+
             pcntl_signal_dispatch();
         }
     }
