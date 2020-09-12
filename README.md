@@ -199,6 +199,7 @@ s | string
 b | bool
 a | array
 f | float
+d | double
 
 ## 数据库查询
 
@@ -369,23 +370,8 @@ app(\Core\Auth::class)->logout(); // 退出登录
 
 ## RPC 远程过程调用
 
-### 依赖
-
-- CentOS
-    - `yum -y install curl-devel`
-- Ubuntu
-    - `sudo apt install libcurl4-gnutls-dev`
-    - Ubuntu 17 还要兼容一下 curl 的安装路径 `sudo ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/`
-- `pecl install msgpack`
-- `pecl install yar`
-    - 安装过程中建议选择 `yes` 使用 msgpack
-    
-### 用例
-
-- 客户端参考 `tests/feature/yar_client.php`
-    - 参考配置文件 `config/dev/yar.php`
-- 服务端参考 `private/rpc/index.php`
-    - 配置 http 入口 `private/rpc` 以及私有域名
+- 服务端入口 `private/rpc/index.php`, 注意要使用内部域名，不能让外网访问
+- 客户端调用参考 `tests/feature/curl.php`
 
 ## 消息队列
 
@@ -474,12 +460,6 @@ https://github.com/elastic/elasticsearch-php
 - Cookie 主动开启: `_xt=name0;`
 
 *注意：`URL`, `Cookie` 方式的前提必须先设置 `config/.../whitelist.php` 白名单 `IP` 或 白名单 `Cookie`*
-
-#### 跟踪 rpc
-
-在调用 `->request()` 前先调用 `->trace()` 即可
-
-`app(\Core\Yar::class)->trace('rpc')->request('sparrow', 'bar', [1, 2, 3])`
 
 #### 跟踪 cli
 
