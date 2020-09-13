@@ -17,6 +17,11 @@ class AppCURL
         $this->ch = curl_init();
     }
 
+    public function __destruct()
+    {
+        curl_close($this->ch);
+    }
+
     /**
      * POST 请求
      * @param string|array $url
