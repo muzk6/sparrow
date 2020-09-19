@@ -34,7 +34,6 @@
     "ext-redis": "Required to use the Redis",
     "ext-pcntl": "Required to use the Pcntl",
     "ext-xdebug": "Required to use the Xdebug",
-    "msgpack": "Required to use the msgpack in Yar",
     "tideways_xhprof": "Required to use the tideways_xhprof",
     "swiftmailer/swiftmailer": "Required to use the Swift_Mailer",
     "elasticsearch/elasticsearch": "Required to use the Elasticsearch",
