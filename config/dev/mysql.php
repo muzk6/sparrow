@@ -11,7 +11,7 @@ return [
         'default' => [
             // 主库
             'master' => [
-                'dsn' => 'mysql:dbname=test;host=mysql;port=3306;charset=utf8mb4',
+                'dsn' => 'mysql:host=mysql;port=3306;dbname=test;charset=utf8mb4;',
                 'user' => 'root',
                 'passwd' => 'xxxx',
                 'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
@@ -19,7 +19,7 @@ return [
             // 从库
 //            'slaves' => [
 //                [
-//                    'dsn' => 'mysql:dbname=test;host=mysql;port=3306;charset=utf8mb4',
+//                    'dsn' => 'mysql:host=mysql;port=3306;dbname=test;charset=utf8mb4;',
 //                    'user' => 'root',
 //                    'passwd' => 'xxxx',
 //                    'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
@@ -29,7 +29,7 @@ return [
         // 扩展分区
 //        'sec0' => [
 //            'master' => [
-//                'dsn' => 'mysql:dbname=test;host=mysql;port=3306;charset=utf8mb4',
+//                'dsn' => 'mysql:host=mysql;port=3306;dbname=test;charset=utf8mb4;',
 //                'user' => 'root',
 //                'passwd' => 'xxxx',
 //                'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
