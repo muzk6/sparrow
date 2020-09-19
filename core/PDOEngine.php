@@ -21,7 +21,7 @@ class PDOEngine
     protected $sectionConn = [];
 
     /**
-     * @param array $conf 数据库配置，格式 config/dev/database.php
+     * @param array $conf 数据库配置
      */
     public function __construct(array $conf)
     {
@@ -35,22 +35,15 @@ class PDOEngine
 
     /**
      * 创建新连接
-     * @param array $host
+     * @param string $dsn
      * @param string $user
      * @param string $passwd
-     * @param string $dbname
-     * @param string $charset
+     * @param array $options
      * @return PDO
      */
-    protected function initConnection(array $host, string $user, string $passwd, string $dbname = '', string $charset = '')
+    protected function initConnection(string $dsn, string $user, string $passwd, array $options)
     {
-        $dbnameDsn = $dbname ? "dbname={$dbname};" : '';
-        $charsetDsn = $charset ? "charset={$charset}" : '';
-
-        $pdo = new PDO("mysql:{$dbnameDsn}host={$host['host']};port={$host['port']};{$charsetDsn}", $user, $passwd,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
+        $pdo = new PDO($dsn, $user, $passwd, $options);
         return $pdo;
     }
 
@@ -68,35 +61,33 @@ class PDOEngine
 
         $sectionConf = &$this->conf['sections'][$section];
         if (is_null($sectionConf)) {
-            trigger_error("database.php 配置错误，`sections -> {$section}` 不存在", E_USER_ERROR);
+            trigger_error("数据库配置错误，`sections -> {$section}` 不存在", E_USER_ERROR);
         }
 
-        if ($useMaster || empty($sectionConf['hosts']['slaves'])) { // 主库；在没有配置从库时也使用主库
+        if ($useMaster || empty($sectionConf['slaves'])) { // 主库；在没有配置从库时也使用主库
             $connection = &$this->sectionConn[$section]['master'];
             if (empty($connection)) {
-                $connection = $this->initConnection($sectionConf['hosts']['master'],
-                    $sectionConf['user'],
-                    $sectionConf['passwd'],
-                    $sectionConf['dbname'] ?? '',
-                    $sectionConf['charset'] ?? ''
+                $connection = $this->initConnection($sectionConf['master']['dsn'],
+                    $sectionConf['master']['user'] ?? '',
+                    $sectionConf['master']['passwd'] ?? '',
+                    $sectionConf['master']['options'] ?? []
                 );
             }
 
         } else { // 从库
             $connection = &$this->sectionConn[$section]['slave'];
             if (empty($connection)) {
-                shuffle($sectionConf['hosts']['slaves']);
-                foreach ($sectionConf['hosts']['slaves'] as $host) {
+                shuffle($sectionConf['slaves']);
+                foreach ($sectionConf['slaves'] as $slave) {
                     try {
-                        $connection = $this->initConnection($host,
-                            $sectionConf['user'],
-                            $sectionConf['passwd'],
-                            $sectionConf['dbname'] ?? '',
-                            $sectionConf['charset'] ?? ''
+                        $connection = $this->initConnection($slave['dsn'],
+                            $slave['user'] ?? '',
+                            $slave['passwd'] ?? '',
+                            $slave['dbname'] ?? []
                         );
                         break;
                     } catch (\Exception $exception) {
-                        trigger_error($exception->getMessage() . ': ' . json_encode($host, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
+                        trigger_error($exception->getMessage() . ': ' . json_encode($slave, JSON_UNESCAPED_SLASHES), E_USER_WARNING);
                     }
                 }
             }

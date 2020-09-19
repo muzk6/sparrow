@@ -1,7 +1,7 @@
 <?php
 
 /**
- * MySQL 数据库
+ * PDO - MySQL 数据库配置
  */
 
 return [
@@ -9,28 +9,31 @@ return [
     'sections' => [
         // 默认区
         'default' => [
-            'user' => 'root',
-            'passwd' => 'xxxx',
-            'dbname' => 'test',
-            'charset' => 'utf8mb4',
-            'hosts' => [
-                'master' => ['host' => 'mysql', 'port' => 3306],
-                'slaves' => [
-//                    ['host' => 'localhost', 'port' => 3306],
-                ]
+            // 主库
+            'master' => [
+                'dsn' => 'mysql:dbname=test;host=mysql;port=3306;charset=utf8mb4',
+                'user' => 'root',
+                'passwd' => 'xxxx',
+                'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
             ],
+            // 从库
+//            'slaves' => [
+//                [
+//                    'dsn' => 'mysql:dbname=test;host=mysql;port=3306;charset=utf8mb4',
+//                    'user' => 'root',
+//                    'passwd' => 'xxxx',
+//                    'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+//                ],
+//            ],
         ],
         // 扩展分区
 //        'sec0' => [
-//            'user' => 'dev',
-//            'passwd' => 'itH*@$xv@Y49PjDY',
-//            'dbname' => 'test',
-//            'hosts' => [
-//                'master' => ['host' => 'localhost', 'port' => 3306],
-//                'slaves' => [
-//                    ['host' => 'localhost', 'port' => 3306],
-//                ]
-//            ]
+//            'master' => [
+//                'dsn' => 'mysql:dbname=test;host=mysql;port=3306;charset=utf8mb4',
+//                'user' => 'root',
+//                'passwd' => 'xxxx',
+//                'options' => [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+//            ],
 //        ],
     ],
 
@@ -43,7 +46,7 @@ return [
     'sharding' => function (string $table, string $index) {
         $sharding = [
             'section' => 'default', // 分区名
-            'dbname' => 'test', // 数据库名
+            'dbname' => 'test', // 数据库名，没有库名则设置为空(例如 SQLite 场景)
             'table' => $table,
         ];
 

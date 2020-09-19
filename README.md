@@ -215,10 +215,14 @@ a | array
 f | float
 d | double
 
-## 数据库查询
+## PDO 数据库
 
-- 配置文件 `config/.../database.php`
+可以配置 MySQL, SQLite 等 PDO 支持的数据库
+
+- 配置文件 `config/.../mysql.php`
 - 用例参考 `tests/feature/db.php`
+
+如果想同时使用 SQLite 等数据库, 参考复制 `mysql.php` 为新的数据库配置文件，按需配置 dsn，再注册容器即可(参考 `\Core\ServiceProvider` 的 `PDOEngine`)
 
 ## `helpers` 其它辅助函数用例
 
