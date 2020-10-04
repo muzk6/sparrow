@@ -37,11 +37,11 @@ class Flash
     /**
      * 是否有值
      * @param string $key
-     * @return bool true: 存在且非 null
+     * @return bool true: 存在且为真
      */
     public function has(string $key)
     {
-        return isset($_SESSION[$this->prefix . $key]);
+        return !empty($_SESSION[$this->prefix . $key]);
     }
 
     /**
@@ -61,7 +61,7 @@ class Flash
      */
     public function get(string $key)
     {
-        if (!$this->has($key)) {
+        if (!$this->exists($key)) {
             return null;
         }
 
@@ -78,7 +78,7 @@ class Flash
      */
     public function del(string $key)
     {
-        if (!$this->has($key)) {
+        if (!$this->exists($key)) {
             return false;
         }
 

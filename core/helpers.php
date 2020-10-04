@@ -424,7 +424,7 @@ function flash_set(string $key, $value)
 /**
  * 闪存是否有值
  * @param string $key
- * @return bool true: 存在且非 null
+ * @return bool true: 存在且为真
  */
 function flash_has(string $key)
 {
