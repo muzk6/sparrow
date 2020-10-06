@@ -235,7 +235,7 @@ d | double
 
 - `config('app.lang')`
 - 假设当前环境是`dev`
-- 依次搜索`config/app.php, config/dev/app.php`, 存在时返回第一个结果文件的内容，都不存在时返回`''`
+- 依次搜索`config/dev/app.php, config/app.php`, 存在时返回第一个结果文件的内容，都不存在时返回`''`
 - `config(['app.lang' => 'en'])`设置 run-time 的配置
 
 添加新环境配置：
@@ -249,7 +249,7 @@ d | double
 
 #### `logfile()` 文件日志
 
-`logfile('test', ['foo', 'bar'], 'login')` 把内容写到`data/log/login_190328.log`
+`logfile('test', ['foo', 'bar'], 'login')` 把内容写到`data/log/login_20190328.log`
 
 各日志文件说明：
 
@@ -301,7 +301,7 @@ inject(function (\Core\Queue $queue) {
 #### `flash_*()` 闪存，一性次缓存
 
 - `flash_set(string $key, $value)` 闪存设置
-- `flash_has(string $key)` 闪存是否有值，存在且非 null
+- `flash_has(string $key)` 存在且为真
 - `flash_exists(string $key)` 闪存是否存在，即使值为 null
 - `flash_get(string $key)` 闪存获取并删除
 - `flash_del(string $key)` 闪存删除
@@ -431,20 +431,6 @@ worker 遇到信号 `SIGTERM`, `SIGHUP`, `SIGINT`, `SIGQUIT` 会平滑结束进�
 ### 用例
 
 参考类文档 `\Core\Mail`
-
-## Elasticsearch, es
-
-### 依赖
-
-`composer require elasticsearch/elasticsearch`
-
-### 文档
-
-https://github.com/elastic/elasticsearch-php
-
-### 用例
-
-`app(\Core\AppES::class)` 为实例对象，用法与原生一致
 
 ## OPS 运维与开发
 > 用于运维监控与开发调试，包括 日志、调试、性能分析

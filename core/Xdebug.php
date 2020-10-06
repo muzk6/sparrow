@@ -130,7 +130,8 @@ class Xdebug
     public function start($traceName)
     {
         if (!extension_loaded('xdebug')) {
-            trigger_error('请安装扩展: xdebug', E_USER_ERROR);
+            trigger_error('请安装扩展: xdebug', E_USER_WARNING);
+            return false;
         }
 
         if (!file_exists(PATH_TRACE)) {
