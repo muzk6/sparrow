@@ -32,14 +32,16 @@ class Config
             } else if (is_file($path = PATH_CONFIG . "/{$filename}.php")) {
                 $config = include($path);
             } else {
-                trigger_error("{$filename}.php 配置文件不存在", E_USER_ERROR);
+                trigger_error("{$filename}.php 配置文件不存在", E_USER_WARNING);
+                return '';
             }
         }
 
         $value = $config;
         foreach ($keys as $item) {
             if (!isset($value[$item])) {
-                trigger_error("配置项 {$key} 不存在", E_USER_ERROR);
+                trigger_error("配置项 {$key} 不存在", E_USER_WARNING);
+                return '';
             }
 
             $value = $value[$item];
