@@ -91,7 +91,7 @@ PATH_LOG | 日志目录
 ```php
 route_get('/demo/xhr', function () {
     // 返回 state:false 的 json
-    panic('失败消息'); // 这里抛出 AppException 异常，相当于 return api_json(true, [], '失败消息');
+    panic('失败消息'); // 这里抛出 AppException 异常，相当于 return api_json(false, [], '失败消息');
 
     // 返回 state:true 的 json 内容
     $data = ['key1' => 'val1'];
@@ -265,9 +265,9 @@ d | double
 
 #### `panic()` 直接抛出业务异常对象
 
+- `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
 - `panic('foo')` 等于 `new AppException('foo')`
 - `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
-- `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
 
 `AppException` 异常属于业务逻辑，能够作为提示通过接口返回给用户看，而其它异常则不会(安全考虑)
 
@@ -310,10 +310,10 @@ inject(function (\Core\Queue $queue) {
 
 - `api_format(true, ['foo' => 1])` 格式化为成功的内容结构 array
 - `api_format($exception)` 格式化异常对象为失败的内容结构 array
-- `api_json()`, `api_format()` 用法一样，区别是返回 string-json
+- `api_json()`, `api_format()` 用法一样，区别是前者返回 string-json
 - `api_success()`, `api_error()` 是 `api_json()` 的简写
 
-*成功提示，在控制器 action 里的等价写法如下：*
+#### 成功提示
 
 ```json
 {
@@ -326,16 +326,15 @@ inject(function (\Core\Queue $queue) {
 }
 ```
 
+路由里等价写法如下：
+
 ```php
-public function successAciton()
-{
-    return ['foo' => 1]; // 只能返回消息体 d
-    return api_success('我是成功消息', 0, ['foo' => 1]); // 支持返回 c, m ,d; 一般用于方便返回纯 m, 例如 api_success('我是成功消息');
-    return api_json(true, ['foo' => 1]); // 支持返回 s, c, m ,d
-}
+return ['foo' => 1]; // 只能返回消息体 d
+return api_success('', 0, ['foo' => 1]); // 一般用于方便返回纯 m, 例如 api_success('我是成功消息');
+return api_json(true, ['foo' => 1]);
 ```
 
-*错误提示等价写法如下：*
+#### 错误提示
 
 ```json
 {
@@ -348,13 +347,12 @@ public function successAciton()
 }
 ```
 
+路由里等价写法如下：
+
 ```php
-public function errorAciton()
-{
-    panic('我是失败消息', ['foo' => 1]); // 直接抛出异常，不用 return, 如果使用错误码，错误码必须存在于 `lang/` 配置里
-    return api_error('我是失败消息', 0, ['foo' => 1]); // 支持返回 c, m ,d; 可自由指定错误码
-    return api_json(false, ['foo' => 1]); // 支持返回 s, c, m ,d
-}
+panic('我是失败消息', ['foo' => 1]); // 直接抛出异常，不用 return; 另一种便捷的用法是 panic(10001000);
+return api_error('我是失败消息', 0, ['foo' => 1]); // 可自由指定错误码
+return api_json(false, ['foo' => 1]);
 ```
 
 #### `assign()`, `view()` 模板与变量

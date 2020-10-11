@@ -194,7 +194,7 @@ function api_format($state, array $data = [], string $message = '', int $code = 
 
 /**
  * JSON 类型的 API 格式
- * @param bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
+ * @param int|bool|AppException|Exception $state 业务状态，异常对象时自动填充后面的参数
  * @param array $data 对象体
  * @param string $message 消息体
  * @param int $code 消息码
