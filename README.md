@@ -265,9 +265,9 @@ d | double
 
 #### `panic()` 直接抛出业务异常对象
 
-- `panic(10001000)` 等于 `new AppException('10001000')` 自动转为错误码对应的文本
-- `panic('foo')` 等于 `new AppException('foo')`
-- `panic('foo', ['bar'])` 等于 `new (AppException('foo'))->setData(['bar'])`
+- `panic(10001000)` 等于 `throw new AppException('10001000')` 自动转为错误码对应的文本
+- `panic('foo')` 等于 `throw new AppException('foo')`
+- `panic('foo', ['bar'])` 等于 `throw (new AppException('foo'))->setData(['bar'])`
 
 `AppException` 异常属于业务逻辑，能够作为提示通过接口返回给用户看，而其它异常则不会(安全考虑)
 
