@@ -582,7 +582,7 @@ function route_middleware(callable $fn)
 }
 
 /**
- * 路由分组
+ * 路由分组，隔离中间件
  * @param callable $fn
  */
 function route_group(callable $fn)

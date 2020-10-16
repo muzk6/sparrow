@@ -85,24 +85,43 @@ PATH_LOG | 日志目录
     - `route_post_re()` 正则匹配 
 - `route_any()` 注册回调任何请求
     - `route_any_re()` 正则匹配
-- `route_middleware()` 注册路由中间件
-- `route_group()` 路由分组
+- `route_middleware()` 注册路由中间件，顺序执行，组内优先
+- `route_group()` 路由分组，隔离中间件
+
+### 用例
 
 ```php
-route_get('/demo/xhr', function () {
-    // 返回 state:false 的 json
-    panic('失败消息'); // 这里抛出 AppException 异常，相当于 return api_json(false, [], '失败消息');
+route_middleware(function () {
+    echo '中间件a1';
+});
 
-    // 返回 state:true 的 json 内容
-    $data = ['key1' => 'val1'];
-    return $data; // 直接返回数组，相当于 return api_json(true, $data);
-    
-    // 原样输出文本
-    return 'hello world'; // 返回非数组，直接原样输出文本，一般用于返回 view() 来输出 html 网页
+route_middleware(function () {
+    echo '中间件a2';
+});
+
+route_group(function () {
+    route_middleware(function () {
+        echo '中间件b1';
+    });
+
+    route_get('/', function () {
+        return 'Just Do It!';
+    });
+});
+
+route_middleware(function () {
+    echo '中间件a3';
 });
 ```
 
-### 例子
+输出如下：
+```
+中间件b1
+中间件a1
+中间件a2
+Just Do It!
+中间件a3
+```
 
 - 基本用法参考 `app/Routes/index.php`
 - 高级用法参考测试用例: `tests/feature/router_advanced.php`
@@ -265,7 +284,7 @@ d | double
 
 #### `panic()` 直接抛出业务异常对象
 
-- `panic(10001000)` 等于 `throw new AppException('10001000')` 自动转为错误码对应的文本
+- `panic(10001000)` 等于 `throw new AppException('10001000')` 自动转为错误码对应的文本，参考翻译文件 lang/zh_CN.php
 - `panic('foo')` 等于 `throw new AppException('foo')`
 - `panic('foo', ['bar'])` 等于 `throw (new AppException('foo'))->setData(['bar'])`
 

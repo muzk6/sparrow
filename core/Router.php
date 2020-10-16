@@ -95,7 +95,7 @@ class Router
     }
 
     /**
-     * 路由分组
+     * 路由分组，隔离中间件
      * @param callable $fn
      */
     public function addGroup(callable $fn)
