@@ -28,11 +28,6 @@ class PDOEngine
         $this->conf = $conf;
     }
 
-    public function __destruct()
-    {
-        $this->close();
-    }
-
     /**
      * 创建新连接
      * @param string $dsn
